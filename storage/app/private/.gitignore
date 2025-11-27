@@ -1,0 +1,7 @@
+*
+!.gitignore
+firebase/*
+.env
+.env.*
+.phpunit.result.cache
+/storage/*

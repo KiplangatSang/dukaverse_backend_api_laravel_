@@ -1,0 +1,10 @@
+- [x] Create migration for jobs table
+- [x] Create migration for job_applications table
+- [x] Create Job model
+- [x] Create JobApplication model
+- [x] Create JobController with CRUD operations and application endpoints
+- [x] Add API routes for jobs and applications
+- [x] Update Swagger documentation
+- [x] Update Careers.md with API documentation
+- [x] Run migrations
+- [ ] Test the endpoints

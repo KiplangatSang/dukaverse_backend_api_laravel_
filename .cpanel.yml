@@ -1,0 +1,23 @@
+deployment:
+  env:
+    DEBUG_MODE: "true"
+
+  tasks:
+    - |
+      TESTDEPLOYPATH=/home/ceroisoft/dukaverse_test
+      PRODUCTIONDEPLOYPATH=/home/ceroisoft/dukaverse
+
+      TESTTARGETPATH="/home/ceroisoft/public_html/dukaversestaging_public"
+      PRODUCTIONTARGETPATH="/home/ceroisoft/public_html/dukaverse_public"
+
+
+
+      # Test deployment
+      export DEPLOYPATH="$TESTDEPLOYPATH"
+      cp -R "$TESTDEPLOYPATH/public/build/"* "$TESTTARGETPATH/"
+
+
+      # Production deployment
+      export DEPLOYPATH ="$PRODUCTIONDEPLOYPATH"
+      cp -R "$PRODUCTIONDEPLOYPATH/public/build/"* "$PRODUCTIONTARGETPATH/"
+      echo "Deployment completed."
