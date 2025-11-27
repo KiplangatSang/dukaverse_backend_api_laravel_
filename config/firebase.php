@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'credentials' => base_path(env('FIREBASE_CREDENTIALS', 'firebase/firebase_credentials.json')),
+    'credentials' => base_path(env('FIREBASE_CREDENTIALS', 'storage/app/firebase/firebase_credentials.json')),
     'database_url' => env('FIREBASE_DATABASE_URL', 'https://dukaverse-e4f47-default-rtdb.firebaseio.com'),
     'storage_bucket' => env('FIREBASE_STORAGE_BUCKET', 'dukaverse-e4f47.appspot.com'),
     'database_url' => env('FIREBASE_DATABASE_URL', 'https://dukaverse-e4f47-default-rtdb.firebaseio.com'),

@@ -191,9 +191,9 @@ class TasksService extends BaseService
 
     }
 
-    Route::post('tasks/{task_id}/comments', [TaskController::class, 'addComment']);
-        Route::put('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'updateComment']);
-        Route::delete('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'deleteComment']);
+    // Route::post('tasks/{task_id}/comments', [TaskController::class, 'addComment']);
+    //     Route::put('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'updateComment']);
+    //     Route::delete('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'deleteComment']);
 
 public function addComment(Request $request, $task_id){
 
