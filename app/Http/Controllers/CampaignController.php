@@ -1,10 +1,12 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Helpers\Accounts\Account;
 use App\Models\Campaign;
 use App\Models\TaskDependancy;
 use App\Models\Team;
+use App\Services\FirebaseService;
 use DateTime;
 use Exception;
 use Illuminate\Http\Request;
@@ -19,6 +21,13 @@ use Illuminate\Support\Facades\Validator;
  */
 class CampaignController extends BaseController
 {
+
+    public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly FirebaseService $firebaseService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -198,7 +207,7 @@ class CampaignController extends BaseController
             return $this->sendError("Bad request", ["errors" => $validator->errors()]);
         }
 
-        $campaign_avatar = $this->saveFile("projects", $request->avatar);
+        $campaign_avatar = $this->firebaseService->saveFile("projects", $request->avatar);
 
         try {
             // Parse and validate the start_date

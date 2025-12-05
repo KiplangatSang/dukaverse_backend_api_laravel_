@@ -1,20 +1,23 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
 use App\Helpers\notifications\DukaverseNotification;
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Retail;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
-class RetailRepository
+class RetailService extends BaseService
 {
     private $user;
-    private $account;
-    public function __construct(User $user, $account)
-    {
-        $this->user    = $user;
-        $this->account = $account;
-
+     public function __construct(
+        protected readonly StoreFileResource $storeFileResource,
+        protected readonly ResponseHelper $responseHelper
+    ) {
+          parent::__construct($storeFileResource, $responseHelper);
+          $this->user = $this->user();
     }
 
     public function retails()

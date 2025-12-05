@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreSubscriptionRequest;
 use App\Http\Requests\UpdateSubscriptionRequest;
@@ -10,12 +11,18 @@ use App\Events\SubscriptionCreated;
 use App\Events\SubscriptionCancelled;
 use App\Events\SubscriptionReactivated;
 use App\Events\SubscriptionUpgraded;
-use Illuminate\Http\Request;
+ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 class SubscriptionController extends BaseController
 {
+
+     public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Info(
      *     title="Dukaverse API",

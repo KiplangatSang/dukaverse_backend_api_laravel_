@@ -4,7 +4,7 @@ namespace App\Listeners;
 use App\Events\CustomerInvoice;
 use App\Models\User;
 use App\Notifications\CustomerInvoiceNotification;
-use App\Repositories\CustomersRepository;
+use App\Services\CustomersService;
 
 class CustomerInvoiceListener extends BaseListener
 {
@@ -28,7 +28,7 @@ class CustomerInvoiceListener extends BaseListener
     {
         //
 
-        $custRepo = new CustomersRepository($this->retail());
+        $custRepo = new CustomersService($this->retail());
         $custdata = $custRepo->getCustomersCredit($event->customerCredit->id);
         $user     = User::where('id', Auth::id())->first();
         $user->notify(new CustomerInvoiceNotification($custdata));

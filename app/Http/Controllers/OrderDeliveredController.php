@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use App\Repositories\OrdersRepository;
+use App\Services\OrderService;
 
 /**
  * @OA\Tag(
@@ -15,11 +16,11 @@ class OrderDeliveredController extends BaseController
     private $ordersRepo;
 
     /**
-     * Repository accessor
+     *  Service accessor
      */
-    public function ordersRepository()
+    public function OrderService()
     {
-        $this->ordersRepo = new OrdersRepository($this->user());
+        $this->ordersRepo = new OrderService($this->user());
         return $this->ordersRepo;
     }
 
@@ -47,8 +48,8 @@ class OrderDeliveredController extends BaseController
      */
     public function index()
     {
-        $this->ordersRepository();
-        $ordersdata = $this->ordersRepository()->getDeliveredOrders();
+        $this->OrderService();
+        $ordersdata = $this->OrderService()->getDeliveredOrders();
         return response()->json($ordersdata, 200);
     }
 

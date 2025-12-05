@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Models\Wallet;
+
+ use App\Models\Wallet;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;

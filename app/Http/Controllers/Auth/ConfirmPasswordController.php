@@ -1,10 +1,18 @@
 <?php
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\Controller;
 
 class ConfirmPasswordController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
     /*
     |--------------------------------------------------------------------------
     | Confirm Password Controller

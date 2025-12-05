@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\SaleSetting;
 use App\Http\Requests\StoreSaleSettingRequest;

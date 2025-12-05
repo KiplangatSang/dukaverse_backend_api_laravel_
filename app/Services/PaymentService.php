@@ -1,10 +1,9 @@
 <?php
 namespace App\Services;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\StoreFileResource;
 use App\Http\Resources\ResponseHelper;
-use App\Repositories\TransactionsRepository;
+use App\Http\Resources\StoreFileResource;
+use App\Services\TransactionsService;
 use Illuminate\Http\Request;
 
 class PaymentService extends BaseService
@@ -14,7 +13,7 @@ class PaymentService extends BaseService
     public function __construct(
         StoreFileResource $storeFileResource,
         ResponseHelper $responseHelper,
-        private readonly TransactionsRepository $transactionRepository
+        private readonly TransactionsService $transactionService
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }
@@ -40,15 +39,15 @@ class PaymentService extends BaseService
     public function processGooglePay(Request $request)
     {
         $request->validate([
-            'token' => 'required|string',
-            'amount' => 'required|numeric|min:0.01',
-            'currency' => 'nullable|string|size:3',
+            'token'       => 'required|string',
+            'amount'      => 'required|numeric|min:0.01',
+            'currency'    => 'nullable|string|size:3',
             'description' => 'nullable|string|max:127',
         ]);
 
         try {
             $googlePay = new \App\PaymentGateways\GooglePay\GooglePayPayments();
-            $result = $googlePay->processPayment(
+            $result    = $googlePay->processPayment(
                 $request->amount,
                 $request->currency ?? 'USD',
                 $request->description ?? 'Payment',
@@ -59,20 +58,20 @@ class PaymentService extends BaseService
                 return response()->json([
                     'success' => true,
                     'message' => 'Google Pay payment processed successfully',
-                    'data' => $result,
+                    'data'    => $result,
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Google Pay payment failed',
-                    'error' => $result['error'],
+                    'error'   => $result['error'],
                 ], 400);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Google Pay payment failed',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 400);
         }
     }
@@ -80,8 +79,8 @@ class PaymentService extends BaseService
     public function processPayPalPayment(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
-            'currency' => 'nullable|string|size:3',
+            'amount'      => 'required|numeric|min:0.01',
+            'currency'    => 'nullable|string|size:3',
             'description' => 'nullable|string|max:127',
         ]);
 
@@ -96,13 +95,13 @@ class PaymentService extends BaseService
             return response()->json([
                 'success' => true,
                 'message' => 'PayPal order created successfully',
-                'data' => $result,
+                'data'    => $result,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'PayPal payment failed',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 400);
         }
     }
@@ -120,13 +119,13 @@ class PaymentService extends BaseService
             return response()->json([
                 'success' => true,
                 'message' => 'PayPal payment captured successfully',
-                'data' => $result->result,
+                'data'    => $result->result,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'PayPal capture failed',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 400);
         }
     }
@@ -134,8 +133,8 @@ class PaymentService extends BaseService
     public function createStripePaymentIntent(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
-            'currency' => 'nullable|string|size:3',
+            'amount'      => 'required|numeric|min:0.01',
+            'currency'    => 'nullable|string|size:3',
             'description' => 'nullable|string|max:255',
         ]);
 
@@ -151,20 +150,20 @@ class PaymentService extends BaseService
                 return response()->json([
                     'success' => true,
                     'message' => 'Stripe payment intent created successfully',
-                    'data' => $result,
+                    'data'    => $result,
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Stripe payment intent creation failed',
-                    'error' => $result['error'],
+                    'error'   => $result['error'],
                 ], 400);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Stripe payment intent creation failed',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 400);
         }
     }
@@ -187,20 +186,20 @@ class PaymentService extends BaseService
                 return response()->json([
                     'success' => true,
                     'message' => 'Stripe payment confirmed successfully',
-                    'data' => $result,
+                    'data'    => $result,
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Stripe payment confirmation failed',
-                    'error' => $result['error'],
+                    'error'   => $result['error'],
                 ], 400);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Stripe payment confirmation failed',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 400);
         }
     }
@@ -208,7 +207,7 @@ class PaymentService extends BaseService
     public function handleStripeWebhook(Request $request)
     {
         try {
-            $payload = $request->getContent();
+            $payload   = $request->getContent();
             $signature = $request->header('Stripe-Signature');
 
             $stripe = new \App\PaymentGateways\Stripe\StripePayments();
@@ -218,41 +217,40 @@ class PaymentService extends BaseService
                 return response()->json([
                     'success' => true,
                     'message' => 'Stripe webhook processed successfully',
-                    'data' => $result,
+                    'data'    => $result,
                 ], 200);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Stripe webhook processing failed',
-                    'error' => $result['error'],
+                    'error'   => $result['error'],
                 ], 400);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Stripe webhook processing failed',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 400);
         }
     }
 
-     public function storeTransaction(
-        $gateway,
-$sender_account_id,
-$receiver_account_id,
-$amount,
-$message,
-$transaction_type,
-$cost,
-$currency,
-$purpose,
-$sender_phone_number,
-$receiver_phone_number,
-$purpose_id,
-     )
-    {
+    public function storeTransaction(
+        string $gateway,
+        ?int $sender_account_id,
+        int $receiver_account_id,
+        float $amount,
+        string $message,
+        string $transaction_type,
+        string $cost,
+        string $currency,
+        string $purpose,
+        string $sender_phone_number,
+        string $receiver_phone_number,
+        string $purpose_id,
+    ) {
         # code...
-        $transactiondata = $this->transactionRepository->saveTransaction(
+        $transactiondata = $this->transactionService->saveTransaction(
             $gateway,
             $sender_account_id,
             $receiver_account_id,
@@ -269,5 +267,7 @@ $purpose_id,
 
         return $transactiondata;
     }
+
+   
 
 }

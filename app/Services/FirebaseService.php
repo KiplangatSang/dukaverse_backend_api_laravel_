@@ -1,18 +1,29 @@
 <?php
 namespace App\Services;
 
+use App\Helpers\Accounts\Account;
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\User;
+use Exception;
 use Google\Client as GoogleClient;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-class FirebaseService
+class FirebaseService extends BaseService
 {
     private string $projectId;
 
-    public function __construct()
-    {
-        $this->projectId = config('videocall_firebase.project_id');
+    public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+         $this->projectId = config('videocall_firebase.project_id');
+        parent::__construct($storeFileResource, $responseHelper);
     }
+
+
+    
 
     public function updateFCMToken(int $userId, string $fcmToken): void
     {
@@ -131,10 +142,10 @@ class FirebaseService
         try {
             $user = $notification->user;
 
-            if (!$user || !$user->fcm_token) {
+            if (! $user || ! $user->fcm_token) {
                 Log::warning('User FCM token not found for notification', [
-                    'user_id' => $notification->user_id,
-                    'notification_id' => $notification->id
+                    'user_id'         => $notification->user_id,
+                    'notification_id' => $notification->id,
                 ]);
                 return false;
             }
@@ -154,480 +165,80 @@ class FirebaseService
         } catch (\Exception $e) {
             Log::error('Failed to send notification via Firebase', [
                 'notification_id' => $notification->id,
-                'error' => $e->getMessage()
+                'error'           => $e->getMessage(),
             ]);
             return false;
         }
     }
 
     public function storeMessage(string $roomId, array $messageData): bool
-{
-    $accessToken = $this->getAccessToken();
-    if (!$accessToken) {
-        Log::error('Failed to get access token for storing message');
-        return false;
+    {
+        $accessToken = $this->getAccessToken();
+        if (! $accessToken) {
+            Log::error('Failed to get access token for storing message');
+            return false;
+        }
+
+        $headers = [
+            "Authorization: Bearer $accessToken",
+            'Content-Type: application/json',
+        ];
+
+        $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}/messages";
+
+        // Ensure timestamp is in RFC 3339 / ISO 8601 format
+        $timestamp = $messageData['timestamp'];
+        if (is_numeric($timestamp)) {
+            $timestamp = gmdate('Y-m-d\TH:i:s\Z', (int) $timestamp);
+        }
+
+        $body = [
+            "fields" => [
+                "user_id"   => ["integerValue" => $messageData['user_id']],
+                "user_name" => ["stringValue" => $messageData['user_name']],
+                "message"   => ["stringValue" => $messageData['message']],
+                "type"      => ["stringValue" => $messageData['type']],
+                "timestamp" => ["timestampValue" => $timestamp],
+            ],
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+
+        $response = curl_exec($ch);
+        $err      = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Curl error in storeMessage: ' . $err);
+            return false;
+        }
+
+        $result = json_decode($response, true);
+        if (isset($result['error'])) {
+            Log::error('Firestore error in storeMessage: ' . json_encode($result['error']));
+            return false;
+        }
+
+        return true;
     }
-
-    $headers = [
-        "Authorization: Bearer $accessToken",
-        'Content-Type: application/json',
-    ];
-
-    $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}/messages";
-
-    // Ensure timestamp is in RFC 3339 / ISO 8601 format
-    $timestamp = $messageData['timestamp'];
-    if (is_numeric($timestamp)) {
-        $timestamp = gmdate('Y-m-d\TH:i:s\Z', (int)$timestamp);
-    }
-
-    $body = [
-        "fields" => [
-            "user_id"   => ["integerValue" => $messageData['user_id']],
-            "user_name" => ["stringValue" => $messageData['user_name']],
-            "message"   => ["stringValue" => $messageData['message']],
-            "type"      => ["stringValue" => $messageData['type']],
-            "timestamp" => ["timestampValue" => $timestamp],
-        ],
-    ];
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-
-    $response = curl_exec($ch);
-    $err = curl_error($ch);
-    curl_close($ch);
-
-    if ($err) {
-        Log::error('Curl error in storeMessage: ' . $err);
-        return false;
-    }
-
-    $result = json_decode($response, true);
-    if (isset($result['error'])) {
-        Log::error('Firestore error in storeMessage: ' . json_encode($result['error']));
-        return false;
-    }
-
-    return true;
-}
-
-// public function getMessages(string $roomId, int $limit = 50, ?string $lastTimestamp = null): array
-// {
-//     $accessToken = $this->getAccessToken();
-//     if (!$accessToken) {
-//         Log::error('Failed to get access token for getting messages');
-//         return [];
-//     }
-
-//     $headers = [
-//         "Authorization: Bearer $accessToken",
-//         'Content-Type: application/json',
-//     ];
-
-//     $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runQuery";
-
-//     $structuredQuery = [
-//         'from' => [
-//             ['collectionId' => 'messages']
-//         ],
-//         'orderBy' => [
-//             ['field' => ['fieldPath' => 'timestamp'], 'direction' => 'DESCENDING']
-//         ],
-//         'limit' => $limit
-//     ];
-
-//     if ($lastTimestamp) {
-//         // Make sure lastTimestamp is in RFC3339 format
-//         if (is_numeric($lastTimestamp)) {
-//             $lastTimestamp = gmdate('Y-m-d\TH:i:s\Z', (int)$lastTimestamp);
-//         }
-//         $structuredQuery['startAt'] = [
-//             'values' => [
-//                 ['timestampValue' => $lastTimestamp]
-//             ],
-//             'before' => false
-//         ];
-//     }
-
-//     $payload = [
-//         'parent' => "projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}",
-//         'structuredQuery' => $structuredQuery
-//     ];
-
-//     $ch = curl_init();
-//     curl_setopt($ch, CURLOPT_URL, $url);
-//     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//     curl_setopt($ch, CURLOPT_POST, true);
-//     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-//     $response = curl_exec($ch);
-//     $err = curl_error($ch);
-//     curl_close($ch);
-
-//     if ($err) {
-//         Log::error('Curl error in getMessages: ' . $err);
-//         return [];
-//     }
-
-//     $result = json_decode($response, true);
-//     if (!is_array($result)) {
-//         Log::error('Invalid JSON response from Firestore: ' . $response);
-//         return [];
-//     }
-
-//     $messages = [];
-//     foreach ($result as $item) {
-//         if (isset($item['document'])) {
-//             $doc = $item['document'];
-//             $data = [];
-//             foreach ($doc['fields'] as $key => $value) {
-//                 $data[$key] = $value[array_key_first($value)];
-//             }
-//             $messages[] = $data;
-//         }
-//     }
-
-//     // Return oldest first
-//     return array_reverse($messages);
-// }
-
-
-// public function getMessages(string $roomId, int $limit = 50, ?string $lastTimestamp = null): array
-// {
-//     $accessToken = $this->getAccessToken();
-//     if (!$accessToken) {
-//         Log::error('Failed to get access token for getting messages');
-//         return [];
-//     }
-
-//     $headers = [
-//         "Authorization: Bearer $accessToken",
-//         'Content-Type: application/json',
-//     ];
-
-//     $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runQuery";
-
-//     $structuredQuery = [
-//         'structuredQuery' => [
-//             'from' => [
-//                 ['collectionId' => 'messages', 'allDescendants' => false]
-//             ],
-//             'orderBy' => [
-//                 ['field' => ['fieldPath' => 'timestamp'], 'direction' => 'DESCENDING']
-//             ],
-//             'limit' => $limit,
-//         ],
-//     ];
-
-//     if ($lastTimestamp) {
-//         // Firestore expects timestampValue in ISO 8601
-//         if (is_numeric($lastTimestamp)) {
-//             $lastTimestamp = gmdate('Y-m-d\TH:i:s\Z', (int)$lastTimestamp);
-//         }
-
-//         $structuredQuery['structuredQuery']['startAt'] = [
-//             'values' => [
-//                 ['timestampValue' => $lastTimestamp]
-//             ],
-//             'before' => false
-//         ];
-//     }
-
-//     // Specify the parent document (video_calls/{roomId})
-//     $payload = [
-//         'parent' => "projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}",
-//         'structuredQuery' => $structuredQuery['structuredQuery']
-//     ];
-
-//     $ch = curl_init();
-//     curl_setopt($ch, CURLOPT_URL, $url);
-//     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//     curl_setopt($ch, CURLOPT_POST, true);
-//     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-//     $response = curl_exec($ch);
-//     $err = curl_error($ch);
-//     curl_close($ch);
-
-//     if ($err) {
-//         Log::error('Curl error in getMessages: ' . $err);
-//         return [];
-//     }
-
-//     $result = json_decode($response, true);
-//     if (!is_array($result)) {
-//         Log::error('Invalid JSON response from Firestore: ' . $response);
-//         return [];
-//     }
-
-//     $messages = [];
-//     foreach ($result as $item) {
-//         if (isset($item['document'])) {
-//             $doc = $item['document'];
-//             $data = [];
-//             foreach ($doc['fields'] as $key => $value) {
-//                 $data[$key] = $value[array_key_first($value)];
-//             }
-//             $messages[] = $data;
-//         }
-//     }
-
-//     // Reverse to ascending order (oldest first)
-//     return array_reverse($messages);
-// }
-
-
-//     public function storeMessage(string $roomId, array $messageData)
-//     {
-//         $accessToken = $this->getAccessToken();
-//         if (! $accessToken) {
-//             Log::error('Failed to get access token for storing message');
-//             return false;
-//         }
-
-//         $headers = [
-//             "Authorization: Bearer $accessToken",
-//             'Content-Type: application/json',
-//         ];
-
-//         $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}/messages";
-
-//         $timestamp = $messageData['timestamp'];
-
-// // Convert Unix timestamp to ISO 8601 if needed
-//         if (is_numeric($timestamp)) {
-//             $timestamp = gmdate('Y-m-d\TH:i:s\Z', (int) $timestamp);
-//         }
-//         $body = [
-//             "fields" => [
-//                 "user_id"   => ["integerValue" => $messageData['user_id']],
-//                 "user_name" => ["stringValue" => $messageData['user_name']],
-//                 "message"   => ["stringValue" => $messageData['message']],
-//                 "type"      => ["stringValue" => $messageData['type']],
-//                 "timestamp" => ["timestampValue" => $timestamp],
-//             ],
-//         ];
-
-//         $payload = json_encode($body);
-
-//         $ch = curl_init();
-//         curl_setopt($ch, CURLOPT_URL, $url);
-//         curl_setopt($ch, CURLOPT_POST, true);
-//         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-//         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-//         $response = curl_exec($ch);
-//         $err      = curl_error($ch);
-//         curl_close($ch);
-
-//         if ($err) {
-//             Log::error('Curl error in storeMessage: ' . $err);
-//             return false;
-//         }
-
-//         $result = json_decode($response, true);
-//         if (isset($result['error'])) {
-//             Log::error('Firestore error in storeMessage: ' . json_encode($result['error']));
-//             return false;
-//         }
-
-//         return true;
-//     }
-
-//     public function getMessages(string $roomId, int $limit = 50, ?string $lastTimestamp = null): array
-//     {
-//         $accessToken = $this->getAccessToken();
-//         if (! $accessToken) {
-//             Log::error('Failed to get access token for getting messages');
-//             return [];
-//         }
-
-//         $headers = [
-//             "Authorization: Bearer $accessToken",
-//             'Content-Type: application/json',
-//         ];
-
-//         // Use :runQuery on the subcollection path
-//         $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}/messages:runQuery";
-
-//         $structuredQuery = [
-//             'structuredQuery' => [
-//                 'from'    => [
-//                     ['collectionId' => 'messages'],
-//                 ],
-//                 'orderBy' => [
-//                     ['field' => ['fieldPath' => 'timestamp'], 'direction' => 'DESCENDING'],
-//                 ],
-//                 'limit'   => $limit,
-//             ],
-//         ];
-
-//         // Add startAt if lastTimestamp is provided
-//         if ($lastTimestamp) {
-//             // Ensure lastTimestamp is ISO 8601 format, e.g., 2025-11-12T11:00:00.000Z
-//             $structuredQuery['structuredQuery']['startAt'] = [
-//                 'values' => [
-//                     ['timestampValue' => $lastTimestamp],
-//                 ],
-//                 'before' => false,
-//             ];
-//         }
-
-//         $ch = curl_init();
-//         curl_setopt($ch, CURLOPT_URL, $url);
-//         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//         curl_setopt($ch, CURLOPT_POST, true);
-//         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($structuredQuery));
-//         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-//         $response = curl_exec($ch);
-//         $err      = curl_error($ch);
-//         curl_close($ch);
-
-//         if ($err) {
-//             Log::error('Curl error in getMessages: ' . $err);
-//             return [];
-//         }
-
-//         $result = json_decode($response, true);
-//         if (! $result) {
-//             Log::error('Invalid JSON response from Firestore: ' . $response);
-//             return [];
-//         }
-
-//         $messages = [];
-//         foreach ($result as $item) {
-//             if (isset($item['document'])) {
-//                 $doc  = $item['document'];
-//                 $data = [];
-//                 foreach ($doc['fields'] as $key => $value) {
-//                     // Convert Firestore field types to PHP values
-//                     $fieldType = array_key_first($value);
-//                     switch ($fieldType) {
-//                         case 'stringValue':
-//                             $data[$key] = $value['stringValue'];
-//                             break;
-//                         case 'integerValue':
-//                             $data[$key] = (int) $value['integerValue'];
-//                             break;
-//                         case 'doubleValue':
-//                             $data[$key] = (float) $value['doubleValue'];
-//                             break;
-//                         case 'booleanValue':
-//                             $data[$key] = (bool) $value['booleanValue'];
-//                             break;
-//                         case 'timestampValue':
-//                             $data[$key] = $value['timestampValue'];
-//                             break;
-//                         default:
-//                             $data[$key] = $value[$fieldType];
-//                     }
-//                 }
-//                 $messages[] = $data;
-//             }
-//         }
-
-//         // Reverse to ascending order
-//         return array_reverse($messages);
-//     }
-
-//     public function getMessages(string $roomId, int $limit = 50, ?string $lastTimestamp = null): array
-// {
-//     $accessToken = $this->getAccessToken();
-//     if (! $accessToken) {
-//         Log::error('Failed to get access token for getting messages');
-//         return [];
-//     }
-
-//     $headers = [
-//         "Authorization: Bearer $accessToken",
-//         'Content-Type: application/json',
-//     ];
-
-//     $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}/messages:runQuery";
-
-//     $structuredQuery = [
-//         'structuredQuery' => [
-//             'from' => [
-//                 ['collectionId' => 'messages']
-//             ],
-//             'orderBy' => [
-//                 ['field' => ['fieldPath' => 'timestamp'], 'direction' => 'DESCENDING']
-//             ],
-//             'limit' => $limit
-//         ]
-//     ];
-
-//     if ($lastTimestamp) {
-//         $structuredQuery['structuredQuery']['startAt'] = [
-//             'values' => [
-//                 ['timestampValue' => $lastTimestamp]
-//             ],
-//             'before' => false
-//         ];
-//     }
-
-//     $ch = curl_init();
-//     curl_setopt($ch, CURLOPT_URL, $url);
-//     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-//     curl_setopt($ch, CURLOPT_POST, true);
-//     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($structuredQuery));
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-//     $response = curl_exec($ch);
-//     $err = curl_error($ch);
-//     curl_close($ch);
-
-//     if ($err) {
-//         Log::error('Curl error in getMessages: ' . $err);
-//         return [];
-//     }
-
-//     $result = json_decode($response, true);
-//     if (! $result) {
-//         Log::error('Invalid JSON response from Firestore: ' . $response);
-//         return [];
-//     }
-
-//     $messages = [];
-//     foreach ($result as $item) {
-//         if (isset($item['document'])) {
-//             $doc = $item['document'];
-//             $data = [];
-//             foreach ($doc['fields'] as $key => $value) {
-//                 $data[$key] = $value[array_key_first($value)];
-//             }
-//             $messages[] = $data;
-//         }
-//     }
-
-//     return array_reverse($messages); // ascending order
-// }
 
     public function getMessages(string $roomId, int $limit = 50, ?string $lastTimestamp = null): array
     {
         $accessToken = $this->getAccessToken();
-        if (!$accessToken) {
+        if (! $accessToken) {
             Log::error('Failed to get access token for getting messages');
             return [];
         }
 
         $headers = [
             "Authorization: Bearer $accessToken",
-            'Content-Type: application/json'
+            'Content-Type: application/json',
         ];
 
         $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/video_calls/{$roomId}/messages";
@@ -649,7 +260,7 @@ class FirebaseService
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $response = curl_exec($ch);
-        $err = curl_error($ch);
+        $err      = curl_error($ch);
         curl_close($ch);
 
         if ($err) {
@@ -679,4 +290,77 @@ class FirebaseService
 
         return $messages;
     }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     *
+     * allow write: if "auth.token.email === 'kiplangatsang425@gmail.com'";
+     *
+     */
+
+    public function saveFile($folder, $file)
+    {
+        # code...
+
+        try {
+            $user = $this->user();
+
+            $fileNameToStore = "";
+
+            if (! $this->account) {
+                 $fileNameToStore = $this->store($user, $folder, $file);
+            } else {
+                 $fileNameToStore = $this->store($user, $folder, $file);
+            }
+
+            return $fileNameToStore;
+        } catch (Exception $e) {
+            info($e->getMessage());
+            return false;
+        }
+    }
+    public function store($user, $folder, $file)
+    {
+        //
+        try {
+            $storage       = app('firebase.storage'); // This is an instance of Google\Cloud\Storage\StorageClient from kreait/firebase-php library
+            $defaultBucket = $storage->getBucket();
+            $image         = $file;
+            $name          = (string) Str::uuid() . "." . $image->getClientOriginalExtension(); // use Illuminate\Support\Str;
+
+            $pathName = $image->getPathName();
+
+            $package  = $this->firebaseRepositories($this->account, $user);
+            $filename = $package . $folder . "/" . $name;
+            // $file = fopen($pathName, 'r');
+            $file   = fopen($pathName, 'r');
+            $object = $defaultBucket->upload($file, [
+                'name'          => $filename,
+                'predefinedAcl' => 'publicRead',
+            ]);
+            $image_url = 'https://storage.googleapis.com/' . env('FIREBASE_PROJECT_ID') . '.appspot.com/' . $filename;
+            //dd($file);
+
+            //https://storage.googleapis.com/dukaverse-e4f47.appspot.com/1/bf8af7e2-275d-4327-93a5-144fe2f42e24
+            return $image_url;
+        } catch (Exception $e) {
+            Log::debug($e->getMessage());
+            return $e->getMessage();
+        }
+    }
+
+    public function firebaseRepositories($account = null, User $user)
+    {
+        # code...
+        $package = "";
+        if ($account) {
+            $package = "client/accounts/" . $account->name . $account->id . "/";
+        } else {
+            $package = "client/user/" . $user->id . "/";
+        }
+        return $package;
+    }
+
 }

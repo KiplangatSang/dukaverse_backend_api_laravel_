@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreRetailOwnerRequest;
 use App\Http\Requests\UpdateRetailOwnerRequest;

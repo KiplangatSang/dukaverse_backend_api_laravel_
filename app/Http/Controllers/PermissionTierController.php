@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\Permission;
 use App\Models\Tier;
-use App\Http\Resources\ApiResource;
-use Illuminate\Http\JsonResponse;
+ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PermissionTierController extends BaseController

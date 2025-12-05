@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Controllers\BaseController;
-use App\Http\Resources\ApiResource;
 use App\Services\VideoCallService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

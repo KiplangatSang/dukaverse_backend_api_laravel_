@@ -1,12 +1,18 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
-use App\Models\Supplier;
+ use App\Models\Supplier;
 
 class SupplierController extends BaseController
 {
+     public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

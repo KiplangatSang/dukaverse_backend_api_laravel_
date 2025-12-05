@@ -1,14 +1,21 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
+use App\Http\Resources\StoreFileResource;
+use App\Http\Resources\ResponseHelper;
 
-class EmployeesRepository
+class EmployeeService extends BaseService
 {
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
-    }
+ 
+    protected $currentAccount;
+
+
+    public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+     }
 
     public function getEmployees()
     {

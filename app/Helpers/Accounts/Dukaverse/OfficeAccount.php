@@ -105,7 +105,7 @@ class OfficeAccount implements OfficeAccountContract
             $this->user->role == User::ADMIN_ACCOUNT_TYPE
         ) {
             $offices = $this->user->offices;
-        } else if ($this->user->role == User::DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE
+        } else if ($this->user->role == User::EMPLOYEE_ACCOUNT_TYPE
             || $this->user->role == User::EMPLOYEE_ACCOUNT_TYPE) {
             $offices = $this->user->employee->ownerable()->get();
         }
@@ -139,9 +139,9 @@ class OfficeAccount implements OfficeAccountContract
     public function adminAccount($user)
     {
 
-        if ($user->role == User::DUKAVERSE_ADMIN_ACCOUNT_TYPE) {
+        if ($user->role == User::ADMIN_ACCOUNT_TYPE) {
             return true;
-        } else if ($user->role == User::DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE) {
+        } else if ($user->role == User::EMPLOYEE_ACCOUNT_TYPE) {
             return false;
         } else {
             return false;
@@ -154,9 +154,9 @@ class OfficeAccount implements OfficeAccountContract
 
         $permissions = [];
 
-        if ($user->role == User::DUKAVERSE_ADMIN_ACCOUNT_TYPE) {
+        if ($user->role == User::ADMIN_ACCOUNT_TYPE) {
             $permissions = Role::EMPLOYEE_PERMISSIONS;
-        } else if ($user->role == User::DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE || $user->role == User::EMPLOYEE_ACCOUNT_TYPE) {
+        } else if ($user->role == User::EMPLOYEE_ACCOUNT_TYPE || $user->role == User::EMPLOYEE_ACCOUNT_TYPE) {
             $rawPermissions = $user->employee->roles()
                 ->get(["permissions"])
                 ->pluck('permissions')

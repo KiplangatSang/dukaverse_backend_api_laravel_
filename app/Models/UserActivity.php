@@ -3,7 +3,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 
 class UserActivity extends Model
@@ -15,28 +14,23 @@ class UserActivity extends Model
     const PROFILE_FOLDER     = "/users/profiles/";
     const DUKAVERSE_ID       = 1;
 
-    const DUKAVERSE_ADMIN_ACCOUNT_TYPE    = "admin";
-    const ADMIN_ACCOUNT_TYPE              = "admin";
-    const DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE = "employee";
-    const EMPLOYEE_ACCOUNT_TYPE           = "employee";
-    const RETAILER_ACCOUNT_TYPE           = "retailer";
-    const RETAIL_EMPLOYEE_ACCOUNT_TYPE    = "retail_employee";
-    const CUSTOMER_ACCOUNT_TYPE           = "customer";
-    const SUPPLIER_ACCOUNT_TYPE           = "supplier";
-    const SUPPLIER_EMPLOYEE_ACCOUNT_TYPE  = "supplier_employee";
-    const LEAD_ACCOUNT_TYPE               = "lead";
-    const CONTRACTOR_ACCOUNT_TYPE         = "contractor";
+    const ADMIN_ACCOUNT_TYPE      = User::ADMIN_ACCOUNT_TYPE;
+    const EMPLOYEE_ACCOUNT_TYPE   = User::EMPLOYEE_ACCOUNT_TYPE;
+    const RETAILER_ACCOUNT_TYPE   = User::RETAILER_ACCOUNT_TYPE;
+    const CUSTOMER_ACCOUNT_TYPE   = User::CUSTOMER_ACCOUNT_TYPE;
+    const SUPPLIER_ACCOUNT_TYPE   = User::SUPPLIER_ACCOUNT_TYPE;
+    const LEAD_ACCOUNT_TYPE       = User::LEAD_ACCOUNT_TYPE;
+    const CONTRACTOR_ACCOUNT_TYPE = User::CONTRACTOR_ACCOUNT_TYPE;
 
     const ROLETYPES = [
-        self::ADMIN_ACCOUNT_TYPE              => self::ADMIN_ACCOUNT_TYPE,
-        self::DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE => self::DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE,
-        self::RETAILER_ACCOUNT_TYPE           => self::RETAILER_ACCOUNT_TYPE,
-        self::RETAIL_EMPLOYEE_ACCOUNT_TYPE    => self::RETAIL_EMPLOYEE_ACCOUNT_TYPE,
-        self::CUSTOMER_ACCOUNT_TYPE           => self::CUSTOMER_ACCOUNT_TYPE,
-        self::SUPPLIER_ACCOUNT_TYPE           => self::SUPPLIER_ACCOUNT_TYPE,
-        self::LEAD_ACCOUNT_TYPE               => self::LEAD_ACCOUNT_TYPE,
-        self::CONTRACTOR_ACCOUNT_TYPE         => self::CONTRACTOR_ACCOUNT_TYPE,
-        self::EMPLOYEE_ACCOUNT_TYPE           => self::EMPLOYEE_ACCOUNT_TYPE,
+        self::ADMIN_ACCOUNT_TYPE      => self::ADMIN_ACCOUNT_TYPE,
+        self::EMPLOYEE_ACCOUNT_TYPE   => self::EMPLOYEE_ACCOUNT_TYPE,
+        self::RETAILER_ACCOUNT_TYPE   => self::RETAILER_ACCOUNT_TYPE,
+        self::CUSTOMER_ACCOUNT_TYPE   => self::CUSTOMER_ACCOUNT_TYPE,
+        self::SUPPLIER_ACCOUNT_TYPE   => self::SUPPLIER_ACCOUNT_TYPE,
+        self::LEAD_ACCOUNT_TYPE       => self::LEAD_ACCOUNT_TYPE,
+        self::CONTRACTOR_ACCOUNT_TYPE => self::CONTRACTOR_ACCOUNT_TYPE,
+        self::EMPLOYEE_ACCOUNT_TYPE   => self::EMPLOYEE_ACCOUNT_TYPE,
     ];
 
     const LEVEL_1 = 1;
@@ -334,9 +328,9 @@ class UserActivity extends Model
         return $this->morphMany(Transaction::class, "ownerable");
     }
 
-    public function accounts()
+    public function wallets()
     {
-        return $this->morphMany(Account::class, "ownerable");
+        return $this->morphMany(Wallet::class, "ownerable");
     }
 
     public function subscriptions()

@@ -1,20 +1,23 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class ProfitRepository
+class ProfitService extends BaseService
 {
-    private $account;
-    protected $month, $year, $expense = null, $result = null, $profit_id = null, $profit = null;
+     protected $month, $year, $expense = null, $result = null, $profit_id = null, $profit = null;
 
-    public function __construct($account)
-    {
-        $this->account = $account;
-        $this->month = date('M');
-        $this->year = date("Y");
+     public function __construct(
+        protected readonly StoreFileResource $storeFileResource,
+        protected readonly ResponseHelper $responseHelper
+    ) {
+        $this->month   = date('M');
+        $this->year    = date("Y");
+        parent::__construct($storeFileResource, $responseHelper);
     }
 
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\CountryList;
 use App\Http\Requests\StoreCountryListRequest;
@@ -8,6 +9,12 @@ use App\Http\Requests\UpdateCountryListRequest;
 
 class CountryListController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

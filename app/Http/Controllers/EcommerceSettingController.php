@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\Ecommerce;
 use App\Models\EcommerceSetting;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +18,12 @@ use Illuminate\Support\Facades\Validator;
  */
 class EcommerceSettingController extends BaseController
 {
+    public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly FirebaseService $firebaseService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Post(
      *     path="/api/v1/ecommerce/settings/save",
@@ -155,7 +163,7 @@ class EcommerceSettingController extends BaseController
         $file_url = null;
         if ($request->file) {
             $folder_name = 'ecommerce_sections/' . $request->section . "/" . $request->name;
-            $file_url    = $this->saveFile($folder_name, $request->file);
+            $file_url    = $this->firebaseService->saveFile($folder_name, $request->file);
         }
 
         $user               = $this->user();

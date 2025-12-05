@@ -3,11 +3,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRetailItemRequest;
 use App\Http\Requests\UpdateRetailItemRequest;
-use App\Repositories\ItemRepository;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Resources\ApiResource;
 use App\Imports\RestockImport;
 use App\Models\RetailItem;
+use App\Services\FirebaseService;
+use App\Services\ItemService;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * @OA\Tag(
@@ -19,16 +21,16 @@ use App\Models\RetailItem;
 class RetailItemController extends BaseController
 {
 
-    private $itemrepo;
+    public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly FirebaseService $firebaseService,
+        protected readonly ItemService $itemService,
+    ) {
+        parent::__construct($apiResource);
+    }
     private $retail;
 
-    public function itemRepository()
-    {
-        # code...
-        $this->retail   = $this->getAccount();
-        $this->itemrepo = new ItemRepository($this->retail);
-        return $this->itemrepo;
-    }
+    
     /**
      * Display a listing of the resource.
      */
@@ -48,7 +50,7 @@ class RetailItemController extends BaseController
     public function index()
     {
         //
-        $items              = $this->itemRepository()->getItems();
+        $items              = $this->itemService->getItems();
         $stockscount        = null;
         $requiredItemscount = null;
         $salescount         = null;
@@ -176,7 +178,7 @@ class RetailItemController extends BaseController
 
             for ($i = 0; $i < $request->product_images_count; $i++) {
                 $image_index         = 'image' . $i;
-                $file                = $this->saveFile("stock_image_" . $i, $request[$image_index]);
+                $file                = $this->firebaseService->saveFile("stock_image_" . $i, $request[$image_index]);
                 $fileUrlsToStore[$i] = $file;
             }
             $retail_item_data          = $request->except(['image']);
@@ -206,13 +208,13 @@ class RetailItemController extends BaseController
             $productColors = $this->getProductColors($request->productColors);
         }
 
-        $item = $this->itemRepository()->saveItems($retail_item_data, $productColors,
+        $item = $this->itemService->saveItems($retail_item_data, $productColors,
             $productSizes, $fileUrlsToStore);
         if (! $item) {
             return $this->sendError("Could not save item");
         }
 
-        return $this->sendResponse($item, "success, Item saved successfully.");
+        return $this->sendResponse($item->toArray(), "success, Item saved successfully.");
 
     }
 
@@ -250,7 +252,7 @@ class RetailItemController extends BaseController
     public function show($retailItem)
     {
         //
-        $item = $this->itemRepository()->getItem($retailItem);
+        $item = $this->itemService->getItem($retailItem);
         if (! $item) {
             return $this->sendError("Sorry! Could not get the item");
         }
@@ -403,7 +405,7 @@ class RetailItemController extends BaseController
         ]);
 
         if ($request['image']) {
-            $fileNameToStore = $this->saveFile("stock_image", $request['image']);
+            $fileNameToStore = $this->firebaseService->saveFile("stock_image", $request['image']);
 
             if (! $fileNameToStore) {
                 return $this->sendError('error', "Could not save this image");
@@ -415,7 +417,7 @@ class RetailItemController extends BaseController
             $request = $request->except(['_token']);
         }
 
-        $update = $this->itemRepository()
+        $update = $this->itemService
             ->updateItems($request, $retailItem);
         if (! $update) {
             return $this->sendError($retailItem, "Could not update this item");

@@ -1,11 +1,12 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Events\CustomerInvoice;
 use App\Http\Requests\StoreCustomerCreditRequest;
 use App\Http\Requests\UpdateCustomerCreditRequest;
 use App\Models\CustomerCredit;
-use App\Repositories\CustomersRepository;
+use App\Services\CustomersService;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -17,9 +18,9 @@ use Illuminate\Http\Request;
  */
 class CustomerCreditController extends BaseController
 {
-    public function customersRepository()
+    public function customersService()
     {
-        $ordersRepo = new CustomersRepository($this->getAccount());
+        $ordersRepo = new CustomersService($this->getAccount());
         return $ordersRepo;
     }
 
@@ -158,7 +159,7 @@ class CustomerCreditController extends BaseController
      */
     public function show(CustomerCredit $customerCredit)
     {
-        $credit = $this->customersRepository()->getCustomersCredit($customerCredit->id);
+        $credit = $this->customersService()->getCustomersCredit($customerCredit->id);
 
         if (! $credit) {
             return $this->sendError($credit, 'error, could not fetch this credit item');

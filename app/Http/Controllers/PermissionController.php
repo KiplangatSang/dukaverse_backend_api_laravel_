@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Services\PermissionsService;
+
+ use App\Services\PermissionsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

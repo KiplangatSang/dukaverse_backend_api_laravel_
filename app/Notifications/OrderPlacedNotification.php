@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Helpers\Sms\SmsMessage;
-use App\Repositories\OrdersRepository;
+use App\Services\OrderService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -82,7 +82,7 @@ class OrderPlacedNotification extends Notification
     public function toMail($notifiable)
     {
 
-        $ordersrepo = new OrdersRepository($this->order->orderable);
+        $ordersrepo = new OrderService($this->order->orderable);
 
         $ordersdata = $ordersrepo->showOrderData($this->order->id);
         return (new MailMessage)

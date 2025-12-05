@@ -2,41 +2,35 @@
 
 namespace App\Services;
 
-use App\Repositories\TeamsRepository;
+use App\Services\TeamsService;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\Accounts\Account;
 use App\Models\Retail;
 use App\Models\Office;
 use App\Http\Resources\StoreFileResource;
 use App\Http\Resources\ResponseHelper;
+use App\Models\Team;
 
 class TeamService extends BaseService
 {
-    protected $teamsRepository;
 
     public function __construct(
-        TeamsRepository $teamsRepository,
-        StoreFileResource $storeFileResource,
+         StoreFileResource $storeFileResource,
         ResponseHelper $responseHelper,
-        $account = null
     ) {
         parent::__construct($storeFileResource, $responseHelper);
-        $this->teamsRepository = $teamsRepository;
-        if ($account) {
-            $this->teamsRepository->setAccount($account);
-        }
     }
 
     public function getIndexData()
     {
-        $teams = $this->teamsRepository->getAllTeams();
+        $teams = $this->account->teams()->with('projects.tasks', 'tasks', 'employees.users')->get();;
         return $teams;
     }
 
     public function getCreateData()
     {
-        $team_types = $this->teamsRepository->getTeamTypes();
-        $team_defaults = $this->teamsRepository->getTeamDefaults();
+        $team_types = $this->getTeamTypes();
+        $team_defaults =   Team::TEAM_DEFAULTS;
 
         return [
             "team_defaults" => $team_defaults,
@@ -60,7 +54,7 @@ class TeamService extends BaseService
         $validated = $validator->validated();
         $validated['user_id'] = $this->user()->id;
 
-        $team = $this->teamsRepository->createTeam($validated);
+        $team = $this->account->teams()->create($validated);
 
         if (!$team) {
             throw new \Exception("Failed to create team");
@@ -71,7 +65,7 @@ class TeamService extends BaseService
 
     public function getShowData($id)
     {
-        $team = $this->teamsRepository->findTeam($id);
+        $team = $this->findTeam($id);
 
         if (!$team) {
             throw new \Exception("Team not found");
@@ -82,14 +76,14 @@ class TeamService extends BaseService
 
     public function getEditData($id)
     {
-        $team = $this->teamsRepository->findTeam($id);
+        $team = $this->findTeam($id);
 
         if (!$team) {
             throw new \Exception("Team not found");
         }
 
-        $team_types = $this->teamsRepository->getTeamTypes();
-        $team_defaults = $this->teamsRepository->getTeamDefaults();
+        $team_types = $this->getTeamTypes();
+        $team_defaults =  Team::TEAM_DEFAULTS;
 
         return [
             "team" => $team,
@@ -100,7 +94,7 @@ class TeamService extends BaseService
 
     public function updateTeam($id, $request)
     {
-        $team = $this->teamsRepository->findTeam($id);
+        $team = $this->findTeam($id);
 
         if (!$team) {
             throw new \Exception("Team not found");
@@ -120,29 +114,51 @@ class TeamService extends BaseService
         $validated = $validator->validated();
         $validated['user_id'] = $this->user()->id;
 
-        $result = $this->teamsRepository->updateTeam($team, $validated);
+        $result = $this->updateATeam($team, $validated);
 
         if (!$result) {
             throw new \Exception("Failed to update team");
         }
 
-        return $this->teamsRepository->findTeam($id);
+        return $this->findTeam($id);
     }
 
     public function deleteTeam($id)
     {
-        $team = $this->teamsRepository->findTeam($id);
+        $team = $this->findTeam($id);
 
         if (!$team) {
             throw new \Exception("Team not found");
         }
 
-        $result = $this->teamsRepository->deleteTeam($team);
+        $result = $team->delete();
 
         if (!$result) {
             throw new \Exception("Failed to delete team");
         }
 
         return $result;
+    }
+ 
+ 
+    public function findTeam($id)
+    {
+        return $this->account->teams()->where('id', $id)->first();
+    }
+
+    public function updateATeam($team, $data)
+    {
+        return $team->update($data);
+    }
+
+    public function getTeamTypes()
+    {
+        // Assuming account has a type or something, but for now, return defaults
+        return Team::DUKAVERSETEAMTYPES; // or based on account
+    }
+
+    public function getTeamDefaults()
+    {
+        return Team::TEAM_DEFAULTS;
     }
 }

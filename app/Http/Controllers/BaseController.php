@@ -9,13 +9,6 @@ use App\Models\Retail;
 use App\Models\SessionRetail;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Repositories\AppRepository;
-use App\Repositories\ExpenseRepository;
-use App\Repositories\FirebaseRepository;
-use App\Repositories\ProfitRepository;
-use App\Repositories\RevenueRepository;
-use Exception;
-use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +32,6 @@ use Illuminate\Support\Facades\Session;
 
 class BaseController extends Controller
 {
-    //
 
     protected ApiResource $apiResource;
     private $account_manager;
@@ -285,15 +277,6 @@ class BaseController extends Controller
 
     }
 
-    public function setRetail()
-    {
-        Authorize::using('create_retail');
-
-        $retails = $this->getRetailList();
-
-        return $retails;
-    }
-
     public function formatPhoneNumber($code, $phone_number)
     {
         # code...
@@ -311,7 +294,6 @@ class BaseController extends Controller
     public function user()
     {
         $user = User::where('id', Auth::id())
-            ->with('accounts')
             ->first();
         return $user;
     }
@@ -320,7 +302,6 @@ class BaseController extends Controller
     {
         $admin = User::where('id', 1)
             ->where('is_admin', true)
-            ->with('accounts')
             ->first();
         return $admin;
     }
@@ -340,19 +321,6 @@ class BaseController extends Controller
         } else {
             return $employee;
         }
-    }
-    public function appRepository()
-    {
-        # code...
-        $baseRepo = new AppRepository();
-        return $baseRepo;
-    }
-
-    public function getBaseImages()
-    {
-        # code...
-        $baseImages = $this->appRepository()->getBaseImages();
-        return $baseImages;
     }
 
     public function savePDFFileRemotely(User $user, $type, $name)
@@ -382,18 +350,6 @@ class BaseController extends Controller
         $fullPath = public_path($pdfPath); // Full path to save
 
         return $fullPath;
-    }
-
-    public function getNoProfileImage()
-    {
-        $baseImages = $this->appRepository()->getBaseImages();
-        return $baseImages['noprofile'];
-    }
-
-    public function getNoFileImage()
-    {
-        $baseImages = $this->appRepository()->getBaseImages();
-        return $baseImages['nofile'];
     }
 
     public function calculate_profile($profile)
@@ -427,75 +383,15 @@ class BaseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function sendError($error, $errorMessages = [], $code = 404):JsonResponse
+
+    public function sendError($error, $errorMessages = [], $code = 404): JsonResponse
     {
+        // If errorMessages is a string, convert it to an array
+        if (! is_array($errorMessages)) {
+            $errorMessages = [$errorMessages];
+        }
 
         return $this->apiResource->error($error, $code, $errorMessages);
-
-    }
-
-    public function saveFile($folder, $file)
-    {
-        # code...
-
-        try {
-            $user = $this->user();
-
-            $fileNameToStore = "";
-
-            if (! $this->account()) {
-                $firebase        = new FirebaseRepository();
-                $fileNameToStore = $firebase->store($user, $folder, $file);
-            } else {
-                $firebase        = new FirebaseRepository($this->account());
-                $fileNameToStore = $firebase->store($user, $folder, $file);
-            }
-
-            return $fileNameToStore;
-        } catch (Exception $e) {
-            info($e->getMessage());
-            return false;
-        }
-    }
-
-    public function location()
-    {
-        # code...
-        $apprepo  = new AppRepository();
-        $location = (array) $apprepo->getLocation();
-        // dd($location);
-        return $location;
-    }
-
-    public function getLocationDetails()
-    {
-        # code...
-        $region = $this->location();
-        if (! $region) {
-            $region = [
-                "ip"          => "unknown",
-                "countryName" => "Kenya",
-                "countryCode" => "KE",
-                "regionCode"  => "30",
-                "regionName"  => "Nairobi Province",
-                "cityName"    => "Nairobi",
-                "zipCode"     => null,
-                "isoCode"     => null,
-                "postalCode"  => null,
-                "latitude"    => "-1.2841",
-                "longitude"   => "36.8155",
-                "metroCode"   => null,
-                "areaCode"    => "",
-                "timezone"    => "Africa/Nairobi",
-                "driver"      => "Stevebauman\Location\Drivers\GeoPlugin",
-            ];
-        }
-
-        // $phoneCode = CountriesList::where('iso', "KE")->first()->phonecode;
-
-        // $region['phoneCode'] = $phoneCode;
-        // $region['countries'] = CountriesList::all();
-        return $region;
     }
 
     public function getTransactionType($gateway)
@@ -511,105 +407,56 @@ class BaseController extends Controller
         return $transaction_type;
     }
 
-    public function saveTransaction(
-        $gateway,
-        $sender_account_id,
-        $receiver_account_id,
-        $sender_phone_number,
-        $receiver_phone_number,
-        $amount,
-        $transaction_type,
-        $cost,
-        $purpose,
-        $message,
-        $purpose_id = null,
-        $currency = "ksh",
-    ) {
-        # code...
+    // public function saveTransaction(
+    //     $gateway,
+    //     $sender_account_id,
+    //     $receiver_account_id,
+    //     $sender_phone_number,
+    //     $receiver_phone_number,
+    //     $amount,
+    //     $transaction_type,
+    //     $cost,
+    //     $purpose,
+    //     $message,
+    //     $purpose_id = null,
+    //     $currency = "ksh",
+    // ) {
+    //     # code...
 
-        $requestdata = [
-            "gateway"               => $gateway,
-            'sender_account_id'     => $sender_account_id,
-            'receiver_account_id'   => $receiver_account_id,
-            'sender_phone_number'   => $sender_phone_number,
-            'receiver_phone_number' => $receiver_phone_number,
-            "amount"                => $amount,
-            "transaction_type"      => $transaction_type,
-            "cost"                  => $cost,
-            "currency"              => $currency,
-            "purpose"               => $purpose,
-            "message"               => $message,
-            "purpose_id"            => $purpose_id,
-        ];
+    //     $requestdata = [
+    //         "gateway"               => $gateway,
+    //         'sender_account_id'     => $sender_account_id,
+    //         'receiver_account_id'   => $receiver_account_id,
+    //         'sender_phone_number'   => $sender_phone_number,
+    //         'receiver_phone_number' => $receiver_phone_number,
+    //         "amount"                => $amount,
+    //         "transaction_type"      => $transaction_type,
+    //         "cost"                  => $cost,
+    //         "currency"              => $currency,
+    //         "purpose"               => $purpose,
+    //         "message"               => $message,
+    //         "purpose_id"            => $purpose_id,
+    //     ];
 
-        $request = new Request();
-        $request->setMethod('POST');
-        $request->request->add($requestdata);
+    //     $request = new Request();
+    //     $request->setMethod('POST');
+    //     $request->request->add($requestdata);
 
-        $transactionController = new TransactionController();
-        $result                = $transactionController->store($request);
+    //     $transactionController = new TransactionController();
+    //     $result                = $transactionController->store($request);
 
-        if (! $result) {
-            return false;
-        }
+    //     if (! $result) {
+    //         return false;
+    //     }
 
-        return $result;
-    }
-
-    public function createAccount($accountType, $account)
-    {
-        # code...
-        $account = null;
-        $user    = $this->user();
-
-        if ($user->is_individual) {
-            // $individualRepo = new IndividualRepository($user);
-            // $account =   $individualRepo->makeAccount();
-        } else {
-
-            return $this->sendError("This account could not be created based on the user's details");
-        }
-
-        $result = $this->individual()->account()->create(
-            $account,
-        );
-
-        if (! $result) {
-            return $this->sendError("This account could not be created based on the user's details");
-        } else {
-            return $this->sendResponse($result, "Success! account created successfully");
-        }
-
-    }
-    //
+    //     return $result;
+    // }
 
     /**
      * success response method.
      *
      * @return \Illuminate\Http\Response
      */
-
-    //gets retails list sent to home controller for choosing
-
-    public function getRetailList()
-    {
-        $user = User::where('id', Auth::id())->first();
-
-        if ($user->is_retailer) {
-            $retails               = $user->retails()->get();
-            $retailList['retails'] = $retails;
-            return $retailList;
-        } elseif (! $user->is_retailer && $user->is_retail_employee) {
-            $employeeaccount = $user->employees()->first();
-            $retails         = null;
-            # code...
-            $retails               = $employeeaccount->employeeable()->get();
-            $retailList['retails'] = $retails;
-            return $retailList;
-        } else {
-            return null;
-        }
-    }
 
     public function mpesaResponse($OriginalString)
     {
@@ -633,43 +480,6 @@ class BaseController extends Controller
         $response['1'] = $transaction;
 
         return $response;
-    }
-
-    public function saveRevenue($revenue)
-    {
-        $account = $this->getAccount();
-
-        $revenueRepo    = new RevenueRepository($account);
-        $revenue_result = $revenueRepo->saveRevenue($revenue);
-        if (! $revenue_result) {
-            return "false";
-        }
-        $profitRepo    = new ProfitRepository($account);
-        $profit_result = $profitRepo->setProfitFromRevenue($revenue);
-        if (! $profit_result) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function saveExpense($expense)
-    {
-        # code...
-        $account         = $this->getAccount();
-        $expenseRepo    = new ExpenseRepository($account);
-        $expense_result = $expenseRepo->saveExpense($expense);
-        if (! $expense_result) {
-            return false;
-        }
-
-        $profitRepo    = new ProfitRepository($account);
-        $profit_result = $profitRepo->setProfitFromExpense($expense);
-        if (! $profit_result) {
-            return false;
-        }
-
-        return true;
     }
 
     public function getRetailEmployeePermissions()

@@ -1,11 +1,9 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Auth\MustVerifyEmail;
-
 use App\Mail\ResetPasswordMail;
-use App\Models\Account as ModelsAccount;
 use App\Models\Ecommerce;
+use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -49,15 +47,28 @@ class User extends Authenticatable
     const DUKAVERSE_ID       = 1;
 
     const SUPER_ADMIN                     = "super_admin";
-    const DUKAVERSE_ADMIN_ACCOUNT_TYPE    = "admin";
-    const DUKAVERSE_EMPLOYEE_ACCOUNT_TYPE = "employee";
     const ADMIN_ACCOUNT_TYPE              = "admin";
     const EMPLOYEE_ACCOUNT_TYPE           = "employee";
     const RETAILER_ACCOUNT_TYPE           = "retailer";
+    const OFFICE_ACCOUNT_TYPE             = "office";
     const CUSTOMER_ACCOUNT_TYPE           = "customer";
     const SUPPLIER_ACCOUNT_TYPE           = "supplier";
     const LEAD_ACCOUNT_TYPE               = "lead";
     const CONTRACTOR_ACCOUNT_TYPE         = "contractor";
+    const ECOMMERCE_ACCOUNT_TYPE          = 'ecommerce';
+    const ECOMMERCE_CUSTOMER_ACCOUNT_TYPE = 'ecommerce_customer';
+
+    const ACCOUNT_TYPES = [
+        self::ADMIN_ACCOUNT_TYPE      => self::ADMIN_ACCOUNT_TYPE,
+        self::RETAILER_ACCOUNT_TYPE   => self::RETAILER_ACCOUNT_TYPE,
+        self::CUSTOMER_ACCOUNT_TYPE   => self::CUSTOMER_ACCOUNT_TYPE,
+        self::SUPPLIER_ACCOUNT_TYPE   => self::SUPPLIER_ACCOUNT_TYPE,
+        self::LEAD_ACCOUNT_TYPE       => self::LEAD_ACCOUNT_TYPE,
+        self::CONTRACTOR_ACCOUNT_TYPE => self::CONTRACTOR_ACCOUNT_TYPE,
+        self::EMPLOYEE_ACCOUNT_TYPE   => self::EMPLOYEE_ACCOUNT_TYPE,
+        self::ECOMMERCE_ACCOUNT_TYPE  => self::ECOMMERCE_ACCOUNT_TYPE,
+        self::ECOMMERCE_CUSTOMER_ACCOUNT_TYPE => self::ECOMMERCE_CUSTOMER_ACCOUNT_TYPE,
+    ];
 
     const ROLETYPES = [
         self::SUPER_ADMIN             => self::SUPER_ADMIN,
@@ -402,9 +413,9 @@ class User extends Authenticatable
         return $this->morphMany(Transaction::class, "ownerable");
     }
 
-    public function accounts()
+    public function wallets()
     {
-        return $this->morphMany(ModelsAccount::class, "ownerable");
+        return $this->morphMany(Wallet::class, "ownerable");
     }
 
     public function subscriptions()
@@ -522,7 +533,7 @@ class User extends Authenticatable
 
     }
 
-      public function calendars()
+    public function calendars()
     {
         return $this->hasMany(Calendar::class);
     }

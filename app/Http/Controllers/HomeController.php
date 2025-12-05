@@ -1,8 +1,7 @@
 <?php
 namespace App\Http\Controllers;
-
-use App\Http\Controllers\BaseController;
 use App\Http\Resources\ApiResource;
+use App\Http\Controllers\BaseController;
 use App\Services\AnalyticsService;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +19,7 @@ class HomeController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/v1/analytics/dashboard",
+     *     path="/api/v1/analytics/data",
      *     tags={"Analytics"},
      *     security={{"bearerAuth":{}}},
      *     summary="Get analytics dashboard data",
@@ -249,7 +248,7 @@ class HomeController extends BaseController
             if (isset($result['error'])) {
                 return $this->apiResource->error($result['error'], 400);
             }
-            return $this->apiResource->success(['permissions' => (array) $result], "Permissions fetched successfully", 200);
+            return $this->apiResource->success(['permissions' => (array) $result['data']["permissions"]], "Permissions fetched successfully", 200);
         } catch (\Exception $e) {
             return $this->apiResource->error($e->getMessage(), 500);
         }

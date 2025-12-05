@@ -1,10 +1,19 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use App\Models\Todo;
+ use App\Models\Todo;
+use App\Services\TasksService;
 
 class TodoController extends BaseController
 {
+
+      public function __construct(
+        private readonly TasksService $tasksService,
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

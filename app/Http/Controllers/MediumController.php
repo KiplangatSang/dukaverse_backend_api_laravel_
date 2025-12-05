@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Helpers\Accounts\Account;
 use App\Models\Medium;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,6 +17,12 @@ use Illuminate\Support\Facades\Validator;
  */
 class MediumController extends BaseController
 {
+    public function __construct(
+        ApiResource $apiResource,
+        protected readonly FirebaseService $firebaseService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Get(
      *     path="/api/v1/media",
@@ -97,7 +105,7 @@ class MediumController extends BaseController
 
         $validatated = $validator->validated();
 
-        $file_url = $this->saveFile("media", $validatated["file"]);
+        $file_url = $this->firebaseService->saveFile("media", $validatated["file"]);
 
         $file_details = Medium::getFileDetails($request->file);
         $file_medium  = Medium::createMediumFormat($file_url, $file_details["type"],
@@ -241,7 +249,7 @@ class MediumController extends BaseController
             return $this->sendError("Bad request", ["error" => "The file media could not be fetched.", "result" => $medium]);
         }
 
-        $file_url = $this->saveFile("media", $validatated["file"]);
+        $file_url = $this->firebaseService->saveFile("media", $validatated["file"]);
 
         $file_details = Medium::getFileDetails($request->file);
         $file_medium  = Medium::createMediumFormat($file_url, $file_details["type"],

@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreCalendarRequest;
 use App\Http\Requests\UpdateCalendarRequest;
@@ -21,6 +22,12 @@ use Carbon\Carbon;
  */
 class CalendarController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
 
     /**
      * @OA\Get(

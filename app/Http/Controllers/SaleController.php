@@ -1,25 +1,26 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Models\Sale;
-use App\Repositories\SalesRepository;
-use App\Services\AuthService;
+
+ use App\Models\Sale;
 use App\Services\SaleService;
+use App\Services\AuthService;
+use App\Services\RevenueService;
 use Exception;
 use Illuminate\Http\Request;
 
 class SaleController extends BaseController
 {
-    private SaleService $saleService;
-
+ 
     public function __construct(
         private readonly AuthService $authService,
+         private readonly RevenueService $revenueService,
+        private readonly SaleService $saleService,
+
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
-        $this->saleService = new SaleService(new SalesRepository($this->getAccount()));
-    }
+     }
 
     /**
      * @OA\Get(
@@ -111,7 +112,7 @@ class SaleController extends BaseController
         try {
             $result = $this->saleService->createSale($request->validated());
 
-            $revenue_result = $this->saveRevenue($request->price);
+            $revenue_result = $this->revenueService->saveRevenue($request->price);
             if (! $revenue_result) {
                 throw new Exception('Error saving revenue from item');
             }
@@ -209,7 +210,7 @@ class SaleController extends BaseController
         try {
             $result = $this->saleService->updateSale($sales, $request->validated());
 
-            $revenue_result = $this->saveRevenue($request->price);
+            $revenue_result = $this->revenueService->saveRevenue($request->price);
             if (! $revenue_result) {
                 throw new Exception('Error saving revenue from item');
             }

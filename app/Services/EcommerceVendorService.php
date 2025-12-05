@@ -2,17 +2,23 @@
 
 namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Ecommerce;
 use App\Services\PermissionsService;
 use Illuminate\Support\Facades\Auth;
 
-class EcommerceVendorService
+class EcommerceVendorService extends BaseService
 {
-    protected $permissionsService;
+ 
+   
 
-    public function __construct(PermissionsService $permissionsService)
-    {
-        $this->permissionsService = $permissionsService;
+     public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper,
+        private readonly PermissionsService $permissionsService
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
     }
 
     public function listVendors()

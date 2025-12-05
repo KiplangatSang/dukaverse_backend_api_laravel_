@@ -1,7 +1,7 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
-class RetailGoodsRepository
+class RetailGoodsService
 {
 
     public function retailGoods()

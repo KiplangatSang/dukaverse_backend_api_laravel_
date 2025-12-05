@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 use App\Helpers\Billing\Charges;
 use App\Helpers\Billing\PaymentGatewayContract;
 use App\Http\Controllers\BaseController;
-use App\Http\Controllers\ReceiptController;
 use App\Http\Resources\ApiResource;
-use App\Http\Resources\StoreFileResource;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Invoice;
@@ -14,9 +12,11 @@ use App\Models\Receipt;
 use App\Models\Retail;
 use App\Models\SaleTransaction;
 use App\Models\Transaction;
-use App\Repositories\ItemRepository;
-use App\Repositories\SalesRepository;
+use App\Services\ItemService;
 use App\Services\PaymentService;
+use App\Services\RevenueService;
+use App\Services\SaleService;
+use App\Services\TransactionsService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -24,12 +24,14 @@ use Illuminate\Support\Facades\Validator;
 class SalePaymentController extends BaseController
 {
 
-
-
-
-     public function __construct(
+    public function __construct(
         ApiResource $apiResource,
-        private readonly PaymentService $paymentService
+        private readonly PaymentService $paymentService,
+        private readonly TransactionsService $transactionService,
+        private readonly RevenueService $revenueService,
+        protected readonly ItemService $itemService,
+        protected readonly SaleService $saleService
+
     ) {
         parent::__construct($apiResource);
     }
@@ -37,6 +39,7 @@ class SalePaymentController extends BaseController
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request, PaymentGatewayContract $payment, Charges $charges)
     {
         //
@@ -61,19 +64,36 @@ class SalePaymentController extends BaseController
             $retail            = $this->getAccount();
             $sale_transaction  = $this->getAccount()->saleTransactions()->where('transaction_id', $request->transaction['transaction_id'])->first();
             $cost              = 0;
-            $transaction       = $this->paymentService->storeTransaction(
-                $request->gateway,
-                null,
-                1,
-                $request->customer['phone_number'] ?? '',
-                $this->user()->phone_number,
-                $request->transaction['amount'],
-                $transaction_model->getTransactionType($request->gateway),
-                $cost,
-                "SALES",
-                "Retail Goods Payment",
-                $sale_transaction->id
+            $amount            = $request->transaction['amount'];
+            $gateway           = $request->gateway;
+            $transaction_type  = $transaction_model->getTransactionType($request->gateway);
+            $transaction       = $this->transactionService->saveSaleTransaction(
+                gateway: $gateway,
+                sender_account_id: null,
+                receiver_account_id: 1,
+                sender_phone_number: $request->customer['phone_number'] ?? '',
+                receiver_phone_number: $this->user()->phone_number,
+                amount: $amount,
+                transaction_type: $transaction_type,
+                cost: $cost,
+                currency: "KES",
+                purpose: "SALES",
+                message: "Retail Goods Payment",
+                purpose_id: $sale_transaction->id
             );
+
+            //             string $gateway,
+            // int $sender_account_id,
+            // int $receiver_account_id,
+            // float $amount,
+            // string $message,
+            // string $transaction_type,
+            // string $cost,
+            // string $currency,
+            // string $purpose,
+            // string $sender_phone_number,
+            // string $receiver_phone_number,
+            // string $purpose_id,
 
             if (! $sale_transaction) {
                 return $this->sendError($sale_transaction, "Transaction not found", 500);
@@ -123,8 +143,7 @@ class SalePaymentController extends BaseController
             $user             = $this->user();
             $customer         = Customer::where('phone_number', $request->phone_number)->first();
 
-            $receiptController = new ReceiptController();
-            $invoice           = $receiptController->generateInvoice
+            $invoice = $this->saleService->generateInvoice
                 ($retail, $customer, $user, $transaction,
                 $sale_transaction, Invoice::CASH_TYPE
             );
@@ -136,7 +155,7 @@ class SalePaymentController extends BaseController
                 $employee = $user->employee;
             }
 
-            $receipt          = $receiptController->generateReceipt($retail, $user, $customer, $sale_transaction, $transaction, $invoice, $receipt_type);
+            $receipt          = $this->saleService->generateReceipt($retail, $user, $customer, $sale_transaction, $transaction, $invoice, $receipt_type);
             $transaction_data = $this->generateReceiptPDF($retail, $sale_transaction, $customer, $employee, $receipt, $invoice);
 
             return $this->sendResponse([
@@ -161,12 +180,10 @@ class SalePaymentController extends BaseController
     public function generateReceiptPDF(Retail $retail, SaleTransaction $saleTransaction, Customer $customer = null, Employee $employee = null, Receipt $receipt, Invoice $invoice)
     {
 
-        $item_repository = new ItemRepository($retail);
-        $sales_items     = $item_repository->getSalesItems($retail, $saleTransaction);
+        $sales_items = $this->itemService->getSalesItems($retail, $saleTransaction);
 
-        $sale_repository = new SalesRepository($retail);
-        $sales_totals    = $sale_repository->getReceiptTotals($retail, $saleTransaction);
-        $data            = [
+        $sales_totals = $this->saleService->getReceiptTotals($saleTransaction);
+        $data         = [
             'items'    => $sales_items,
             "customer" => $customer,
             "employee" => $employee,
@@ -222,7 +239,7 @@ class SalePaymentController extends BaseController
         );
         $transaction = $this->getAccount()->salesTransactions()->where('transaction_id', $transactions->transaction_id)->first();
 
-        $revenue_result = $this->saveRevenue($transaction->paid_amount);
+        $revenue_result = $this->revenueService->saveRevenue($transaction->paid_amount);
         if (! $revenue_result) {
             return "false";
         }

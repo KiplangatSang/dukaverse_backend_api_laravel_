@@ -16,7 +16,8 @@ class AuthService extends BaseService
 {
     public function __construct(
         StoreFileResource $storeFileResource,
-       private ResponseHelper $responseHelper
+       private ResponseHelper $responseHelper,
+       private readonly AppService $appService
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }
@@ -168,7 +169,7 @@ class AuthService extends BaseService
             return $this->responseHelper->error(error: ["error" => 'Could not create this account.'], message: "Bad request: Could not create user.", httpCode: 500);
         }
 
-        $image  = $this->getNoProfileImage();
+        $image  = $this->appService->getNoProfileImage();
         $user   = User::where('id', $user->id)->first();
         $result = $user->profile()->create([
             "user_id"       => $user->id,

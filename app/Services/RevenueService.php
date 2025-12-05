@@ -1,18 +1,23 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class RevenueRepository
+class RevenueService extends BaseService
 {
-    private $account;
     protected $month, $year, $revenue = null, $lastRevenue = null, $revenue_id = null, $result = null;
-    public function __construct($account)
-    {
-        $this->account = $account;
-        $this->month   = date('M');
-        $this->year    = date("Y");
+
+    public function __construct(
+        private readonly ProfitService $profitService, 
+        protected readonly StoreFileResource $storeFileResource,
+        protected readonly ResponseHelper $responseHelper
+    ) {
+        $this->month = date('M');
+        $this->year  = date("Y");
+        parent::__construct($storeFileResource, $responseHelper);
     }
 
     public function saveRevenue($revenue)
@@ -58,6 +63,11 @@ class RevenueRepository
         } catch (\PDOException $e) {
             // Woopsy
             DB::rollBack();
+            return false;
+        }
+
+        $profit_result = $this->profitService->setProfitFromRevenue($revenue);
+        if (! $profit_result) {
             return false;
         }
 

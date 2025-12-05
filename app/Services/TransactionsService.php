@@ -1,6 +1,8 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Account;
 use App\Models\Loan;
 use App\Models\Order;
@@ -8,22 +10,26 @@ use App\Models\Sale;
 use App\Models\Supply;
 use Illuminate\Support\Str;
 
-class TransactionsRepository
+class TransactionsService  extends BaseService
 {
 
+
     protected $STRLENGTH = 8;
-    protected $account   = null;
-    public function __construct($account)
-    {
-        $this->account = $account;
+   
+    public function __construct(
+         StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper,
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
     }
+
     public function saveTransaction(
         $gateway,
         $sender_account_id,
         $receiver_account_id,
         $amount,
         $message,
-        $trans_type,
+        $transaction_type,
         $cost,
         $currency,
         $purpose,
@@ -45,7 +51,7 @@ class TransactionsRepository
             "amount"                => $amount,
             "gateway"               => $gateway,
             "status"                => false,
-            "transaction_type"      => $trans_type,
+            "transaction_type"      => $transaction_type,
             "message"               => $message,
             "cost"                  => $cost,
             "currency"              => $currency,
@@ -61,12 +67,60 @@ class TransactionsRepository
         return $result;
     }
 
-    public function getAdminAccount()
-    {
+     public function saveSaleTransaction(
+        string $gateway,
+        ?int $sender_account_id,
+        int $receiver_account_id,
+        string $sender_phone_number,
+        string $receiver_phone_number,
+        string $amount,
+        string $transaction_type,
+        string $cost,
+        string $purpose,
+        string $message,
+        ?int $purpose_id = null,
+        $currency = "ksh",
+    ) {
         # code...
-        $admin_account = Account::where('id', 0)->first();
-        return $admin_account;
+
+        $requestdata = [
+            "gateway"               => $gateway,
+            'sender_account_id'     => $sender_account_id,
+            'receiver_account_id'   => $receiver_account_id,
+            'sender_phone_number'   => $sender_phone_number,
+            'receiver_phone_number' => $receiver_phone_number,
+            "amount"                => $amount,
+            "transaction_type"      => $transaction_type,
+            "cost"                  => $cost,
+            "currency"              => $currency,
+            "purpose"               => $purpose,
+            "message"               => $message,
+            "purpose_id"            => $purpose_id,
+        ];
+
+ 
+        $result                = $this->saveTransaction(
+            gateway          :$gateway,
+            sender_account_id   :$sender_account_id,
+            receiver_account_id :$receiver_account_id,
+            sender_phone_number :$sender_phone_number,
+            receiver_phone_number:$receiver_phone_number,
+            amount              :$amount,
+            transaction_type    :$transaction_type,
+            cost                :$cost,
+            currency            :$currency,
+            purpose             :$purpose,
+            message             :$message,
+            purposeable_id          :$purpose_id,
+        );
+
+        if (! $result) {
+            return false;
+        }
+
+        return $result;
     }
+  
 
     public function getTransaction($id)
     {

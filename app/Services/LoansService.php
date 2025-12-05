@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Loans\LoanApplication;
 use App\Models\Loans\Loans;
 use App\Models\User;
@@ -11,14 +13,16 @@ use Illuminate\Support\Str;
 use Faker\Generator as Faker;
 
 
-class LoansRepository
+class LoansService extends BaseService
 {
 
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
+  public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
     }
+
 
     //getApplied loans
     public function getAppliedLoans($month = null, $year = null)

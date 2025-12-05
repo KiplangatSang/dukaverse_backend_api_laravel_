@@ -2,11 +2,19 @@
 
 namespace App\Http\Controllers\Retailer;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class MarketCheckoutController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

@@ -2,7 +2,7 @@
 namespace App\Notifications;
 
 use App\Mail\SalesMail;
-use App\Repositories\SalesRepository;
+use App\Services\SaleService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -25,7 +25,7 @@ class SalesNotification extends Notification
     {
         //
         $this->account   = $account;
-        $salesrepo       = new SalesRepository($account);
+        $salesrepo       = new SaleService($account);
         $this->salesdata = $salesrepo->salesMailData();
 
     }

@@ -1,120 +1,198 @@
 <?php
+
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Models\Customer;
-use App\Repositories\CustomersRepository;
-use App\Repositories\EcommerceRepository;
-use App\Repositories\OrdersRepository;
-use App\Services\AuthService;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
+use App\Http\Requests\StoreAccountRequest;
+use App\Http\Requests\UpdateAccountRequest;
+ use App\Models\Account;
+use App\Http\Resources\StoreFileResource; // Added use statement
+use App\Http\Resources\ResponseHelper; // Added use statement
+use App\Services\AccountService;
+use App\Services\AuthService;
+use App\Services\AccountsService;
+use Exception;
+use Illuminate\Support\Facades\Validator;
+use OpenApi\Annotations as OA;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+
+/**
+ * @OA\Tag(
+ *     name="Accounts",
+ *     description="API Endpoints for managing Accounts"
+ * )
+ */
 class AccountController extends BaseController
 {
-    /**
-     * @var OrdersRepository
-     * @var EcommerceRepository
-     * @var CustomersRepository
-     */
+
+    use AuthorizesRequests;
+    use ValidatesRequests;
+
     public function __construct(
+        private readonly StoreFileResource $storeFileResource,
+        private readonly ResponseHelper $responseHelper,
         private readonly AuthService $authService,
-        ApiResource $apiResource
+        ApiResource $apiResource,
+        private readonly AccountService $accountService
     ) {
         parent::__construct($apiResource);
     }
 
+    // private function getAccountService()
+    // {
+    //     return new AccountService(new AccountsService(), $this->storeFileResource, $this->responseHelper);
+    // }
+
     /**
-     * Get list of customers with credit information
-     * Returns a list of customers, their credit transactions, credited customers and credited item count.
+     * @OA\Get(
+     *     path="/api/v1/accounts",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Get list of accounts",
+     *     @OA\Response(response=200, description="Successful operation")
+     * )
      */
     public function index(Request $request)
     {
-        $customerlist = $this->ecommerce($request)->customers()->latest()->get();
 
-        $creditAmount = $this->ecommerce($request)
-            ->customers()->with([
-            'credits' => function ($query) {
-                $query->select(DB::raw('SUM(amount) as creditAmount'))->groupBy('created_at');
-            },
-        ])->latest()->get();
-
-        $creditedItems = (new CustomersRepository($this->getAccount()))->getCreditedItems();
-
-        $customerdata = [
-            'customerlist'      => $customerlist,
-            'customerCredit'    => $this->ecommerce($request)->customerCredits()->sum('amount'),
-            'creditedCustomers' => $this->ecommerce($request)->customers()->whereHas('creditTransactions')->get(),
-            "creditedItems"     => $creditedItems->count(),
-        ];
-
-        return $this->sendResponse($customerdata, "success,customers data");
-    }
-
-    /**
-     * Create a new customer
-     * Stores a new customer in the database
-     */
-    public function store(Request $request)
-    {
         try {
-            if ($request->email) {
-                $request->validate([
-                    'email' => ["email", "unique:users"],
-                ]);
-            }
-            $result = $this->ecommerce($request)->customers()->create($request->all());
-            return $this->sendResponse($result, "Success, customer added successfully");
-        } catch (Exception $ex) {
-            return $ex->getMessage();
+            $accounts = $this->accountService->getIndexData($request->type);
+            return $this->sendResponse($accounts['data'], "Accounts fetched successfully");
+        } catch (Exception $e) {
+            return $this->sendError('Error fetching accounts',["errors" => $e->getMessage()]);
         }
     }
 
     /**
-     * Get a single customer's details
-     * Returns customer data including sales and credit transactions
+     * @OA\Get(
+     *     path="/api/v1/accounts/create",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Show form for creating an account",
+     *     @OA\Response(response=200, description="Successful operation")
+     * )
      */
-    public function show(Request $request, $customer)
+    public function create()
     {
-        $customer = $this->ecommerce($request)->customers()
-            ->where('id', $customer)
-            ->with('saletransactions.sales')
-            ->with('saletransactions.credits')
-            ->first();
-
-        return $this->sendResponse($customer, "Success, Customer's data");
-    }
-
-    /**
-     * Update customer details
-     * Updates a customer's information
-     */
-    public function update(Request $request, $customer)
-    {
-        $customer = $this->ecommerce($request)->customers()->where("id", $customer)->first();
-
         try {
-            $result = $customer->update($request->validated());
-
-            if (! $result) {
-                return $this->sendError('Error', "Could not Update Customer");
-            }
-
-            $customer = $this->ecommerce($request)->customers()->where("id", $customer->id)->first();
-            return $this->sendResponse($customer, "Success, customer updated successfully");
-        } catch (Exception $ex) {
-            return $this->sendError('Error', "Could not Update Customer");
+            // For now, return empty data or form data
+            $data = [];
+            return $this->sendResponse($data, "Create data fetched successfully");
+        } catch (\Exception $e) {
+            return $this->sendError('Error fetching create data', $e->getMessage());
         }
     }
 
     /**
-     * Delete a customer
-     * Removes a customer from the database
+     * @OA\Post(
+     *     path="/api/v1/accounts",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Create a new account",
+     *     @OA\Response(response=201, description="Account created")
+     * )
      */
-    public function destroy($customer)
+    public function store(StoreAccountRequest $request)
     {
-        Customer::destroy($customer);
-        return redirect('/customers/index')->with('success', 'Customer removed successfully');
+  
+        // try {
+        //     $account = $this->accountService->createAccount($request->validated());
+        //     return $this->sendResponse($account, "Account created successfully", 201);
+        // } catch (\Exception $e) {
+        //     return $this->sendError('Error creating account', $e->getMessage());
+        // }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/accounts/{type}",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Get a specific account",
+     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Successful operation")
+     * )
+     */
+    public function show($account)
+    {
+        $accountModel = $this->accountService->getShowData($account);
+        if(isset($accountModel['error'])) {
+            return $this->sendError('Error fetching account', $accountModel['error'], $accountModel['code'] ?? 400);
+        }
+        $this->authorize('view', $accountModel);
+
+        try {
+            return $this->sendResponse($accountModel, "Account fetched successfully");
+        } catch (\Exception $e) {
+            return $this->sendError('Error fetching account', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/accounts/{account}/edit",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Show form for editing an account",
+     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Successful operation")
+     * )
+     */
+    public function edit($account)
+    {
+        try {
+            $data = $this->accountService->getShowData($account);
+            return $this->sendResponse($data, "Edit data fetched successfully");
+        } catch (\Exception $e) {
+            return $this->sendError('Error fetching edit data', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/api/v1/accounts/{account}",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Update an account",
+     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Account updated")
+     * )
+     */
+    public function update(UpdateAccountRequest $request, $account)
+    {
+        // $accountModel = $this->accountService->getShowData($account);
+        // $this->authorize('update', $accountModel);
+
+        // try {
+        //     $updatedAccount = $this->accountService->updateAccount($account, $request->validated());
+        //     return $this->sendResponse($updatedAccount, "Account updated successfully");
+        // } catch (\Exception $e) {
+        //     return $this->sendError('Error updating account', $e->getMessage());
+        // }
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/accounts/{account}",
+     *     tags={"Accounts"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Delete an account",
+     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=204, description="Account deleted")
+     * )
+     */
+    public function destroy($account)
+    {
+        // $accountModel = $this->accountService->getShowData($account);
+        // $this->authorize('delete', $accountModel);
+
+        // try {
+        //     $result = $this->accountService->deleteAccount($account);
+        //     return $this->sendResponse($result, "Account deleted successfully");
+        // } catch (\Exception $e) {
+        //     return $this->sendError('Error deleting account', $e->getMessage());
+        // }
     }
 }

@@ -1,13 +1,19 @@
 <?php
 namespace App\Http\Middleware;
 
-use App\Helpers\Accounts\Account;
+use App\Http\Resources\ApiResource;
+use App\Services\AccountService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class HasAccountMiddleware
 {
+
+    public function __construct(protected readonly AccountService $accountService,
+        protected readonly ApiResource $apiResourse) {
+    }
     /**
      * Handle an incoming request.
      *
@@ -16,23 +22,27 @@ class HasAccountMiddleware
     public function handle(Request $request, Closure $next): Response
     {
 
+        if(!Auth::check()){
+            return $this->apiResourse->error('Unauthorized', 401, ['errors' => 'Please login first']);
+        }
         if ($request->user()) {
-            $account      = new Account($request->user());
-            $account_list = $account->getAccountList();
-            $accounts     = $account_list["accounts"];
-            if (! $accounts || count($accounts) < 1) {
-                // abort(404, (string) $accounts);
-
-                abort(404, "Register an account first");
+            $account_list = $this->accountService->getAccounts('retailer');
+            if (isset($account_list["error"])) {
+                return $this->apiResourse->error($account_list["message"], 500, ['errors' => $account_list["error"]]);
             }
-            if (count($account_list['accounts']) >= 1) {
+            $accounts = $account_list["data"]["accounts"];
+
+            if (! $accounts || count($accounts) < 1) {
+                return $this->apiResourse->error('No account found', 404, ['errors' => 'Register an account first']);
+            }
+            if (count($accounts) >= 1) {
                 return $next($request);
             } else {
-                abort(403, "Set the session account first");
+                return $this->apiResourse->error('No account found', 403, ['errors' => 'Register an account first']);
             }
         } else {
 
-            abort(403, "User not found");
+            return $this->apiResourse->error('Server Error', 500, ['errors' => 'Account Server Error']);
 
         }
     }

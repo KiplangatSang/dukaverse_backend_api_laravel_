@@ -1,26 +1,28 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
 use App\Helpers\Accounts\Account;
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Lead;
 use App\Models\SaleTransaction;
 use App\Models\User;
 
-class CRMRepository
+class CRMService extends BaseService
 {
-    private $account;
     private $user;
-    public function __construct($account, $user = null)
-    {
-        $this->account = $account;
+     
 
-        if (! $user) {
-            $this->user = auth()->user();
-        } else {
-            $this->user = $user;
-        }
-
+    public function __construct(
+        private readonly UserService $userService,
+        private readonly StoreFileResource $storeFileResource,
+        private readonly ResponseHelper $responseHelper,
+        private readonly AppService $appService
+    ) {
+        $this->user = $this->user();
+        parent::__construct($storeFileResource, $responseHelper);
     }
+
 
     public function getCampaigns()
     {

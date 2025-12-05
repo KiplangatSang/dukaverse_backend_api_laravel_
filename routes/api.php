@@ -1,6 +1,6 @@
 <?php
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\AccountsController;
+use App\Http\Controllers\AppNotificationController;
 use App\Http\Controllers\AssignEmployeeRole;
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -121,15 +121,18 @@ Route::prefix('v1')->group(function () {
 
 // Resend the verification email if the user hasn’t verified yet
     Route::post('/email/resend', [VerificationController::class, 'resend'])->middleware('auth:sanctum')->name('verification.resend');
+    Route::post('/email/verify-code', [VerificationController::class, 'verifyEmailCode'])->middleware('auth:sanctum')->name('verification.verify-code');
+    Route::post('/phone/send-otp', [VerificationController::class, 'sendOtp'])->middleware('auth:sanctum')->name('verification.send-otp');
+    Route::post('/phone/verify-otp', [VerificationController::class, 'verifyOtp'])->middleware('auth:sanctum')->name('verification.send-otp');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/user/data', [HomeController::class, 'user']);
 
-        Route::resource('profile',ProfileController::class);
+        Route::resource('profile', ProfileController::class);
 
-        Route::post('/profile/update-picture',ProfileController::class,'updateProfilePicture');
-        Route::post('/profile/{id}/documents',[ProfileController::class,'uploadUserDocuments']);
-        Route::post('/profile/{id}/relevant-documents',[ProfileController::class,'uploadRelevantDocuments']);
+        Route::post('/profile/update-picture', [ProfileController::class, 'updateProfilePicture']);
+        Route::post('/profile/{id}/documents', [ProfileController::class, 'uploadUserDocuments']);
+        Route::post('/profile/{id}/relevant-documents', [ProfileController::class, 'uploadRelevantDocuments']);
         // generate login token for retailers
         Route::post('/login/generate-token', [UserController::class, 'generateLoginToken']);
 
@@ -158,9 +161,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/retails/documents/relevant', [RetailController::class, 'uploadRelevantDocuments']);
         Route::post('/retails/profile/upload', [RetailController::class, 'updateOfficeProfile']);
 
+        //accounts
+        Route::resource('accounts', AccountController::class);
+        Route::get('accounts/get-account_type/{type}', [AccountController::class, "index"]);
+        Route::get('accounts/get-account_types', [AccountController::class, "getAccountTypes"]);
         // Route::middleware('hasretail')->group(function () {
         Route::middleware('hasaccount')->group(function () {
-            Route::resource('retailsessions', SessionAccountController::class);
+            // Route::resource('retailsessions', SessionAccountController::class);
+
             // Route::middleware('hassessionretail')->group(function () {
             Route::middleware('hassessionaccount')->group(function () {
                 Route::get('/user/data', [HomeController::class, 'user']);
@@ -168,6 +176,7 @@ Route::prefix('v1')->group(function () {
 
                 // dashboard analytics
                 Route::prefix('analytics')->group(function () {
+                    Route::get('/data', [HomeController::class, 'dashboard']);
                     Route::get('/dashboard', [HomeController::class, 'dashboardAnalytics']);
                     Route::get('/dashboard-projects', [HomeController::class, 'dashboardProjects']);
                     Route::get('/dashboard-ecommerce', [HomeController::class, 'dashboardEcommerce']);
@@ -210,12 +219,12 @@ Route::prefix('v1')->group(function () {
 
                 //sale transaction payment
                 Route::prefix('payments')->group(function () {
-                    Route::resource('/sale-transactions/pay-transaction', SalePaymentController::class);
+                    Route::post('/sale-transactions/pay-transaction', [SalePaymentController::class, 'store']);
                     Route::post('/sale-transactions/check-for-payment', [SalePaymentController::class, 'checkForPayment']);
                 });
                 Route::post('/terminal/receipt/print', [ReceiptController::class, 'generateReceipt']);
 
-                // Route::resource('/sale-transactions/payments/{payment-gateway}', SalePaymentController::class);
+                Route::resource('/sale-transactions/payments/{payment-gateway}', SalePaymentController::class);
 
                 ///{sale-transaction}
                 //Employee
@@ -265,13 +274,13 @@ Route::prefix('v1')->group(function () {
                 });
 
                 Route::resource('/notifications', NotificationController::class);
+                Route::resource('/app-notifications', AppNotificationController::class);
 
                 //messages
                 Route::resource('/messages', MessageController::class);
                 Route::post('/messages/{message}', [MessageController::class, 'update']);
                 Route::post('/messages/tenant', [MessageController::class, 'messageTenant']);
 
-                Route::resource('/roles', RoleController::class);
                 Route::resource('/roles', RoleController::class);
                 Route::post('/roles/{role}/assign/employee/{employee}', [AssignEmployeeRole::class, 'assignEmployeeRole']);
                 Route::post('/roles/{role}/unassign/employee/{employee}', [AssignEmployeeRole::class, 'unAssignEmployeeRole']);
@@ -356,13 +365,8 @@ Route::prefix('v1')->group(function () {
             //teams
             Route::resource('teams', TeamController::class);
 
-            //accounts
-            Route::resource('accounts', AccountsController::class);
-
-            //accounts
-            Route::resource('calendars', CalendarController::class);
-
             // Enhanced Calendar Routes
+            Route::resource('calendars', CalendarController::class);
             Route::post('calendars/create-from-task/{task_id}', [CalendarController::class, 'createFromTask']);
             Route::put('calendars/{calendar}/reschedule', [CalendarController::class, 'reschedule']);
             Route::put('calendars/{calendar}/resize', [CalendarController::class, 'resize']);
@@ -489,7 +493,7 @@ Route::prefix('v1')->group(function () {
                 //tiers
                 Route::prefix('tiers')->group(function () {
                     Route::resource('/', TierController::class);
-                    Route::resource('/{tier}/permissions', [PermissionTierController::class]);
+                    Route::resource('/{tier}/permissions', PermissionTierController::class);
                 });
 
                 //email management
@@ -506,13 +510,13 @@ Route::prefix('v1')->group(function () {
 
         });
 
-// Route::post('send-fcm-token', [FcmCloudMessagingController::class, 'firebaseTokenStorage']);
-// Route::post('get-fcm-token', [FcmCloudMessagingController::class, 'firebaseTokenRetrieve']);
-// Route::post('make-notification', [FcmCloudMessagingController::class, 'makeNotification']);
-// Route::get('curl_download', [FcmCloudMessagingController::class, 'curldownload']);
-// Route::post('make-updateToken', [FcmCloudMessagingController::class, 'updateToken']);
-// Route::post('sendNotification', [FcmCloudMessagingController::class, 'sendNotification']);
-// Route::post('delete-tokendata', [FcmCloudMessagingController::class, 'deleterecords']);
+        // Route::post('send-fcm-token', [FcmCloudMessagingController::class, 'firebaseTokenStorage']);
+        // Route::post('get-fcm-token', [FcmCloudMessagingController::class, 'firebaseTokenRetrieve']);
+        // Route::post('make-notification', [FcmCloudMessagingController::class, 'makeNotification']);
+        // Route::get('curl_download', [FcmCloudMessagingController::class, 'curldownload']);
+        // Route::post('make-updateToken', [FcmCloudMessagingController::class, 'updateToken']);
+        // Route::post('sendNotification', [FcmCloudMessagingController::class, 'sendNotification']);
+        // Route::post('delete-tokendata', [FcmCloudMessagingController::class, 'deleterecords']);
 
 // payments
         Route::prefix('payments')->group(function () {
@@ -531,28 +535,23 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
 
             // Projects Routes
-            Route::resource('projects', ProjectController::class);
             Route::post('projects/{project}/change-priority', [ProjectController::class, 'changePriority']);
             Route::post('projects/{project}/comments', [ProjectController::class, 'addComment']);
             Route::put('projects/{project}/comments/{comment}', [ProjectController::class, 'updateComment']);
             Route::delete('projects/{project}/comments/{comment}', [ProjectController::class, 'deleteComment']);
 
             // Campaigns Routes
-            Route::resource('campaigns', CampaignController::class);
             Route::post('campaigns/{campaign_id}/teams/members', [CampaignController::class, 'addMemberToCampaignTeam']);
 
             // Tasks Routes
-            Route::resource('tasks', TaskController::class);
             Route::post('tasks/{task_id}/assign', [TaskController::class, 'assignTask']);
             Route::post('tasks/{taskId}/convert-to-todo', [TaskController::class, 'convertTaskToTodo']);
             Route::post('tasks/{taskId}/break-into-todos', [TaskController::class, 'breakTaskIntoTodos']);
             Route::post('tasks/{taskId}/convert-subtasks-to-todos', [TaskController::class, 'convertSubtasksToTodos']);
 
             // Task Dependencies Routes
-            Route::resource('task-dependencies', TaskDependancyController::class);
 
             // Todos Routes
-            Route::resource('todos', TodoController::class);
             Route::get('todos/{type}', [TodoController::class, 'index']);
             Route::get('todos/create/{type}', [TodoController::class, 'create']);
             Route::get('todos/{todo}/{type}', [TodoController::class, 'show']);
@@ -569,7 +568,6 @@ Route::prefix('v1')->group(function () {
             Route::put('kanban/projects/tasks/update-positions', [KanbanController::class, 'updateKanbanboard']);
 
             // Calendar Routes
-            Route::resource('calendars', CalendarController::class);
             Route::post('calendars/create-from-task/{task_id}', [CalendarController::class, 'createFromTask']);
             Route::put('calendars/{calendar}/reschedule', [CalendarController::class, 'reschedule']);
             Route::put('calendars/{calendar}/resize', [CalendarController::class, 'resize']);
@@ -579,7 +577,6 @@ Route::prefix('v1')->group(function () {
             Route::post('calendars/check-conflicts', [CalendarController::class, 'checkConflicts']);
 
             // Leads Routes
-            Route::resource('leads', LeadController::class);
             Route::post('campaign/{campaign_id}/leads', [LeadController::class, 'addLeadsToCampaign']);
 
             // Subscriptions Routes

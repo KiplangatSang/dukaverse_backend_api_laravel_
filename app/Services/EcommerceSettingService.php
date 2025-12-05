@@ -2,6 +2,8 @@
 namespace App\Services;
 
 use App\Http\Controllers\BaseController;
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Ecommerce;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +11,13 @@ use Illuminate\Support\Facades\Validator;
 
 class EcommerceSettingService extends BaseService
 {
+
+     public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+    }
 
     public function saveEcommerceSettings(Request $request)
     {

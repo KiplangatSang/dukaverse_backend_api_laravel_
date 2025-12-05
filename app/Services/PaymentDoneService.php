@@ -1,16 +1,22 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Transaction;
 
-class PaymentDoneRepository
+class PaymentDoneService extends BaseService
 {
-    private $transaction;
-    public function __construct(Transaction $transaction)
-    {
-        $this->transaction = $transaction;
+     
+     public function __construct(
+        protected readonly StoreFileResource $storeFileResource,
+        protected readonly ResponseHelper $responseHelper,
+        private readonly Transaction $transaction
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
     }
+
 
     //check type of transaction
     public function index()

@@ -1,11 +1,12 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreLoanApplicationRequest;
 use App\Http\Requests\UpdateLoanApplicationRequest;
 use App\Models\Loan;
 use App\Models\LoanApplication;
-use App\Repositories\ThirdPartyRepository;
+use App\Services\ThirdPartyService;
 
 /**
  * @OA\Tag(
@@ -259,7 +260,7 @@ class LoanApplicationController extends BaseController
             return $this->sendError('Loan application not found');
         }
 
-        $thirdPartyRepo   = new ThirdPartyRepository();
+        $thirdPartyRepo   = new ThirdPartyService();
         $thirdPartyImages = $thirdPartyRepo->getThirdPartyImages();
 
         return $this->sendResponse([

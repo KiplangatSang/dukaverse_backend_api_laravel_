@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\Coupon;
 use Illuminate\Http\Request;

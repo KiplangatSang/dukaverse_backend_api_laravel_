@@ -1,21 +1,31 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
 use App\Helpers\notifications\DukaverseNotification;
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
-class EcommerceRepository
+class EcommerceService extends BaseService
 {
 
     private $user;
-    private $account;
-    public function __construct($account, $user = null)
-    {
-        $this->user    = $user != null ? $user : auth()->user();
-        $this->account = $account;
+    // private $account;
+    public function __construct(
+        private readonly CustomerService $customerService,
+        private readonly OrderService $orderService,
+        private readonly RevenueService $revenueService,
+        private readonly SaleService $salesService,
+        StoreFileResource $storeFileResource,
+        protected ResponseHelper $responseHelper
+    ) {
+        $this->user = $this->user();
+        // $this->account = $account;
+
+        parent::__construct($storeFileResource, $responseHelper);
 
     }
 
@@ -84,9 +94,8 @@ class EcommerceRepository
 
     public function getCustomers()
     {
-        $customerRepository = new CustomersRepository($this->account);
-        $customers          = $customerRepository->getCustomers();
-        return $customers;
+        $ecommerceCustomers = $this->account->customers()->get();
+        return $ecommerceCustomers;
     }
 
     public function getCustomersCount()
@@ -98,8 +107,7 @@ class EcommerceRepository
     public function getCustomersGrowth()
     {
 
-        $customerRepository = new CustomersRepository($this->account);
-        $customers_growth   = $customerRepository->getCustomerGrowth();
+        $customers_growth = $this->customerService->getCustomerGrowth();
         return $customers_growth;
 
     }
@@ -115,8 +123,8 @@ class EcommerceRepository
 
     public function getGraphData()
     {
-        $salesRepo   = new SalesRepository($this->account);
-        $revenueRepo = new RevenueRepository($this->account);
+        $salesRepo   = new SaleService($this->account);
+        $revenueRepo = new RevenueService($this->account);
 
         $dates = null;
         try {
@@ -187,8 +195,7 @@ class EcommerceRepository
     public function getOrdersGrowth()
     {
 
-        $ordersRepository = new OrdersRepository($this->account);
-        $orders_growth    = $ordersRepository->getOrdersGrowth();
+        $orders_growth = $this->orderService->getOrdersGrowth();
         return $orders_growth;
 
     }
@@ -196,8 +203,8 @@ class EcommerceRepository
     public function getRevenue()
     {
 
-        $revenueRepository = new RevenueRepository($this->account);
-        $revenue           = $revenueRepository->getRevenue();
+        $this->revenueService = new RevenueService($this->account);
+        $revenue              = $this->revenueService->getRevenue();
         return $revenue;
 
     }
@@ -205,8 +212,8 @@ class EcommerceRepository
     public function getRevenueGrowth()
     {
 
-        $revenueRepository = new RevenueRepository($this->account);
-        $revenue           = $revenueRepository->getRevenueGrowth();
+        $this->revenueService = new RevenueService($this->account);
+        $revenue              = $this->revenueService->getRevenueGrowth();
         return $revenue;
 
     }
@@ -219,8 +226,7 @@ class EcommerceRepository
     public function salesGrowth()
     {
 
-        $salesRepository = new SalesRepository($this->account);
-        $salesGrowth     = $salesRepository->getSalesGrowth();
+        $salesGrowth = $this->salesService->getSalesGrowth();
         return $salesGrowth;
 
     }
@@ -228,8 +234,7 @@ class EcommerceRepository
     public function monthlySalesGrowth()
     {
 
-        $salesRepository = new SalesRepository($this->account);
-        $salesGrowth     = $salesRepository->getSalesGrowth();
+        $salesGrowth = $this->salesService->getSalesGrowth();
         return $salesGrowth;
 
     }
@@ -237,8 +242,7 @@ class EcommerceRepository
     public function getRevenuePerWeek()
     {
 
-        $revenueRepository = new RevenueRepository($this->account);
-        $revenue           = $revenueRepository->getRevenueGrowth();
+        $revenue = $this->revenueService->getRevenueGrowth();
         return $revenue;
 
     }
@@ -246,10 +250,9 @@ class EcommerceRepository
     public function getRevenuePerMonth()
     {
 
-        $revenueRepository = new RevenueRepository($this->account);
-        $month             = date('m');
+        $month = date('m');
 
-        $revenue = $revenueRepository->getAllRevenue(month: $month - 1);
+        $revenue = $this->revenueService->getAllRevenue(month: $month - 1);
         return $revenue;
 
     }
@@ -257,10 +260,10 @@ class EcommerceRepository
     public function getPreviousMonthRevenue()
     {
 
-        $revenueRepository = new RevenueRepository($this->account);
-        $month             = date('m');
+        $this->revenueService = new RevenueService($this->account);
+        $month                = date('m');
 
-        $revenue = $revenueRepository->getAllRevenue(month: $month - 1);
+        $revenue = $this->revenueService->getAllRevenue(month: $month - 1);
         return $revenue;
 
     }
@@ -268,18 +271,17 @@ class EcommerceRepository
     public function getTotalDaysRevenue()
     {
 
-        $revenueRepository = new RevenueRepository($this->account);
-        $revenue           = $revenueRepository->getTotalDaysRevenue();
+        $this->revenueService = new RevenueService($this->account);
+        $revenue              = $this->revenueService->getTotalDaysRevenue();
         return $revenue;
 
     }
 
     public function getRevenuePerLocation()
     {
-        $ordersRepository              = new OrdersRepository($this->account);
         $revenue                       = [];
-        $revenue['sales_per_country']  = $ordersRepository->getOrdersRevenuePerCountry();
-        $revenue['sales_per_location'] = $ordersRepository->getOrdersRevenuePerLocation();
+        $revenue['sales_per_country']  = $this->orderService->getOrdersRevenuePerCountry();
+        $revenue['sales_per_location'] = $this->orderService->getOrdersRevenuePerLocation();
 
         return $revenue;
     }
@@ -287,9 +289,7 @@ class EcommerceRepository
     public function getTopSellingProducts()
     {
 
-        $sales_repository = new SalesRepository($this->account);
-
-        $top_sales = $sales_repository->getTopPerformingItems();
+        $top_sales = $this->salesService->getTopPerformingItems();
 
         return $top_sales;
 

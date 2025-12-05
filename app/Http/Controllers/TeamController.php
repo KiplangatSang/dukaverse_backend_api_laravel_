@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 /**
  * @OA\Tag(
@@ -10,11 +11,10 @@ namespace App\Http\Controllers;
 use OpenApi\Annotations as OA;
 use App\Http\Requests\StoreTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
-use App\Http\Resources\ApiResource;
 use App\Models\Team;
 use App\Services\AuthService;
 use App\Services\TeamService;
-use App\Repositories\TeamsRepository;
+use App\Services\TeamsService;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\Accounts\Account;
 use App\Models\Retail;

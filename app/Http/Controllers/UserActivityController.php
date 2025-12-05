@@ -1,10 +1,10 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreUserActivityRequest;
 use App\Http\Requests\UpdateUserActivityRequest;
-use App\Http\Resources\ApiResource;
-use App\Models\UserActivity;
+ use App\Models\UserActivity;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;

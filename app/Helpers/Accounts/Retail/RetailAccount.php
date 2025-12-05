@@ -133,7 +133,7 @@ class RetailAccount implements RetailAccountContract
 
         if ($user->role == User::RETAILER_ACCOUNT_TYPE) {
             return true;
-        } else if ($user->role == User::RETAIL_EMPLOYEE_ACCOUNT_TYPE) {
+        } else if ($user->role == User::EMPLOYEE_ACCOUNT_TYPE) {
             return false;
         }
 
@@ -145,7 +145,7 @@ class RetailAccount implements RetailAccountContract
         if ($user->role == User::RETAILER_ACCOUNT_TYPE) {
             $permissions = Role::EMPLOYEE_PERMISSIONS;
 
-        } else if ($user->role == User::RETAIL_EMPLOYEE_ACCOUNT_TYPE) {
+        } else if ($user->role == User::EMPLOYEE_ACCOUNT_TYPE) {
             $permissions = $user->employee->roles()->with('permissions')->get()->pluck('permissions')->flatten()->toArray();
 
         }

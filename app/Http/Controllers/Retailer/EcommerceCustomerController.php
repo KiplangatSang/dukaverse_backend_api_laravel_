@@ -2,17 +2,40 @@
 
 namespace App\Http\Controllers\Retailer;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\Controller;
+use App\Services\EcommerceService;
 use Illuminate\Http\Request;
 
 class EcommerceCustomerController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+        protected  EcommerceService $ecommerceService,
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         //
+
+        try {
+            //
+            $ecommerceServices = $this->ecommerceService->getCustomers();
+
+            if(isset($ecommerceServices['error'])){
+                return $this->apiResource->error('An error occurred',  400, ['errors' => $ecommerceServices['error']]);
+            }
+            return $this->apiResource->success(['ecommerceCustomers' => $ecommerceServices], 'Ecommerce Customers fetched successfully');   
+
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -21,6 +44,12 @@ class EcommerceCustomerController extends Controller
     public function create()
     {
         //
+
+        try {
+            //
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -29,6 +58,12 @@ class EcommerceCustomerController extends Controller
     public function store(Request $request)
     {
         //
+
+        try {
+            //
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -37,6 +72,12 @@ class EcommerceCustomerController extends Controller
     public function show(string $id)
     {
         //
+
+        try {
+            //
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -45,6 +86,12 @@ class EcommerceCustomerController extends Controller
     public function edit(string $id)
     {
         //
+
+        try {
+            //
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -53,6 +100,12 @@ class EcommerceCustomerController extends Controller
     public function update(Request $request, string $id)
     {
         //
+
+        try {
+            //
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -61,5 +114,11 @@ class EcommerceCustomerController extends Controller
     public function destroy(string $id)
     {
         //
+
+        try {
+            //
+        } catch (\Exception $e) {
+            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+        }
     }
 }

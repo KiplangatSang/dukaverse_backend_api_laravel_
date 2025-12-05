@@ -1,10 +1,17 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use Illuminate\Http\Request;
 
 class MpesaResponseController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
 
     public function validation(Request $request)
     {
@@ -60,7 +67,7 @@ class MpesaResponseController extends Controller
                             'status'               => true,
                         ]
                     );
-                    $paymentrepo            = new PaymentDoneRepository($transaction);
+                    $paymentrepo            = new PaymentDoneService($transaction);
                     $finalizepayment_result = $paymentrepo->index();
                     info($finalizepayment_result);
 
@@ -158,7 +165,7 @@ class MpesaResponseController extends Controller
                             'status'               => true,
                         ]
                     );
-                    $paymentrepo            = new PaymentDoneRepository($transaction);
+                    $paymentrepo            = new PaymentDoneService($transaction);
                     $finalizepayment_result = $paymentrepo->index();
                     info($finalizepayment_result);
 
@@ -226,7 +233,7 @@ class MpesaResponseController extends Controller
                     'status'               => true,
                 ]
             );
-            $paymentrepo            = new PaymentDoneRepository($transaction);
+            $paymentrepo            = new PaymentDoneService($transaction);
             $finalizepayment_result = $paymentrepo->index();
             info($finalizepayment_result);
 

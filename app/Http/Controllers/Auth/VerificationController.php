@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\BaseController;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
@@ -292,6 +294,32 @@ class VerificationController extends BaseController
      *     )
      * )
      */
+
+    public function verifyEmailCode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|size:6'
+        ]);
+
+        $user = $request->user();
+        $cacheKey = 'email_verification_code_' . $user->id;
+        $cachedCode = Cache::get($cacheKey);
+
+        if (!$cachedCode || $cachedCode !== $request->code) {
+            return $this->sendError('Invalid or expired verification code.', [], 400);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->sendResponse(['message' => 'Email already verified'], 'Email already verified', 200);
+        }
+
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+
+        Cache::forget($cacheKey);
+
+        return $this->sendResponse(['message' => 'Email verified successfully'], 'Email verified successfully', 200);
+    }
     /**
      * @OA\Post(
      *     path="/api/email/verify-code",
@@ -336,31 +364,7 @@ class VerificationController extends BaseController
      *     )
      * )
      */
-    public function verifyEmailCode(Request $request)
-    {
-        $request->validate([
-            'code' => 'required|string|size:6'
-        ]);
 
-        $user = $request->user();
-        $cacheKey = 'email_verification_code_' . $user->id;
-        $cachedCode = Cache::get($cacheKey);
-
-        if (!$cachedCode || $cachedCode !== $request->code) {
-            return $this->sendError('Invalid or expired verification code.', [], 400);
-        }
-
-        if ($user->hasVerifiedEmail()) {
-            return $this->sendResponse(['message' => 'Email already verified'], 'Email already verified', 200);
-        }
-
-        $user->markEmailAsVerified();
-        event(new Verified($user));
-
-        Cache::forget($cacheKey);
-
-        return $this->sendResponse(['message' => 'Email verified successfully'], 'Email verified successfully', 200);
-    }
 
     public function verifyOtp(Request $request)
     {

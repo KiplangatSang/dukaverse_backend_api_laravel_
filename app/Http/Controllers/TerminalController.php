@@ -1,22 +1,29 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
+ 
 class TerminalController extends BaseController
 {
+     public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
 
     private $salesrepo;
 
-    public function salesRepository()
+    public function salesService()
     {
         # code...
-        $salesreo = new SalesRepository($this->getAccount());
+        $salesreo = new SaleService($this->getAccount());
         return $salesreo;
     }
     public function getPrompItems($key)
     {
         # code...
         $hint      = [];
-        $stockRepo = new StockRepository($this->getAccount());
+        $stockRepo = new StockService($this->getAccount());
         $q         = $key;
 
         // $a = $stockRepo->getAllStock();
@@ -45,7 +52,7 @@ class TerminalController extends BaseController
 
         $stock = null;
 
-        $salesRepo = $this->salesRepository();
+        $salesRepo = $this->salesService();
         $stock     = $salesRepo->getStockById($item_id ?? $request->item_id);
         if (! $stock) {
             return $this->sendError("Error", "No such item in store");

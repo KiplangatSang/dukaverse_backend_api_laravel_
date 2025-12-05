@@ -1,17 +1,24 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ProjectRepository
+class ProjectService extends BaseService
 {
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
-    }
+ 
+    protected $currentAccount;
+
+
+    public function __construct(
+         StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+     }
 
     public function getProjects($month = null, $year = null)
     {

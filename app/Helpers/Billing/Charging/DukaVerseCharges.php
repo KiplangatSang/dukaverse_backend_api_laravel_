@@ -3,7 +3,7 @@
 namespace App\Helpers\Billing\Charging;
 
 use App\Helpers\Billing\PaymentGatewayContract;
-use App\Repositories\AppRepository;
+use App\Services\AppService;
 use Illuminate\Support\Str;
 
 class DukaVerseCharges

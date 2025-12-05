@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreSupplyRequest;
 use App\Http\Requests\UpdateSupplyRequest;
@@ -7,15 +8,20 @@ use App\Models\Supply;
 
 class SupplyController extends BaseController
 {
+     public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
 
     private $supplyrepo;
     private $retail;
 
-    public function suppliesRepository()
+    public function suppliesService()
     {
         # code...
         $this->retail     = $this->getAccount();
-        $this->supplyrepo = new SuppliesRepository($this->retail);
+        $this->supplyrepo = new SuppliesService($this->retail);
         return $this->supplyrepo;
     }
     /**
@@ -24,7 +30,7 @@ class SupplyController extends BaseController
     public function index()
     {
         //
-        $suppliesdata["supplyitems"] = $this->suppliesRepository()->getAllSupplies();
+        $suppliesdata["supplyitems"] = $this->suppliesService()->getAllSupplies();
         return $this->sendResponse($suppliesdata, "success");
     }
 
@@ -43,7 +49,7 @@ class SupplyController extends BaseController
     public function store(StoreSupplyRequest $request)
     {
         //
-        $this->suppliesRepository();
+        $this->suppliesService();
 
         $this->getAccount()->supplies()->create(
             $request->validated(),
@@ -56,7 +62,7 @@ class SupplyController extends BaseController
     public function show(Supply $supply)
     {
         //
-        $supply = $this->suppliesRepository()->getSuppliesById($supply->id);
+        $supply = $this->suppliesService()->getSuppliesById($supply->id);
         return $this->sendResponse($supply, 'Success, Supply item fetched');
     }
 
@@ -66,7 +72,7 @@ class SupplyController extends BaseController
     public function edit(Supply $supply)
     {
         //
-        $supply = $this->suppliesRepository()->getSuppliesById($supply->id);
+        $supply = $this->suppliesService()->getSuppliesById($supply->id);
         return $this->sendResponse($supply, 'Success, Supply item fetched');
 
     }

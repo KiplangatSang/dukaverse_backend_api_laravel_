@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Mail\StockUpdatedMail;
-use App\Repositories\StockRepository;
+use App\Services\StockService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -26,7 +26,7 @@ class StockUpdateNotification extends Notification
         //
 
         $this->account = $account;
-        $stockrepo = new StockRepository($account);
+        $stockrepo = new StockService($account);
         $this->stockdata = $stockrepo->stockMailData();
 
     }

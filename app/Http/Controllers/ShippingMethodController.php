@@ -1,13 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\ShippingMethod;
 use App\Http\Requests\StoreShippingMethodRequest;
 use App\Http\Requests\UpdateShippingMethodRequest;
-
+ 
 class ShippingMethodController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
+
+    
     /**
      * Display a listing of the resource.
      */

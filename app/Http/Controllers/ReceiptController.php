@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\Customer;
 use App\Models\Employee;
@@ -9,8 +10,8 @@ use App\Models\Retail;
 use App\Models\SaleTransaction;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Repositories\ItemRepository;
-use App\Repositories\SalesRepository;
+use App\Services\ItemService;
+use App\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -24,6 +25,14 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
  */
 class ReceiptController extends BaseController
 {
+
+    public function __construct(
+        ApiResource $apiResource,
+        protected readOnly ItemService $itemService,
+        protected readOnly SaleService $saleService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Post(
      *     path="/api/v1/receipts/print-from-terminal",
@@ -185,11 +194,11 @@ class ReceiptController extends BaseController
         Receipt $receipt,
         Invoice $invoice
     ) {
-        $item_repository = new ItemRepository($retail);
-        $sales_items     = $item_repository->getSalesItems($retail, $saleTransaction);
+        
 
-        $sale_repository       = new SalesRepository($retail);
-        $sale_transaction_data = $sale_repository->getReceiptTotals($retail, $saleTransaction);
+         $sales_items     = $this->itemService->getSalesItems($retail, $saleTransaction);
+
+         $sale_transaction_data =  $this->saleService->getReceiptTotals($saleTransaction);
 
         $data = [
             'items'    => $sales_items,
@@ -205,10 +214,10 @@ class ReceiptController extends BaseController
             'change'   => $sale_transaction_data['change'],
         ];
 
-        $data['qrcode'] = QrCode::size(100)->generate(json_encode([
-            'receipt_number' => $receipt->receipt_number,
-            'invoice_number' => $invoice->invoice_number,
-        ]));
+        // $data['qrcode'] = QrCode::size(100)->generate(json_encode([
+        //     'receipt_number' => $receipt->receipt_number,
+        //     'invoice_number' => $invoice->invoice_number,
+        // ]));
 
         $pdf = Pdf::loadView('pdfs.receipt', $data)->setPaper('A6', 'portrait');
         return $pdf->download('receipt.pdf');

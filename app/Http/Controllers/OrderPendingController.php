@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use App\Repositories\OrdersRepository;
+use App\Services\OrderService;
 
 /**
  * @OA\Tag(
@@ -18,9 +19,9 @@ class OrderPendingController extends BaseController
     /**
      * Repository accessor
      */
-    public function ordersRepository()
+    public function OrderService()
     {
-        $this->ordersRepo = new OrdersRepository($this->user());
+        $this->ordersRepo = new OrderService($this->user());
         return $this->ordersRepo;
     }
 
@@ -48,8 +49,8 @@ class OrderPendingController extends BaseController
      */
     public function index()
     {
-        $this->ordersRepository();
-        $ordersdata = $this->ordersRepository()->getPendingOrders();
+        $this->OrderService();
+        $ordersdata = $this->OrderService()->getPendingOrders();
         return response()->json($ordersdata, 200);
     }
 
@@ -89,7 +90,7 @@ class OrderPendingController extends BaseController
      */
     public function show(string $id)
     {
-        $this->ordersRepository();
+        $this->OrderService();
         $orders = $this->user()->orders()->where('id', $id)->first();
 
         if (! $orders) {

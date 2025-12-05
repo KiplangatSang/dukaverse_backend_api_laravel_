@@ -1,12 +1,15 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Helpers\Accounts\Account as AccountsAccount;
+use App\Http\Resources\ApiResource;
+
 use App\Http\Requests\UpdateProjectRequest;
-use App\Models\Account;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\TaskDependancy;
 use App\Models\Team;
+use App\Services\FirebaseService;
 use DateTime;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,6 +25,13 @@ use Illuminate\Validation\Rule;
  */
 class ProjectController extends BaseController
 {
+
+    public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly FirebaseService $firebaseService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Get(
      *     path="/api/v1/projects",
@@ -114,7 +124,7 @@ class ProjectController extends BaseController
         }
 
         $validated      = $validator->validated();
-        $project_avatar = $this->saveFile("projects", $request->avatar);
+        $project_avatar = $this->firebaseService->saveFile("projects", $request->avatar);
 
         try {
             $startDate               = new DateTime($validated["start_date"]);
@@ -144,7 +154,7 @@ class ProjectController extends BaseController
 
         $project_team = $request->team
             ? Team::find($request->team)
-            : Team::createProjectTeam($this->account(), $project, Account::getAccountInstance($this->account()));
+            : Team::createProjectTeam($this->account(), $project, AccountsAccount::getAccountInstance($this->account()));
 
         $project->teams()->syncWithoutDetaching([$project_team->id]);
 
@@ -223,7 +233,7 @@ class ProjectController extends BaseController
         }
 
         $validated           = $validator->validated();
-        $validated["avatar"] = $this->saveFile("projects", $request->avatar);
+        $validated["avatar"] = $this->firebaseService->saveFile("projects", $request->avatar);
 
         $result = $this->account()->projects()->updateOrCreate(
             ['id' => $project->id],

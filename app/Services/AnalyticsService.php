@@ -4,15 +4,16 @@ namespace App\Services;
 use App\Http\Resources\ResponseHelper;
 use App\Http\Resources\StoreFileResource;
 use App\Models\User;
-use App\Repositories\UserRepository;
+use App\Services\UserService;
 
 class AnalyticsService extends BaseService
 {
 
     public function __construct(
-        private readonly UserRepository $user_repository,
+        private readonly UserService $userService,
         private readonly StoreFileResource $storeFileResource,
-        private readonly ResponseHelper $responseHelper
+        private readonly ResponseHelper $responseHelper,
+        private readonly AppService $appService
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }
@@ -20,7 +21,7 @@ class AnalyticsService extends BaseService
     public function index()
     {
 
-        $data = $this->appRepository->getAppData();
+        $data = $this->appService->getAppData();
 
         return $this->responseHelper->respond(['data' => $data], "Data fetched successfully", 200);
     }
@@ -74,22 +75,22 @@ class AnalyticsService extends BaseService
     public function dashboardAnalytics()
     {
 
-        // $this->user_repository = new UserRepository($this->account(), $this->user());
-        $activeUsers    = $this->user_repository->activeUsers();
-        $user_growth    = $this->user_repository->getUsersGrowth();
-        $viewsPerMinute = $this->user_repository->getViewsPerMinute();
-        $viewsPerMonth  = $this->user_repository->getViewsPerMonth();
+        // $this->userService = new UserService($this->account(), $this->user());
+        $activeUsers    = $this->userService->activeUsers();
+        $user_growth    = $this->userService->getUsersGrowth();
+        $viewsPerMinute = $this->userService->getViewsPerMinute();
+        $viewsPerMonth  = $this->userService->getViewsPerMonth();
 
-        $viewsGrowth                = $this->user_repository->getViewsGrowth();
-        $top_pages                  = $this->user_repository->getTopPages();
-        $top_pages_with_bounce_rate = $this->user_repository->getTopPages();
-        $page_bounce_rate           = $this->user_repository->getTopPagesByBounceRate();
-        $engagementOverview         = $this->user_repository->getEngagementOverview();
-        $media_traffic              = $this->user_repository->getUsersTraffic();
-        $channel_visits             = $this->user_repository->getChannelVisits();
-        $country_sessions           = $this->user_repository->getUsersTrafficByCountry();
+        $viewsGrowth                = $this->userService->getViewsGrowth();
+        $top_pages                  = $this->userService->getTopPages();
+        $top_pages_with_bounce_rate = $this->userService->getTopPages();
+        $page_bounce_rate           = $this->userService->getTopPagesByBounceRate();
+        $engagementOverview         = $this->userService->getEngagementOverview();
+        $media_traffic              = $this->userService->getUsersTraffic();
+        $channel_visits             = $this->userService->getChannelVisits();
+        $country_sessions           = $this->userService->getUsersTrafficByCountry();
 
-        $os_sessions = $this->user_repository->getChannelVisitsByOS();
+        $os_sessions = $this->userService->getChannelVisitsByOS();
 
         return $this->responseHelper->respond([
             "activeUsers"                => $activeUsers,

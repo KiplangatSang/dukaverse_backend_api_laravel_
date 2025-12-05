@@ -23,8 +23,6 @@ class TasksService extends BaseService
     }
 
 
-
-
     /**
      * Display a listing of the resource.
      */
@@ -32,7 +30,7 @@ class TasksService extends BaseService
     {
         //
 
-        $tasks = $this->account()
+        $tasks = $this->account
             ->tasks()
             ->with('assignees')
             ->with('dependencies')
@@ -41,7 +39,7 @@ class TasksService extends BaseService
             ->get();
 
         if (! $tasks) {
-            return $this->sendError("Bad request", ["error" => "The tasks could not be fetched.", "result" => $tasks]);
+            return $this->response("Bad request", ["error" => "The tasks could not be fetched.", "result" => $tasks]);
         }
 
         return $this->sendResponse(["tasks" => $tasks], "success, The tasks has been fetched successfully.");
@@ -80,8 +78,8 @@ class TasksService extends BaseService
         //
 
         $task_priorities = $this->taskPriorities();
-        $projects        = $this->account()->projects()->with('teams.members')->with('tasks')->get();
-        $campaigns       = $this->account()->projects()->with('teams.members')->with('tasks')->get();
+        $projects        = $this->account->projects()->with('teams.members')->with('tasks')->get();
+        $campaigns       = $this->account->projects()->with('teams.members')->with('tasks')->get();
 
         $task_dependencies = TaskDependancy::TASK_DEPENDENCIES;
 
@@ -122,7 +120,7 @@ class TasksService extends BaseService
 
         $task = null;
         if ($request->project_id) {
-            $task = $this->account()->tasks()->create(
+            $task = $this->account->tasks()->create(
                 [
                     "taskable_id"   => $request->project_id,
                     "taskable_type" => Project::class,
@@ -138,7 +136,7 @@ class TasksService extends BaseService
 
         }
         if ($request->campaign_id) {
-            $task = $this->account()->tasks()->create(
+            $task = $this->account->tasks()->create(
                 [
                     "taskable_id"   => $request->campaign_id,
                     "taskable_type" => Campaign::class,
@@ -195,9 +193,34 @@ class TasksService extends BaseService
     //     Route::put('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'updateComment']);
     //     Route::delete('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'deleteComment']);
 
-public function addComment(Request $request, $task_id){
+public function addComment(Request  $request, $task_id){
+$validator = Validator::make($request->all(), [
+            "commentable_type" => "required",
+            "commentable_id"   => "required",
+            "content"          => ["required", "string"],
+        ]);
 
-}
+        if ($validator->fails()) {
+            return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $validator->errors()]);
+        }
+
+        $validatated = $validator->validated();
+
+        $comment = $this->user()->comments()->create([
+            "parent_id"        => $request->parent_comment_id,
+            "commentable_type" => $request->commentable_type ? Comment::COMMENTABLE_TYPES[$request->commentable_type] : null,
+            "commentable_id"   => $validatated['commentable_id'],
+            "content"          => $validatated['content'],
+            "user_id"          => Auth::id(),
+        ]);
+
+        if (! $comment) {
+            return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $comment]);
+        }
+
+        return $this->sendResponse(["comment" => $comment], "success, The comment has been saved successfully.");
+    }
+
 public function updateComment(Request $request, $task_id){
 
 }
@@ -225,7 +248,7 @@ public function deleteComment(Request $request, $task_id){
         $validatated = $validator->validated();
         $parent_task = Task::where('id', $request->task_id)->first();
 
-        $task = $this->account()->tasks()->create(
+        $task = $this->account->tasks()->create(
             [
                 "parent_id"      => $request->task_id,
                 "ownerable_id"   => $parent_task->ownerable_id,
@@ -281,7 +304,7 @@ public function deleteComment(Request $request, $task_id){
     {
         //
 
-        $task = $this->account()->tasks()->where('id', $task)
+        $task = $this->account->tasks()->where('id', $task)
             ->with('assignees')
             ->with('dependencies.task')
             ->with('dependencies.dependedTask')
@@ -311,7 +334,7 @@ public function deleteComment(Request $request, $task_id){
             return $this->sendError("Bad request", ["error" => "The task fields could not be fetched.", "result" => $task_priorities]);
         }
 
-        $task = $this->account()->tasks()->where('id', $task)->first();
+        $task = $this->account->tasks()->where('id', $task)->first();
 
         if (! $task) {
             return $this->sendError("Bad request", ["error" => "The   task could not be found.", "result" => $task]);
@@ -346,7 +369,7 @@ public function deleteComment(Request $request, $task_id){
 
         $validatated = $validator->validated();
 
-        $task = $this->account()->tasks()->where('id', $task)->first();
+        $task = $this->account->tasks()->where('id', $task)->first();
 
         if (! $task) {
             return $this->sendError("Bad request", ["error" => "The   task could not be found.", "result" => $task]);
@@ -377,7 +400,7 @@ public function deleteComment(Request $request, $task_id){
             return $this->sendError("Bad request", ["error" => "The  task could not be updated.", "result" => $result]);
         }
 
-        $task = $this->account()->tasks()->where('id', $task->id)->first();
+        $task = $this->account->tasks()->where('id', $task->id)->first();
 
         return $this->sendResponse(["task" => $task], "success, The  task has been updated successfully.");
 
@@ -399,7 +422,7 @@ public function deleteComment(Request $request, $task_id){
             return $this->sendError("Bad request", ["error" => "The task could not be saved .", "result" => $validator->errors()]);
         }
 
-        $task = $this->account()->tasks()->where('id', $task)->first();
+        $task = $this->account->tasks()->where('id', $task)->first();
 
         if (! $task) {
             return $this->sendError("Bad request", ["error" => "The   task could not be found.", "result" => $task]);
@@ -412,7 +435,7 @@ public function deleteComment(Request $request, $task_id){
             return $this->sendError("Bad request", ["error" => "The  task could not be updated.", "result" => $result]);
         }
 
-        $task = $this->account()->tasks()->where('id', $task)->first();
+        $task = $this->account->tasks()->where('id', $task)->first();
 
         return $this->sendResponse(["task" => $task], "success, The  task has been updated successfully.");
 
@@ -483,7 +506,7 @@ public function deleteComment(Request $request, $task_id){
      */
     public function convertToTodo(Request $request, $taskId)
     {
-        $task = $this->account()->tasks()->where('id', $taskId)->first();
+        $task = $this->account->tasks()->where('id', $taskId)->first();
 
         if (!$task) {
             return $this->sendError("Task not found", ["errors" => "Task does not exist"]);
@@ -505,7 +528,7 @@ public function deleteComment(Request $request, $task_id){
         $account = $this->user();
 
         if ($todoType == \App\Models\Todo::ACCOUNT_TODO_TYPES) {
-            $account = $this->account();
+            $account = $this->account;
         }
 
         $todo = $account->todos()->create([
@@ -581,7 +604,7 @@ public function deleteComment(Request $request, $task_id){
      */
     public function breakIntoTodos(Request $request, $taskId)
     {
-        $task = $this->account()->tasks()->where('id', $taskId)->first();
+        $task = $this->account->tasks()->where('id', $taskId)->first();
 
         if (!$task) {
             return $this->sendError("Task not found", ["errors" => "Task does not exist"]);
@@ -592,7 +615,7 @@ public function deleteComment(Request $request, $task_id){
         $account = $this->user();
 
         if ($todoType == \App\Models\Todo::ACCOUNT_TODO_TYPES) {
-            $account = $this->account();
+            $account = $this->account;
         }
 
         $createdTodos = [];
@@ -660,7 +683,7 @@ public function deleteComment(Request $request, $task_id){
      */
     public function convertSubtasksToTodos(Request $request, $taskId)
     {
-        $task = $this->account()->tasks()->where('id', $taskId)->first();
+        $task = $this->account->tasks()->where('id', $taskId)->first();
 
         if (!$task) {
             return $this->sendError("Task not found", ["errors" => "Task does not exist"]);
@@ -675,7 +698,7 @@ public function deleteComment(Request $request, $task_id){
         $account = $this->user();
 
         if ($todoType == \App\Models\Todo::ACCOUNT_TODO_TYPES) {
-            $account = $this->account();
+            $account = $this->account;
         }
 
         $createdTodos = [];
@@ -780,4 +803,3 @@ public function deleteComment(Request $request, $task_id){
     }
 }
 
-}

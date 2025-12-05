@@ -1,6 +1,6 @@
 <?php
 
-use App\Repositories\AppRepository;
+use App\Services\AppService;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,8 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
-            $apprepo   = new AppRepository();
-            $noprofile = $apprepo->getBaseImages()['noprofile'];
+            $appService   = new AppService();
+            $noprofile = $appService->getBaseImages()['noprofile'];
 
             $table->id();
             $table->morphs("ownerable");

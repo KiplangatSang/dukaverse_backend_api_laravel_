@@ -1,21 +1,17 @@
-# TODO List for Linking Subscription Tiers to Permissions and APIs
+# TODO: Fix Authentication Error for API Routes
 
-## Tasks
+## Issue Description
+The application is throwing a "Route [login] not defined" error when an unauthenticated request is made to protected API routes. Instead of returning an "unauthenticated" response, it's attempting to redirect to a login route that doesn't exist.
 
-- [ ] Create migration for pivot table "permission_tier" linking tiers and permissions.
-- [ ] Update Tier model to add many-to-many relationship with Permission.
-- [ ] Update Permission model to add inverse many-to-many relationship with Tier.
-- [ ] Extend PermissionsService or create new service to manage tier-permission assignments.
-- [ ] Create PermissionTierController with APIs:
-  - [ ] POST /tiers/{tier}/permissions - Assign permissions to tier.
-  - [ ] DELETE /tiers/{tier}/permissions/{permission} - Remove permission from tier.
-  - [ ] GET /tiers/{tier}/permissions - List permissions for tier.
-- [ ] Add API routes for the above APIs in routes/api.php with appropriate middleware and prefix.
-- [ ] Extend user permission fetching APIs to include permissions unlocked via active subscription tiers.
-- [ ] Add Swagger/OpenAPI documentation for new APIs.
-- [ ] Write unit and feature tests for the new functionality and APIs.
-- [ ] Manually or automatically test to validate functionality, routing, and access control.
+## Root Cause
+The default Laravel `Authenticate` middleware is configured to redirect unauthenticated users to a 'login' route. For API routes using Sanctum, this should instead return a JSON response with an "unauthenticated" message, but the middleware is not recognizing API requests as expecting JSON responses.
 
+## Steps to Fix
+1. Create a custom `Authenticate` middleware that prevents redirection for API routes
+2. Update `bootstrap/app.php` to use the custom middleware
+3. Configure exception handling to return proper JSON responses for authentication failures
+4. Test the fix to ensure API routes return 401 with "unauthenticated" message instead of redirecting
 
-## Next Step: 
-Start by creating migration for pivot table "permission_tier".
+## Files to Modify
+- `app/Http/Middleware/CustomAuthenticate.php` (create new)
+- `bootstrap/app.php` (update middleware alias and exception handling)

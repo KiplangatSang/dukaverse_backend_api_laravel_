@@ -1,11 +1,11 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Models\Sale;
-use App\Repositories\SalesRepository;
-use App\Services\AuthService;
 
+ use App\Models\Sale;
+use App\Services\SaleService;
+use App\Services\AuthService;
+ 
 /**
  * @OA\Tag(
  *     name="Paid Items",
@@ -20,6 +20,7 @@ class PaidItemController extends BaseController
 
     public function __construct(
         private readonly AuthService $authService,
+        private readonly SaleService $salesService,
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
@@ -28,15 +29,7 @@ class PaidItemController extends BaseController
     /**
      * Repository accessor for sales.
      */
-    public function salesRepository()
-    {
-        $this->retail = $this->getAccount();
-        if (! $this->retail) {
-            return false;
-        }
-
-        return new SalesRepository($this->retail);
-    }
+   
 
     /**
      * @OA\Get(
@@ -70,7 +63,7 @@ class PaidItemController extends BaseController
      */
     public function index()
     {
-        $paidItems             = $this->salesRepository()->getPaidSoldItems();
+        $paidItems             = $this->salesService->getPaidSoldItems();
         $salesdata['allSales'] = $paidItems;
         return view('client.sales.paiditems.index', compact('salesdata'));
     }
@@ -110,7 +103,7 @@ class PaidItemController extends BaseController
      */
     public function show($id)
     {
-        $allSales              = $this->salesRepository()->getPaidSoldItems();
+        $allSales              = $this->salesService->getPaidSoldItems();
         $salesdata['allSales'] = $allSales;
 
         return view('client.sales.paiditems.show', compact('salesdata'));

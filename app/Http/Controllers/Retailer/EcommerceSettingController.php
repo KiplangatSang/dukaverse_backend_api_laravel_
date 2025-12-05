@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Retailer;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreEcommerceSettingRequest;
 use App\Http\Requests\UpdateEcommerceSettingRequest;

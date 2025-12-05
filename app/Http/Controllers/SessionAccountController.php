@@ -1,12 +1,23 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreSessionAccountRequest;
 use App\Http\Requests\UpdateSessionAccountRequest;
 use App\Models\SessionAccount;
+use App\Services\AccountService;
+use Illuminate\Http\Request;
 
 class SessionAccountController extends BaseController
 {
+  public function __construct(
+        protected ApiResource $apiResource,
+        private readonly AccountService $accountsService
+    ) {
+        parent::__construct($apiResource);
+    }
+
+
     /**
      * Display a listing of the resource.
      */
@@ -31,15 +42,10 @@ class SessionAccountController extends BaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSessionAccountRequest $request)
+    public function store(Request $request)
     {
         //
-        $validated = $request->validated();
-
-        $account_type = $validated['account_type'];
-        $account      = $validated['id'];
-
-        $result = $this->setAccount($account_type, $account);
+        $result = $this->accountService->setSessionAccounts($request->all());
 
         if (! $result) {
             $this->sendError("Error setting up your session account", ["error" => "The session account could not be set up."]);

@@ -4,41 +4,32 @@ namespace App\Services;
 use App\Helpers\Accounts\Account;
 use App\Http\Resources\ResponseHelper;
 use App\Http\Resources\StoreFileResource;
-use App\Repositories\AppRepository;
-use App\Repositories\CRMRepository;
-use App\Repositories\EcommerceRepository;
-use App\Repositories\ProjectRepository;
-use App\Repositories\WalletRepository;
+use App\Models\User;
+use App\Services\AppService;
+use App\Services\CRMService;
+use App\Services\EcommerceService;
+use App\Services\ProjectService;
+use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 
 class BaseService
 {
 
-    protected AppRepository $appRepository;
-    protected ProjectRepository $project_repository;
-    protected EcommerceRepository $ecommerce_repository;
-    protected CRMRepository $crm_repository;
-    protected WalletRepository $wallet_repository;
-    protected readonly Account $account;
-
+   
+    protected $account;
+    protected readonly User $user;
+ 
     public function __construct() {
         // Initialization code if needed
-        $this->appRepository = new AppRepository();
         if (Auth::check()) {
-            $this->account              = new Account(Auth::user());
-            $this->project_repository   = new ProjectRepository($this->user());
-            $this->ecommerce_repository = new EcommerceRepository($this->account->account);
-            $this->crm_repository       = new CRMRepository($this->account, $this->user());
-            $this->wallet_repository    = new WalletRepository($this->account, $this->user());
+                       $accountHelper   = new Account(Auth::user());
+
+                         $this->account = $accountHelper->account;
         }
-    }
 
-    public function getNoProfileImage()
-    {
-        $baseImages = $this->appRepository->getBaseImages();
-        return $baseImages['noprofile'];
-    }
+     }
 
+   
     public function user()
     {
 

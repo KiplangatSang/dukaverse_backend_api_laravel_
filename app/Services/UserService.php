@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
 use App\Helpers\Accounts\Account;
 use App\Models\User;
@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class UserRepository
+class UserService
 {
     private $account;
     private $user;

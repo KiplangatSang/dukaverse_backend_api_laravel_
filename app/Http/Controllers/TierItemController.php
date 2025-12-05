@@ -1,13 +1,25 @@
 <?php
 
 namespace App\Http\Controllers;
-
+ 
 use App\Models\TierItem;
 use App\Http\Requests\StoreTierItemRequest;
 use App\Http\Requests\UpdateTierItemRequest;
+use App\Http\Resources\ApiResource;
 
 class TierItemController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
+      public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

@@ -1,4 +1,4 @@
- <?php
+<?php
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountsController;
@@ -231,7 +231,7 @@ Route::prefix('v1')->group(function () {
                 });
 
                 Route::resource('/notifications', NotificationController::class);
-                Route::resource('/messages', MessageController::class);
+                // Route::resource('/messages', MessageController::class);
                 Route::post('/messages/{message}', [MessageController::class, 'update']);
 
                 Route::resource('/roles', RoleController::class);

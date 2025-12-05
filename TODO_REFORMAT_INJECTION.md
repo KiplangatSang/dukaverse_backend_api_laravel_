@@ -1,7 +1,7 @@
 # TODO: Refactor Structure for Easy Account Injection into Services and Repositories
 
 ## Overview
-The current structure makes it difficult to inject the Account (from Helper Account, which could be user retail, office, or ecommerce) into services and repositories. Services are instantiated inside controller methods (e.g., `new TeamService(new TeamsRepository($this->account()))`), which prevents proper dependency injection. We need to refactor to allow services and repositories to be injected into controllers via __construct, with the Account resolved and passed where needed.
+The current structure makes it difficult to inject the Account (from Helper Account, which could be user retail, office, or ecommerce) into services and repositories. Services are instantiated inside controller methods (e.g., `new TeamService(new TeamsService($this->account()))`), which prevents proper dependency injection. We need to refactor to allow services and repositories to be injected into controllers via __construct, with the Account resolved and passed where needed.
 
 ## Current Issues
 - Services are instantiated in controller methods, not injected.

@@ -12,7 +12,7 @@ class EcommerceProductsService extends BaseService
 
     public function __construct(
         StoreFileResource $storeFileResource,
-        ResponseHelper $responseHelper
+       protected ResponseHelper $responseHelper
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }

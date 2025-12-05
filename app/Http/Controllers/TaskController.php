@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use App\Models\Campaign;
+ use App\Models\Campaign;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskDependancy;
@@ -11,6 +12,11 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskController extends BaseController
 {
+     public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -153,9 +159,9 @@ class TaskController extends BaseController
 
     }
 
-    Route::post('tasks/{task_id}/comments', [TaskController::class, 'addComment']);
-        Route::put('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'updateComment']);
-        Route::delete('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'deleteComment']);
+    // Route::post('tasks/{task_id}/comments', [TaskController::class, 'addComment']);
+    //     Route::put('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'updateComment']);
+    //     Route::delete('tasks/{task_id}/comments/{comment_id}', [TaskController::class, 'deleteComment']);
 
 public function addComment(Request $request, $task_id){
 

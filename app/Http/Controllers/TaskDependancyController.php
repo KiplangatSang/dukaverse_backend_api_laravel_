@@ -1,8 +1,18 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
+ 
 class TaskDependancyController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
+     
+
     /**
      * Display a listing of the resource.
      */

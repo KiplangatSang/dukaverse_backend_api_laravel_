@@ -1,9 +1,10 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreRequiredItemRequest;
 use App\Models\RequiredItem;
-use App\Repositories\RequiredItemsRepository;
+use App\Services\RequiredItemService;
 use Illuminate\Http\Request;
 
 class RequiredItemController extends BaseController
@@ -211,7 +212,7 @@ class RequiredItemController extends BaseController
     public function requiredItemsRepsitory()
     {
         $this->retail            = $this->getAccount();
-        $this->requiredItemsRepo = new RequiredItemsRepository($this->retail);
+        $this->requiredItemsRepo = new RequiredItemService($this->retail);
         return $this->requiredItemsRepo;
     }
 }

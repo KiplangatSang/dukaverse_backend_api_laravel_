@@ -1,9 +1,13 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\AppService;
+use App\Services\AuthService;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -17,6 +21,15 @@ use Illuminate\Support\Facades\Validator;
  */
 class ProfileController extends BaseController
 {
+
+    public function __construct(
+        private readonly AuthService $authService,
+        private readonly AppService $appService,
+        private readonly FirebaseService $firebaseService,
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Get(
      *     path="/api/v1/profile",
@@ -97,7 +110,7 @@ class ProfileController extends BaseController
             return $this->sendError('Bad request', ["errors" => $validator->errors()]);
         }
 
-        $profile_image_url = $this->saveFile(User::PROFILE_FOLDER . Auth::id(), $request->file('profile_image'));
+        $profile_image_url = $this->firebaseService->saveFile(User::PROFILE_FOLDER . Auth::id(), $request->file('profile_image'));
 
         if (! $profile_image_url) {
             return $this->sendError("Bad request", ["error" => "Could not save the profile picture"]);
@@ -143,7 +156,7 @@ class ProfileController extends BaseController
             return $this->sendError('Bad request', ["errors" => $validator->errors()]);
         }
 
-        $profile_image_url = $this->saveFile(User::PROFILE_FOLDER . Auth::id(), $request->file('profile_image'));
+        $profile_image_url = $this->firebaseService->saveFile(User::PROFILE_FOLDER . Auth::id(), $request->file('profile_image'));
 
         if (! $profile_image_url) {
             return $this->sendError("Bad request", ["error" => "Could not save the profile picture"]);
@@ -220,10 +233,10 @@ class ProfileController extends BaseController
         $user    = User::findOrFail(Auth::id());
         $profile = $user->profile;
 
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
 
         if ($request->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("national_id", $request->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("national_id", $request->file('file'));
         }
 
         $documents                = $profile->national_id ? (array) json_decode($profile->national_id) : [];
@@ -256,10 +269,10 @@ class ProfileController extends BaseController
         $user    = User::findOrFail(Auth::id());
         $profile = $user->profile;
 
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
 
         if ($request->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("relevant_documents", $request->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("relevant_documents", $request->file('file'));
         }
 
         $documents = $profile->relevant_documents

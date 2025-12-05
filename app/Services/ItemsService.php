@@ -1,17 +1,24 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class ItemsRepository
+class Items extends BaseService
 {
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
-    }
+ 
+    protected $currentAccount;
+
+
+    public function __construct(
+         StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+     }
 
 
     //save item to items table

@@ -1,16 +1,27 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreRetailRequest;
 use App\Http\Requests\UpdateRetailRequest;
 use App\Models\Retail;
 use App\Models\User;
-use App\Repositories\RetailGoodsRepository;
+use App\Services\AppService;
+use App\Services\FirebaseService;
+use App\Services\RetailGoodsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RetailController extends BaseController
 {
+
+    public function __construct(
+        ApiResource $apiResource,
+        protected readonly AppService $appService,
+        protected readonly FirebaseService $firebaseService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Get(
      *     path="/api/v1/retails",
@@ -103,8 +114,8 @@ class RetailController extends BaseController
 
     public function create()
     {
-        $region          = $this->getLocationDetails();
-        $retailGoodsRepo = new RetailGoodsRepository();
+        $region          = $this->appService->getLocationDetails();
+        $retailGoodsRepo = new RetailGoodsService();
         $retailGoods     = $retailGoodsRepo->retailGoods();
 
         $retaildata = [
@@ -170,14 +181,9 @@ class RetailController extends BaseController
         if (! $retailResult) {
             return $this->sendError('error', "Could not register retail");
         }
+ 
 
-        $accountRes = $this->createAccount("Retail", $retailResult);
-
-        if (! $accountRes) {
-            return $this->sendError('error', "Could not create retail account");
-        }
-
-        return $this->sendResponse($retailResult, "Retail registered successfully");
+        return $this->sendResponse($retailResult->toArray(), "Retail registered successfully");
     }
 
     /**
@@ -232,12 +238,6 @@ class RetailController extends BaseController
 
         if (! $retailResult) {
             return $this->sendError('error', "Could not register retail");
-        }
-
-        $accountRes = $this->createAccount("Retail", $retailResult);
-
-        if (! $accountRes) {
-            return $this->sendError('error', "Could not create retail account");
         }
 
         return $retailResult;
@@ -356,9 +356,9 @@ class RetailController extends BaseController
     public function updateRetailProfile(Request $request)
     {
         $retail          = $this->getAccount();
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if ($request->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("retail_profile", $request->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("retail_profile", $request->file('file'));
         }
 
         $retail->update(["retail_profile" => $fileNameToStore]);
@@ -386,9 +386,9 @@ class RetailController extends BaseController
     public function uploadRetailDocuments(Request $request)
     {
         $retail          = $this->getAccount();
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if ($request->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("business_permit", $request->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("business_permit", $request->file('file'));
         }
 
         $documents                    = $retail['retail_documents'] ? (array) json_decode($retail['retail_documents']) : [];
@@ -418,10 +418,10 @@ class RetailController extends BaseController
     public function uploadRelevantDocuments(Request $request)
     {
         $retail          = $this->getAccount();
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
 
         if ($request->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("retail_relevant_documents", $request->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("retail_relevant_documents", $request->file('file'));
         }
 
         $documents   = $retail['retail_relevant_documents'] ? (array) json_decode($retail['retail_relevant_documents']) : [];

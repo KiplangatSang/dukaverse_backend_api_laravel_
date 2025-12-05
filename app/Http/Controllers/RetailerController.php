@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\Retailer;
 use App\Http\Requests\StoreRetailerRequest;
@@ -8,6 +9,12 @@ use App\Http\Requests\UpdateRetailerRequest;
 
 class RetailerController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

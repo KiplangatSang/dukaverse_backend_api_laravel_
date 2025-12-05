@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Repositories\SalesRepository;
+
+ use App\Services\SaleService;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 
@@ -25,10 +25,10 @@ class EmployeeSaleController extends BaseController
         parent::__construct($apiResource);
     }
 
-    private function salesRepository()
+    private function salesService()
     {
         $this->retail           = $this->getAccount();
-        return $this->salesrepo = new SalesRepository($this->getAccount());
+        return $this->salesrepo = new SaleService($this->getAccount());
     }
 
     /**
@@ -52,7 +52,7 @@ class EmployeeSaleController extends BaseController
      */
     public function index($employee = null)
     {
-        $this->salesRepository();
+        $this->salesService();
         $employees_sales = null;
         if ($employee) {
             $employees_sales = $this->getAccount()->employees()
@@ -139,7 +139,7 @@ class EmployeeSaleController extends BaseController
                 return $this->sendError("Error", 'Error, Employee has no sales');
             }
         } else {
-            $allSales        = $this->salesRepository()->getEmployeeSales($employee_id);
+            $allSales        = $this->salesService()->getEmployeeSales($employee_id);
             $solditemscount  = count($allSales['sales']);
             $salesTotalPrice = $allSales['sales']->sum('selling_price');
             $salesdata       = [

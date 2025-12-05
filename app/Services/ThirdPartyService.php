@@ -1,18 +1,23 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 
-
-class ThirdPartyRepository
+class ThirdPartyService  extends BaseService
 {
 
 
     protected $base_image_path = "https://storage.googleapis.com/dukaverse-e4f47.appspot.com/app/";
 
-    public function __construct()
-    {
+    public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper,
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
     }
+
     public function getThirdPartyImages()
     {
         $thirdPartyImagePaths = array(

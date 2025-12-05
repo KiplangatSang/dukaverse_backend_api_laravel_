@@ -1,25 +1,24 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
-use App\Http\Resources\ApiResource;
-use App\Models\Customer;
-use App\Repositories\CustomersRepository;
+ use App\Models\Customer;
+use App\Services\CustomersService;
 use App\Services\AuthService;
 use App\Services\CustomerService;
 use Exception;
 
 class CustomerController extends BaseController
 {
-    protected CustomerService $customerService;
 
     public function __construct(
         private readonly AuthService $authService,
+         private readonly CustomerService $customerService ,
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
-        $this->customerService = new CustomerService(new CustomersRepository($this->getAccount()), $this->getAccount());
     }
 
     /**

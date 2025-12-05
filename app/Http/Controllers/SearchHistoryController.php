@@ -1,13 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\SearchHistory;
 use App\Http\Requests\StoreSearchHistoryRequest;
 use App\Http\Requests\UpdateSearchHistoryRequest;
-
+ 
 class SearchHistoryController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
+
+
     /**
      * Display a listing of the resource.
      */

@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\Controller;
 use App\Models\Platform;
 use Illuminate\Http\Request;
@@ -8,6 +10,12 @@ use Illuminate\Support\Facades\Password;
 
 class ForgotPasswordController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
     /*
     |--------------------------------------------------------------------------
     | Password Reset Controller

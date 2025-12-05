@@ -1,14 +1,22 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
-class SuppliesRepository
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
+
+class SuppliesService extends BaseService
 {
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
-    }
+ 
+    protected $currentAccount;
+
+
+    public function __construct(
+         StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+     }
 
     public function getAllSupplies()
     {

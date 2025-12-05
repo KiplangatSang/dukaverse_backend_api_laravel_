@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Repositories\TransactionsRepository;
+
+ use App\Services\TransactionsService;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 
@@ -19,10 +19,10 @@ class TransactionController extends BaseController
      * Display a listing of the resource.
      */
 
-    protected function transactionRepository()
+    protected function transactionService()
     {
         $retail          = $this->getAccount();
-        $transactionRepo = new TransactionsRepository($retail);
+        $transactionRepo = new TransactionsService($retail);
         return $transactionRepo;
     }
 
@@ -30,7 +30,7 @@ class TransactionController extends BaseController
     {
         //
 
-        $transactions                    = $this->transactionRepository()->getTransactions();
+        $transactions                    = $this->transactionService()->getTransactions();
         $transactiondata['transactions'] = $transactions;
         $transactiondata['amount']       = $transactions->sum('total_amount');
         return $this->sendResponse($transactiondata, 'List of transactions');
@@ -73,7 +73,7 @@ class TransactionController extends BaseController
     public function storeTransaction(Request $request)
     {
         # code...
-        $transactiondata = $this->transactionRepository()->saveTransaction(
+        $transactiondata = $this->transactionService()->saveTransaction(
             $request->gateway,
             $request->sender_account_id,
             $request->receiver_account_id,
@@ -99,7 +99,7 @@ class TransactionController extends BaseController
         //
         {
             //
-            $transaction                    = $this->transactionRepository()->getTransaction($id);
+            $transaction                    = $this->transactionService()->getTransaction($id);
             $transactiondata['transaction'] = $transaction;
             return $this->sendResponse($transactiondata, "Transaction fetched successfully");
         }

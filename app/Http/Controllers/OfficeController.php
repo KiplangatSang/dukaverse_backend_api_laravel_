@@ -2,9 +2,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateOfficeRequest;
+use App\Http\Resources\ApiResource;
 use App\Models\Office;
 use App\Models\User;
-use App\Repositories\GoodsandServicesRepository;
+use App\Services\AccountService;
+use App\Services\AppService;
+use App\Services\AuthService;
+use App\Services\FirebaseService;
+use App\Services\GoodsandServicesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -18,6 +23,17 @@ use Illuminate\Support\Facades\Validator;
  */
 class OfficeController extends BaseController
 {
+
+    public function __construct(
+        private readonly GoodsandServicesService $goodsandServicesService,
+        private readonly AuthService $authService,
+        private readonly AccountService $accountService,
+        private readonly AppService $appService,
+        private readonly FirebaseService $firebaseService,
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Get(
      *     path="/api/v1/offices",
@@ -54,10 +70,10 @@ class OfficeController extends BaseController
      */
     public function create()
     {
-        $region          = $this->getLocationDetails();
-        $officeGoods     = GoodsandServicesRepository::GOODS;
-        $officesServices = GoodsandServicesRepository::SERVICES;
-        $industries      = GoodsandServicesRepository::INDUSTRIES;
+        $region          = $this->appService->getLocationDetails();
+        $officeGoods     = GoodsandServicesService::GOODS;
+        $officesServices = GoodsandServicesService::SERVICES;
+        $industries      = GoodsandServicesService::INDUSTRIES;
 
         $goods_and_services = array_merge($officeGoods, $officesServices);
 
@@ -73,12 +89,6 @@ class OfficeController extends BaseController
             return $this->sendError('Offices data could not be fetched', ['result' => $office_data]);
         }
         return $this->sendResponse(['office_data' => $office_data], 'Data fetched successfully');
-    }
-
-    public function generateOffieNameID($office_name)
-    {
-        $office_name_id = substr($office_name, 0, 3) . rand(1000, 10000000000);
-        return $office_name_id;
     }
 
     /**
@@ -100,35 +110,16 @@ class OfficeController extends BaseController
      */
     public function createSimpleOffice(Request $request)
     {
-        $request->validate(
-            [
-                "office_name"        => "required|string|min:3",
-                "goods_and_services" => "required|array",
-            ]
-        );
-        $office_name_id = $this->generateOffieNameID($request->office_name);
-        $officeResult   = $this->user()->offices()->updateOrCreate(
-            [
-                'user_id' => $this->user()->id,
-            ],
-            [
-                "name"               => $request->office_name,
-                'name_id'            => $office_name_id,
-                "goods_and_services" => json_encode($request->goods_and_services),
-            ]
-        );
+        try {
+            $result = $this->accountService->createSimpleOffice($request->all());
 
-        if (! $officeResult) {
-            return $this->sendError('error', "Could not register the office");
+            if (isset($result['error'])) {
+                return $this->sendError('Error creating office', $result['error']);
+            }
+            return $this->sendResponse($result, 'Office created successfully');
+        } catch (\Exception $e) {
+            return $this->sendError('Error creating office', $e->getMessage());
         }
-
-        $accountRes = $this->createAccount("Office", $officeResult);
-
-        if (! $accountRes) {
-            return $this->sendError('error', "Could not create office account");
-        }
-
-        return $this->sendResponse($officeResult, "Office registered successfully");
     }
 
     /**
@@ -164,7 +155,7 @@ class OfficeController extends BaseController
         $validated      = $validator->validated();
         $office_name_id = $request->office_name_id;
         if (! $office_name_id) {
-            $office_name_id = $this->generateOffieNameID($request->office_name);
+            $office_name_id = $this->accountService->generateOffieNameID($request->office_name);
         }
 
         $goods                           = json_encode($validated['goods_and_services']);
@@ -185,12 +176,6 @@ class OfficeController extends BaseController
 
         if (! $officeResult) {
             return $this->sendError('error', "Could not register the office");
-        }
-
-        $accountRes = $this->createAccount("office", $officeResult);
-
-        if (! $accountRes) {
-            return $this->sendError('error', "Could not create offuce account");
         }
 
         return $this->sendResponse(['result' => $officeResult], "Account created successfully");
@@ -330,9 +315,9 @@ class OfficeController extends BaseController
     public function updateOfficeProfile(Request $request)
     {
         $office          = $this->account();
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if (request()->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("office_profile", request()->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("office_profile", request()->file('file'));
         }
 
         $office->update([
@@ -363,9 +348,9 @@ class OfficeController extends BaseController
     public function uploadOfficeDocuments(Request $request)
     {
         $office          = $this->account();
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if (request()->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("business_permit", request()->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("business_permit", request()->file('file'));
         }
 
         $documents = null;
@@ -402,9 +387,9 @@ class OfficeController extends BaseController
     public function uploadRelevantDocuments(Request $request)
     {
         $office          = $this->account();
-        $fileNameToStore = $this->getBaseImages()['nofile'];
+        $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if (request()->hasFile('file')) {
-            $fileNameToStore = $this->saveFile("office_relevant_documents", request()->file('file'));
+            $fileNameToStore = $this->firebaseService->saveFile("office_relevant_documents", request()->file('file'));
         }
 
         $documents = null;

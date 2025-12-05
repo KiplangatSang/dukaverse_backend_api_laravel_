@@ -5,7 +5,7 @@ namespace App\Helpers\Billing;
 use App\Accounts\Transaction;
 use App\Helpers\Billing\Charging\DukaVerseCharges;
 use App\Helpers\Billing\Charging\DukaverseDiscount;
-use App\Repositories\AppRepository;
+use App\Services\AppService;
 use Illuminate\Support\Str;
 
 class Charges
@@ -41,8 +41,8 @@ class Charges
         $this->paymentGateway->setDiscount($discount);
         $this->paymentGateway->setCharge($charge);
 
-        $apprepo = new AppRepository();
-        $location = (array)$apprepo->getLocation();
+        $appService = new AppService();
+        $location = (array)$appService->getLocation();
 
         return [
             "name" => $customer['name'] ?? $customer['phone_number'] ,

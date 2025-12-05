@@ -1,25 +1,26 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreStockRequest;
 use App\Http\Requests\UpdateStockRequest;
 use App\Models\Stock;
+use App\Notifications\StockUpdateNotification;
+use App\Services\ExpenseService;
+use App\Services\StockService;
+use Exception;
+use Illuminate\Http\Request;
 
 class StockController extends BaseController
 {
-
-    private $stockrepo;
-    private $retail;
-
-    public function stockRepository()
-    {
-        # code...
-        $this->retail = $this->getAccount();
-
-        $this->stockrepo = new StockRepository($this->retail);
-
-        return $this->stockrepo;
+     public function __construct(
+        protected ApiResource $apiResource,
+        private readonly StockService $stockService,
+        private readonly ExpenseService $expenseService
+    ) {
+        parent::__construct($apiResource);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -31,10 +32,10 @@ class StockController extends BaseController
             $stockdata = $this->getAccount()->items()->where('id', $id)
                 ->with('stocks')->first();
         } else {
-            $allStocks           = $this->stockRepository()->getStock();
+            $allStocks           = $this->stockService->getStock();
             $stocksitems         = count($allStocks);
-            $stocksexpense       = $this->stockRepository()->getStockExpense();
-            $stocksexpectedSales = $this->stockRepository()->getStockValue();
+            $stocksexpense       = $this->stockService->getStockExpense();
+            $stocksexpectedSales = $this->stockService->getStockValue();
             $stocksrevenue       = $stocksexpectedSales - $stocksexpense;
 
             $stockdata = [
@@ -67,8 +68,8 @@ class StockController extends BaseController
     {
         //
 
-        $this->stockRepository();
-        $stockdata = $this->stockRepository()->getStock();
+        $this->stockService;
+        $stockdata = $this->stockService->getStock();
         return view('client.stock.store.create', compact('stockdata'));
         //
     }
@@ -79,7 +80,7 @@ class StockController extends BaseController
     public function store($retail_item_id, StoreStockRequest $request)
     {
         //
-        $retail_item = $this->stockRepository()->getRetailItem($retail_item_id);
+        $retail_item = $this->stockService->getRetailItem($retail_item_id);
 
         for ($i = 0; $i < $request->quantity; $i++) {
             $item = $this->getAccount()->stocks()->create(
@@ -99,11 +100,11 @@ class StockController extends BaseController
 
         $expense = $item->buying_price;
         //save  expense
-        $expenseResult = $this->saveExpense($expense);
+        $expenseResult = $this->expenseService->saveExpense($expense);
         if (! $expenseResult) {
             return $this->sendError(['message' => 'Sorry Could not save this item expense'], 500);
         }
-        $item = $this->stockRepository()->getRetailItem($retail_item_id);
+        $item = $this->stockService->getRetailItem($retail_item_id);
 
         return $this->sendResponse($item, "Code and expense has been added to the item");
     }
@@ -123,7 +124,7 @@ class StockController extends BaseController
     {
         //
 
-        $allStocks  = $this->stockRepository()->getStocksById($stock);
+        $allStocks  = $this->stockService->getStocksById($stock);
         $stocksdata = [
             'allStocks' => $allStocks,
         ];

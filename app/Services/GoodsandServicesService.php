@@ -1,8 +1,19 @@
 <?php
-namespace App\Repositories;
+namespace App\Services;
 
-class GoodsandServicesRepository
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
+
+class GoodsandServicesService extends BaseService
 {
+
+    public function __construct(
+        StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+    }
+
 
     const GOODS = [
         ["name" => "Clothes",

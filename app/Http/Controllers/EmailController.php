@@ -1,21 +1,23 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ApiResource;
+use App\Models\AutoEmail;
 use App\Models\EmailConfig;
 use App\Models\EmailNotification;
 use App\Models\EmailSignature;
-use App\Models\AutoEmail;
 use App\Services\EmailService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class EmailController extends Controller
 {
     protected EmailService $emailService;
-
-    public function __construct(EmailService $emailService)
-    {
+    public function __construct(
+        protected ApiResource $apiResource,
+        EmailService $emailService
+    ) {
+        parent::__construct($apiResource);
         $this->emailService = $emailService;
     }
 
@@ -34,20 +36,20 @@ class EmailController extends Controller
     public function storeConfig(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'client_name' => 'required|string|unique:email_configs,client_name',
-            'imap_host' => 'required|string',
-            'imap_port' => 'integer',
+            'client_name'     => 'required|string|unique:email_configs,client_name',
+            'imap_host'       => 'required|string',
+            'imap_port'       => 'integer',
             'imap_encryption' => 'string',
-            'imap_username' => 'required|string',
-            'imap_password' => 'required|string',
-            'smtp_host' => 'required|string',
-            'smtp_port' => 'integer',
+            'imap_username'   => 'required|string',
+            'imap_password'   => 'required|string',
+            'smtp_host'       => 'required|string',
+            'smtp_port'       => 'integer',
             'smtp_encryption' => 'string',
-            'smtp_username' => 'required|string',
-            'smtp_password' => 'required|string',
-            'from_email' => 'required|email',
-            'from_name' => 'string|nullable',
-            'active' => 'boolean',
+            'smtp_username'   => 'required|string',
+            'smtp_password'   => 'required|string',
+            'from_email'      => 'required|email',
+            'from_name'       => 'string|nullable',
+            'active'          => 'boolean',
         ]);
 
         $config = EmailConfig::create($data);
@@ -60,20 +62,20 @@ class EmailController extends Controller
     public function updateConfig(Request $request, EmailConfig $config): JsonResponse
     {
         $data = $request->validate([
-            'client_name' => 'string|unique:email_configs,client_name,' . $config->id,
-            'imap_host' => 'string',
-            'imap_port' => 'integer',
+            'client_name'     => 'string|unique:email_configs,client_name,' . $config->id,
+            'imap_host'       => 'string',
+            'imap_port'       => 'integer',
             'imap_encryption' => 'string',
-            'imap_username' => 'string',
-            'imap_password' => 'string',
-            'smtp_host' => 'string',
-            'smtp_port' => 'integer',
+            'imap_username'   => 'string',
+            'imap_password'   => 'string',
+            'smtp_host'       => 'string',
+            'smtp_port'       => 'integer',
             'smtp_encryption' => 'string',
-            'smtp_username' => 'string',
-            'smtp_password' => 'string',
-            'from_email' => 'email',
-            'from_name' => 'string|nullable',
-            'active' => 'boolean',
+            'smtp_username'   => 'string',
+            'smtp_password'   => 'string',
+            'from_email'      => 'email',
+            'from_name'       => 'string|nullable',
+            'active'          => 'boolean',
         ]);
 
         $config->update($data);
@@ -102,10 +104,10 @@ class EmailController extends Controller
     {
         $data = $request->validate([
             'config_id' => 'required|exists:email_configs,id',
-            'to' => 'required|array',
-            'to.*' => 'email',
-            'subject' => 'required|string',
-            'body' => 'required|string',
+            'to'        => 'required|array',
+            'to.*'      => 'email',
+            'subject'   => 'required|string',
+            'body'      => 'required|string',
         ]);
 
         $config = EmailConfig::find($data['config_id']);
@@ -159,7 +161,7 @@ class EmailController extends Controller
     public function bulkMarkProcessed(Request $request): JsonResponse
     {
         $request->validate([
-            'notification_ids' => 'required|array',
+            'notification_ids'   => 'required|array',
             'notification_ids.*' => 'exists:email_notifications,id',
         ]);
 
@@ -175,7 +177,7 @@ class EmailController extends Controller
     public function bulkDeleteNotifications(Request $request): JsonResponse
     {
         $request->validate([
-            'notification_ids' => 'required|array',
+            'notification_ids'   => 'required|array',
             'notification_ids.*' => 'exists:email_notifications,id',
         ]);
 
@@ -197,21 +199,21 @@ class EmailController extends Controller
             $query->where('email_config_id', $configId);
         }
 
-        $totalNotifications = $query->count();
-        $processedNotifications = (clone $query)->where('processed', true)->count();
+        $totalNotifications       = $query->count();
+        $processedNotifications   = (clone $query)->where('processed', true)->count();
         $unprocessedNotifications = $totalNotifications - $processedNotifications;
 
         $todayNotifications = (clone $query)->whereDate('created_at', today())->count();
-        $weekNotifications = (clone $query)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $weekNotifications  = (clone $query)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
         $monthNotifications = (clone $query)->whereMonth('created_at', now()->month)->count();
 
         return response()->json([
-            'total_notifications' => $totalNotifications,
-            'processed_notifications' => $processedNotifications,
+            'total_notifications'       => $totalNotifications,
+            'processed_notifications'   => $processedNotifications,
             'unprocessed_notifications' => $unprocessedNotifications,
-            'today_notifications' => $todayNotifications,
-            'week_notifications' => $weekNotifications,
-            'month_notifications' => $monthNotifications,
+            'today_notifications'       => $todayNotifications,
+            'week_notifications'        => $weekNotifications,
+            'month_notifications'       => $monthNotifications,
         ]);
     }
 
@@ -225,13 +227,13 @@ class EmailController extends Controller
         ]);
 
         $notification = EmailNotification::find($request->notification_id);
-        $config = $notification->emailConfig;
+        $config       = $notification->emailConfig;
 
         try {
             $this->emailService->sendEmail([
-                'to' => $notification->to,
+                'to'      => $notification->to,
                 'subject' => $notification->subject,
-                'body' => $notification->body,
+                'body'    => $notification->body,
             ], $config);
 
             return response()->json(['message' => 'Email resent successfully']);
@@ -246,7 +248,7 @@ class EmailController extends Controller
     public function archiveNotifications(Request $request): JsonResponse
     {
         $request->validate([
-            'notification_ids' => 'required|array',
+            'notification_ids'   => 'required|array',
             'notification_ids.*' => 'exists:email_notifications,id',
         ]);
 
@@ -262,12 +264,12 @@ class EmailController extends Controller
     public function sendEmailWithAttachments(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'config_id' => 'required|exists:email_configs,id',
-            'to' => 'required',
-            'subject' => 'required|string',
-            'body' => 'required|string',
-            'signature_id' => 'nullable|exists:email_signatures,id',
-            'attachments' => 'array',
+            'config_id'     => 'required|exists:email_configs,id',
+            'to'            => 'required',
+            'subject'       => 'required|string',
+            'body'          => 'required|string',
+            'signature_id'  => 'nullable|exists:email_signatures,id',
+            'attachments'   => 'array',
             'attachments.*' => 'file|max:10240', // 10MB max
         ]);
 
@@ -275,14 +277,14 @@ class EmailController extends Controller
         $toEmails = $data['to'];
         if (is_string($toEmails)) {
             $toEmails = json_decode($toEmails, true);
-            if (!is_array($toEmails)) {
+            if (! is_array($toEmails)) {
                 return response()->json(['message' => 'Invalid "to" field format. Must be an array or JSON array string.'], 422);
             }
         }
 
         // Validate each email in the array
         foreach ($toEmails as $email) {
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return response()->json(['message' => "Invalid email address: {$email}"], 422);
             }
         }
@@ -295,7 +297,7 @@ class EmailController extends Controller
         $uploadedFiles = [];
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
-                $path = $file->store('email_attachments', 'public');
+                $path            = $file->store('email_attachments', 'public');
                 $uploadedFiles[] = [
                     'name' => $file->getClientOriginalName(),
                     'path' => $path,
@@ -318,7 +320,7 @@ class EmailController extends Controller
     public function getSignatures(Request $request): JsonResponse
     {
         $configId = $request->query('config_id');
-        $query = EmailSignature::query();
+        $query    = EmailSignature::query();
 
         if ($configId) {
             $query->where('email_config_id', $configId);
@@ -334,11 +336,11 @@ class EmailController extends Controller
     public function createSignature(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name' => 'required|string',
-            'content' => 'required|string',
+            'name'            => 'required|string',
+            'content'         => 'required|string',
             'email_config_id' => 'required|exists:email_configs,id',
-            'is_default' => 'boolean',
-            'active' => 'boolean',
+            'is_default'      => 'boolean',
+            'active'          => 'boolean',
         ]);
 
         $signature = EmailSignature::create($data);
@@ -351,10 +353,10 @@ class EmailController extends Controller
     public function updateSignature(Request $request, EmailSignature $signature): JsonResponse
     {
         $data = $request->validate([
-            'name' => 'string',
-            'content' => 'string',
+            'name'       => 'string',
+            'content'    => 'string',
             'is_default' => 'boolean',
-            'active' => 'boolean',
+            'active'     => 'boolean',
         ]);
 
         $signature->update($data);
@@ -376,7 +378,7 @@ class EmailController extends Controller
     public function getAutoEmails(Request $request): JsonResponse
     {
         $configId = $request->query('config_id');
-        $query = AutoEmail::query();
+        $query    = AutoEmail::query();
 
         if ($configId) {
             $query->where('email_config_id', $configId);
@@ -392,14 +394,14 @@ class EmailController extends Controller
     public function createAutoEmail(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name' => 'required|string',
-            'trigger_event' => 'required|string',
-            'subject' => 'required|string',
-            'body' => 'required|string',
+            'name'            => 'required|string',
+            'trigger_event'   => 'required|string',
+            'subject'         => 'required|string',
+            'body'            => 'required|string',
             'email_config_id' => 'required|exists:email_configs,id',
-            'conditions' => 'array',
-            'delay_minutes' => 'integer|min:0',
-            'active' => 'boolean',
+            'conditions'      => 'array',
+            'delay_minutes'   => 'integer|min:0',
+            'active'          => 'boolean',
         ]);
 
         $autoEmail = AutoEmail::create($data);
@@ -412,13 +414,13 @@ class EmailController extends Controller
     public function updateAutoEmail(Request $request, AutoEmail $autoEmail): JsonResponse
     {
         $data = $request->validate([
-            'name' => 'string',
+            'name'          => 'string',
             'trigger_event' => 'string',
-            'subject' => 'string',
-            'body' => 'string',
-            'conditions' => 'array',
+            'subject'       => 'string',
+            'body'          => 'string',
+            'conditions'    => 'array',
             'delay_minutes' => 'integer|min:0',
-            'active' => 'boolean',
+            'active'        => 'boolean',
         ]);
 
         $autoEmail->update($data);

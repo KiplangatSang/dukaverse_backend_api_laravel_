@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\BaseController;
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\SocialAuthService;
@@ -15,13 +18,14 @@ use Laravel\Socialite\Facades\Socialite;
  *     description="API endpoints for social media authentication"
  * )
  */
-class SocialAuthController extends Controller
+class SocialAuthController extends BaseController
 {
-    protected $socialAuthService;
 
-    public function __construct(SocialAuthService $socialAuthService)
-    {
-        $this->socialAuthService = $socialAuthService;
+  public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly SocialAuthService $socialAuthService
+    ) {
+        parent::__construct($apiResource);
     }
 
     /**

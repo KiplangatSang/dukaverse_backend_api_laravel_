@@ -1,18 +1,26 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Retail;
 use App\Models\RetailItem;
 use App\Models\SaleTransaction;
 
-class ItemRepository
+class ItemService extends BaseService
 {
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
-    }
+ 
+    protected $currentAccount;
+
+
+    public function __construct(
+         StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper,
+        protected readonly RequiredItemService $requiredItemService
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+     }
 
     public function saveItems($request, $productColors, $productSizes, $fileUrlsToStore)
     {
@@ -178,9 +186,9 @@ class ItemRepository
                 "is_required" => true,
             ]
         );
-        $requiredRepo = new RequiredItemsRepository($this->account);
+       
 
-        $requiredResult = $requiredRepo->storeRequiredItems($item, $amount);
+        $requiredResult = $this->requiredItemService->storeRequiredItems($item, $amount);
 
         $itemData["itemUpdate"] = $itemUpdate;
         if (!$requiredResult) {

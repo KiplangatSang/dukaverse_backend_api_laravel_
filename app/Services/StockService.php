@@ -1,17 +1,23 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Services;
 
 use App\Models\Stock;
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\StoreFileResource;
+use App\Http\Resources\ResponseHelper;
 
-class StockRepository
+class StockService extends BaseService
 {
-    private $account;
-    public function __construct($account)
-    {
-        $this->account = $account;
-    }
+ 
+
+
+    public function __construct(
+         StoreFileResource $storeFileResource,
+        ResponseHelper $responseHelper
+    ) {
+        parent::__construct($storeFileResource, $responseHelper);
+     }
 
     public function stockMailData()
     {
@@ -252,7 +258,7 @@ class StockRepository
                 "is_required" => true,
             ]
         );
-        $requiredRepo = new RequiredItemsRepository($this->account);
+        $requiredRepo = new RequiredItemService($this->account);
 
         $requiredResult = $requiredRepo->storeRequiredItems($item, $amount);
         $stockData["stockUpdate"] = $stockUpdate;

@@ -18,7 +18,23 @@ return new class extends Migration
             $table->bigInteger('walletable_id')->nullable();
             $table->string('walletable_type')->nullable();
             $table->string('name');
+
+            $table->longText("account");
+            $table->longText("account_ref");
+
+
+            $table->string("last_balance")->nullable();
+            $table->string("on_hold")->nullable();
+            $table->string("initial_deposit")->nullable();;
+            $table->double("max_amount")->nullable();
+            $table->double("min_amount")->nullable();;
+            $table->string("account_status")->default(true);
+            $table->string("is_active")->default(false);
+            $table->string("account_type")->default("business");
+
+
             $table->double('balance');
+
             $table->double('pending_balance')->nullable();
             $table->double("frozen_balance")->nullable();
             $table->boolean("is_temporary")->default(false);

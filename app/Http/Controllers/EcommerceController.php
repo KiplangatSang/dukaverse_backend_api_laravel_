@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Http\Resources\ApiResource;
-use App\Models\Ecommerce;
+
+ use App\Models\Ecommerce;
 use App\Models\PaymentGateway;
 use App\Models\User;
 use App\Services\AuthService;
@@ -598,7 +598,7 @@ class EcommerceController extends BaseController
             return $can_create_ecommerce;
         }
 
-        if ($user->role == User::DUKAVERSE_ADMIN_ACCOUNT_TYPE) {
+        if ($user->role == User::ADMIN_ACCOUNT_TYPE) {
             $can_create_ecommerce['can_create_ecommerce'] = true;
             $can_create_ecommerce['success']              = 'You can create your ecommerce site';
             return $can_create_ecommerce;

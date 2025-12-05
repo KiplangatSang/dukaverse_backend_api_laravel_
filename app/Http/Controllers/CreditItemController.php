@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use App\Repositories\SalesRepository;
+use App\Services\SaleService;
 use Illuminate\Http\Request;
 
 /**
@@ -16,18 +17,18 @@ class CreditItemController extends BaseController
     private $retail;
 
     /**
-     * Get the SalesRepository instance for the current retail store.
+     * Get the SaleService instance for the current retail store.
      *
-     * @return \App\Repositories\SalesRepository|bool
+     * @return \App\Services\SalesService|bool
      */
-    public function salesRepository()
+    public function salesService()
     {
         $this->retail = $this->getAccount();
         if (! $this->retail) {
             return false;
         }
 
-        return new SalesRepository($this->retail);
+        return new SaleService($this->retail);
     }
 
     /**
@@ -56,7 +57,7 @@ class CreditItemController extends BaseController
      */
     public function index()
     {
-        $creditItems = $this->salesRepository()->getCreditItems();
+        $creditItems = $this->salesService()->getCreditItems();
 
         $soldItems = 0;
         foreach ($creditItems as $creditItem) {
@@ -102,7 +103,7 @@ class CreditItemController extends BaseController
             'customer_id'    => 'required|integer',
         ]);
 
-        $this->salesRepository()->setCreditItems($request->transaction_id, $request->customer_id);
+        $this->salesService()->setCreditItems($request->transaction_id, $request->customer_id);
 
         return $this->sendResponse([], "Credit item stored successfully", 201);
     }

@@ -1,14 +1,13 @@
 <?php
 namespace App\Http\Controllers;
-
+ 
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\ApiResource;
 use App\Models\Order;
-use App\Repositories\OrdersRepository;
-use App\Services\AuthService;
 use App\Services\OrderService;
-use Exception;
+use App\Services\AuthService;
+ use Exception;
 use Illuminate\Support\Str;
 
 /**
@@ -26,7 +25,7 @@ class OrderController extends BaseController
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
-        $this->orderService = new OrderService(new OrdersRepository($this->getAccount()), $this->getAccount());
+        $this->orderService = new OrderService(new OrderService($this->getAccount()), $this->getAccount());
     }
 
     /**

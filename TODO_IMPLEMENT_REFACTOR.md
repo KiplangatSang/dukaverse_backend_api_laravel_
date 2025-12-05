@@ -7,8 +7,7 @@ Implement the refactoring plan from TODO_REFORMAT_INJECTION.md to allow proper d
 - Services like TeamService, AccountService, etc., currently instantiated in controller methods with Account passed.
 - BaseController has methods like getAccount() to resolve Account.
 - Controllers extend BaseController and need AuthService and ApiResource in __construct.
-- Repositories like TeamsRepository, AccountsRepository need Account.
-
+ 
 ## Plan
 1. [ ] Analyze services/repositories needing Account (e.g., TeamService, AccountService).
 2. [ ] Update service constructors to accept Account parameter.

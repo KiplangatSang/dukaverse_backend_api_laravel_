@@ -2,14 +2,23 @@
 
 namespace App\Services;
 
+use App\Http\Resources\ResponseHelper;
+use App\Http\Resources\StoreFileResource;
 use App\Models\Permission;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 
 use App\Models\Tier;
 
-class PermissionsService
+class PermissionsService extends BaseService
 {
+     public function __construct(
+        protected readonly StoreFileResource $storeFileResource,
+        protected readonly ResponseHelper $responseHelper
+    ) {
+         parent::__construct($storeFileResource, $responseHelper);
+    }
+
     /**
      * List permissions for a given ownerable (user/account), including permissions unlocked via active subscription tiers.
      *

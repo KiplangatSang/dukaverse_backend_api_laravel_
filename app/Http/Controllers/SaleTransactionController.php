@@ -1,10 +1,17 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use Illuminate\Http\Request;
+ use Illuminate\Http\Request;
 
 class SaleTransactionController extends BaseController
 {
+    public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
+
     /**
      * Display a listing of the resource.
      */

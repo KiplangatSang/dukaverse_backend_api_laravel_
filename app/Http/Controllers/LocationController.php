@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Models\Location;
 use App\Http\Requests\StoreLocationRequest;
@@ -8,6 +9,12 @@ use App\Http\Requests\UpdateLocationRequest;
 
 class LocationController extends Controller
 {
+
+  public function __construct(
+        protected ApiResource $apiResource,
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */

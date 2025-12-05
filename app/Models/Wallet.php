@@ -34,4 +34,13 @@ class Wallet extends Model {
         return $this->hasMany(Transaction::class, "wallet_id");
     }
 
+     public function senderTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'sender_accounts_id');
+    }
+
+      public function receiverTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'receiver_accounts_id');
+    }
 }

@@ -1,9 +1,10 @@
 <?php
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Resources\ApiResource;
+
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ApiResource;
 use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\Request;

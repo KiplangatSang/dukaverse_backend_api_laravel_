@@ -1,13 +1,13 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
-use App\Http\Resources\ApiResource;
-use App\Models\Employee;
+ use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
-use App\Repositories\EmployeesRepository;
+use App\Services\EmployeesService;
 use App\Services\AuthService;
 use Exception;
 use Illuminate\Http\Request;
@@ -34,13 +34,13 @@ class EmployeeController extends BaseController
         parent::__construct($apiResource);
     }
 
-    public function employeeRepository()
+    public function employeeService()
     {
         # code...
 
         $this->retail = $this->getAccount();
 
-        $this->employeesRepo = new EmployeesRepository($this->retail);
+        $this->employeesRepo = new EmployeesService($this->retail);
         return $this->employeesRepo;
     }
     /**
@@ -64,7 +64,7 @@ class EmployeeController extends BaseController
     public function index()
     {
         //
-        $employee_list = $this->employeeRepository()->getEmployees();
+        $employee_list = $this->employeeService()->getEmployees();
         if (! $employee_list) {
             $this->sendError($employee_list, 'error, could not fetch employees');
         }

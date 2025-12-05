@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreBillRequest;
 use App\Http\Requests\UpdateBillRequest;
@@ -15,7 +16,7 @@ class BillController extends BaseController
 
         // $billslist = Bills::all();
 
-        $thirdPartyRepo   = new ThirdPartyRepository();
+        $thirdPartyRepo   = new ThirdPartyService();
         $thirdPartyImages = $thirdPartyRepo->getThirdPartyImages();
         // $bill = Bills::where('id',$bill_id)->first();
         $billPaymentData = [

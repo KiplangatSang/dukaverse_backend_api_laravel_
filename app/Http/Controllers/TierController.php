@@ -1,12 +1,18 @@
 <?php
 namespace App\Http\Controllers;
+use App\Http\Resources\ApiResource;
 
-use App\Models\Tier;
+ use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TierController extends BaseController
 {
+     public function __construct(
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Info(
      *     title="Dukaverse API",
