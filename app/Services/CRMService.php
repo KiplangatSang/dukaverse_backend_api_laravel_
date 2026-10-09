@@ -10,8 +10,6 @@ use App\Models\User;
 
 class CRMService extends BaseService
 {
-    private $user;
-     
 
     public function __construct(
         private readonly UserService $userService,
@@ -19,7 +17,6 @@ class CRMService extends BaseService
         private readonly ResponseHelper $responseHelper,
         private readonly AppService $appService
     ) {
-        $this->user = $this->user();
         parent::__construct($storeFileResource, $responseHelper);
     }
 
@@ -362,7 +359,7 @@ class CRMService extends BaseService
         $topCampaigners = User::whereIn('id', $user_ids)
             ->whereHas('userLeads')              // Ensure the user has leads
             ->withCount('assignedCampaignTasks') // Load the tasks
-            ->withCount('userLeads')             // Count the number of leads for each user 
+            ->withCount('userLeads')             // Count the number of leads for each user
             ->orderByDesc('user_leads_count')    // Order by the count of leads in descending order
             ->get();
 

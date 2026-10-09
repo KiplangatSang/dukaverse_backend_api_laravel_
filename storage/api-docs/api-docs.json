@@ -12,7 +12,7 @@
                     "Accounts"
                 ],
                 "summary": "Get list of accounts",
-                "operationId": "27eb27444be51de1fad6b0f51082e0df",
+                "operationId": "d0843c66644ffb27960437c18bbec269",
                 "responses": {
                     "200": {
                         "description": "Successful operation"
@@ -29,7 +29,7 @@
                     "Accounts"
                 ],
                 "summary": "Create a new account",
-                "operationId": "f0003c122130a41b2d5450cffb1d65e4",
+                "operationId": "a9239744b44ef1f6de5609fbca09c53f",
                 "responses": {
                     "201": {
                         "description": "Account created"
@@ -48,7 +48,7 @@
                     "Accounts"
                 ],
                 "summary": "Show form for creating an account",
-                "operationId": "194b6982a09ce7d9e324e7b7b97fc2bc",
+                "operationId": "6a6c17d166bcc9380fe8734d44b8c6b8",
                 "responses": {
                     "200": {
                         "description": "Successful operation"
@@ -61,13 +61,13 @@
                 ]
             }
         },
-        "/api/v1/accounts/{account}": {
+        "/api/v1/accounts/{type}": {
             "get": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Get a specific account",
-                "operationId": "44e6ab17b452e3ea556008ac723bfab1",
+                "operationId": "d1873ae76ee9bc4fb4b7e4544903a608",
                 "parameters": [
                     {
                         "name": "account",
@@ -88,13 +88,44 @@
                         "bearerAuth": []
                     }
                 ]
-            },
+            }
+        },
+        "/api/v1/accounts/{account}/edit": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Show form for editing an account",
+                "operationId": "f766e89ac872e7f7e4465d6561b54974",
+                "parameters": [
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accounts/{account}": {
             "put": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Update an account",
-                "operationId": "93ee2a5ad64099dcaf18e5aeff0f289a",
+                "operationId": "662cf28c6fae0fef3c3fdb841490bc03",
                 "parameters": [
                     {
                         "name": "account",
@@ -121,7 +152,7 @@
                     "Accounts"
                 ],
                 "summary": "Delete an account",
-                "operationId": "351d618f1986d54fccee477f9c60091a",
+                "operationId": "0f0e185e110c8b9c6b555bb5083fbf4b",
                 "parameters": [
                     {
                         "name": "account",
@@ -135,35 +166,6 @@
                 "responses": {
                     "204": {
                         "description": "Account deleted"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/accounts/{account}/edit": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Show form for editing an account",
-                "operationId": "30f95767f18bbc8e330987089a036729",
-                "parameters": [
-                    {
-                        "name": "account",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
                     }
                 },
                 "security": [
@@ -1956,6 +1958,112 @@
                 ]
             }
         },
+        "/api/phone/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify phone OTP",
+                "description": "Verify the OTP sent to the user's phone number",
+                "operationId": "verifyPhoneOtp",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "otp": {
+                                        "description": "6-digit OTP code",
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Phone number verified successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Phone number verified successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Phone number verified successfully"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired OTP",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid or expired OTP."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/email/verify-code": {
             "post": {
                 "tags": [
@@ -3652,13 +3760,13 @@
                 ]
             }
         },
-        "/api/coupons": {
+        "/api/v1/coupons": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get all coupons",
-                "operationId": "de1c8db4ca4b3c683e03dffd02a9f448",
+                "operationId": "bb7229a66fa8a8bec78d3393e623d2bf",
                 "responses": {
                     "200": {
                         "description": "Coupons fetched successfully"
@@ -3675,7 +3783,7 @@
                     "Coupons"
                 ],
                 "summary": "Create a new coupon",
-                "operationId": "f3ffee4301fb5522bc31d0dd443a07e8",
+                "operationId": "ee1482adde4ea84755f99ce5d08e1e2b",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -3758,13 +3866,13 @@
                 ]
             }
         },
-        "/api/coupons/create": {
+        "/api/v1/coupons/create": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get coupon creation metadata",
-                "operationId": "506293e27bd1439c717b67a9620cb761",
+                "operationId": "43d4075971f1c3d707ad2359590c0f29",
                 "responses": {
                     "200": {
                         "description": "Coupon creation metadata fetched successfully"
@@ -3777,13 +3885,13 @@
                 ]
             }
         },
-        "/api/coupons/{id}": {
+        "/api/v1/coupons/{id}": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get a coupon by ID",
-                "operationId": "fc0581b6388ac380af23011bb4ca9fdd",
+                "operationId": "e5ba695f60837ac60f3dc3eccbf2b2f1",
                 "parameters": [
                     {
                         "name": "id",
@@ -3813,7 +3921,7 @@
                     "Coupons"
                 ],
                 "summary": "Update a coupon",
-                "operationId": "057e26e126d3c2474c93f0ab7047a507",
+                "operationId": "4470fda9ed48626ebac3d3e255f0a4b9",
                 "parameters": [
                     {
                         "name": "id",
@@ -3910,7 +4018,7 @@
                     "Coupons"
                 ],
                 "summary": "Delete a coupon",
-                "operationId": "17bea67ca5229520f7a6975f625ca627",
+                "operationId": "d477dd4444ece3a2cabd027c661c155b",
                 "parameters": [
                     {
                         "name": "id",
@@ -3936,13 +4044,13 @@
                 ]
             }
         },
-        "/api/coupons/{id}/edit": {
+        "/api/v1/coupons/{id}/edit": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get a coupon for editing",
-                "operationId": "51379d9bdecc8e869ece05f892c41df1",
+                "operationId": "f2a4e0dcb867dfe6c593a2de8d0f5610",
                 "parameters": [
                     {
                         "name": "id",
@@ -3965,13 +4073,13 @@
                 ]
             }
         },
-        "/api/coupons/validate": {
+        "/api/v1/coupons/validate": {
             "post": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Validate a coupon code",
-                "operationId": "93d93652dcb6201932b083ac045eac68",
+                "operationId": "f7f71932703cd94a348d16c5397a36fb",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -4474,6 +4582,211 @@
                 "responses": {
                     "200": {
                         "description": "Invoice sent successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/available": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get available delivery jobs",
+                "operationId": "91f5929209f5f79c01d1d3dfe153e3bc",
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitude",
+                        "required": false
+                    },
+                    {
+                        "name": "lng",
+                        "in": "query",
+                        "description": "Longitude",
+                        "required": false
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Search radius in km",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Available jobs retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/{jobId}/bid": {
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Place a bid on a delivery job",
+                "operationId": "7d498bb97006f0cde06648751bc34d92",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "bid_amount",
+                                    "estimated_time"
+                                ],
+                                "properties": {
+                                    "bid_amount": {
+                                        "type": "number",
+                                        "minimum": 0
+                                    },
+                                    "estimated_time": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bid placed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/my-bids": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get user's active bids",
+                "operationId": "e2313b05250bced3bf921cd30b36ccfd",
+                "responses": {
+                    "200": {
+                        "description": "Active bids retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/{jobId}/accept": {
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Accept a delivery job",
+                "operationId": "1ea6e6d6631683f09ae1032a07f20b76",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job accepted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/{jobId}/status": {
+            "put": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Update delivery status",
+                "operationId": "930ae1b6252ac257424f46ed2a49ec0b",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "picked_up",
+                                            "in_transit",
+                                            "delivered"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/history": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get delivery history",
+                "operationId": "ef0288b64bef8daa59edb658f3536a99",
+                "responses": {
+                    "200": {
+                        "description": "Delivery history retrieved successfully"
                     }
                 },
                 "security": [
@@ -5841,13 +6154,13 @@
                 ]
             }
         },
-        "/api/v1/employees/assign-role": {
+        "/api/v1/employees/{employee_id}/edit/roles/assign": {
             "post": {
                 "tags": [
                     "Employees"
                 ],
                 "summary": "Assign roles to employee",
-                "operationId": "f440e064ed02d9836d2ed6d5d0dc596b",
+                "operationId": "6b6ac8c0c04a4b0790b96411b7804f95",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -5892,13 +6205,13 @@
                 ]
             }
         },
-        "/api/v1/employees/unassign-role": {
+        "/api/v1/employees/{employee_id}/edit/roles/unassign/{role_id}": {
             "post": {
                 "tags": [
                     "Employees"
                 ],
                 "summary": "Unassign a role from employee",
-                "operationId": "c0f6c21b9026fcd445894a7bf2a1d38d",
+                "operationId": "08579ba20fca5e6d201dcaf75eb257dc",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -6118,14 +6431,14 @@
                 ]
             }
         },
-        "/api/v1/analytics/dashboard": {
+        "/api/v1/analytics/data": {
             "get": {
                 "tags": [
                     "Analytics"
                 ],
                 "summary": "Get analytics dashboard data",
                 "description": "Fetch the main analytics dashboard data",
-                "operationId": "c914b65d5aff635d9babcaee5065a0f6",
+                "operationId": "df33926ed309d4bfd6d97761baf0aa35",
                 "responses": {
                     "200": {
                         "description": "Data fetched successfully",
@@ -6543,7 +6856,7 @@
                     "Analytics"
                 ],
                 "summary": "Get e-commerce analytics",
-                "operationId": "81308aa95c69e4301ea2e871758ed204",
+                "operationId": "3f739bf8eef97d6a0cd32f1a92294f79",
                 "responses": {
                     "200": {
                         "description": "E-commerce analytics data",
@@ -6577,7 +6890,7 @@
                     "Analytics"
                 ],
                 "summary": "Get wallet analytics",
-                "operationId": "a1e648a95790dde28b8dbea1874e5ddd",
+                "operationId": "6b75714eb13f3817429bb6c5f1334713",
                 "responses": {
                     "200": {
                         "description": "Wallet analytics data",
@@ -6592,6 +6905,40 @@
                                     "data": {
                                         "balance": 5000,
                                         "transactions": 20
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/analytics/dashboard-crm": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get CRM analytics",
+                "operationId": "32628998160040c3f496a5b1dca32b65",
+                "responses": {
+                    "200": {
+                        "description": "CRM analytics data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": true,
+                                    "message": "Data fetched successfully",
+                                    "data": {
+                                        "leads": 30,
+                                        "conversions": 15
                                     }
                                 }
                             }
@@ -8926,7 +9273,7 @@
                     "Offices"
                 ],
                 "summary": "Create a simple office with minimal details",
-                "operationId": "3dc3b7c90af41deaf66e2b384ae53890",
+                "operationId": "ed934937ce12e3e3587faacc44af4448",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -9106,7 +9453,7 @@
                     "Offices"
                 ],
                 "summary": "Upload or update office profile image",
-                "operationId": "62c257a9fc82d835fa31a0b715832de0",
+                "operationId": "9838df3006198574fd55ca3856a88299",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -9135,13 +9482,13 @@
                 ]
             }
         },
-        "/api/v1/offices/documents/business-permit": {
+        "/api/v1/offices/documents/upload": {
             "post": {
                 "tags": [
                     "Offices"
                 ],
                 "summary": "Upload office business permit",
-                "operationId": "babbec2022bb282038d40e01389f1532",
+                "operationId": "6e9abbe50d0db6154747d306cf1bf0ab",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -16427,6 +16774,10 @@
         {
             "name": "Coupons",
             "description": "Coupons"
+        },
+        {
+            "name": "Delivery",
+            "description": "Delivery"
         },
         {
             "name": "PaymentGateways",

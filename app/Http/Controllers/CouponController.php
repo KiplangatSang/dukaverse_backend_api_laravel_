@@ -126,7 +126,7 @@ class CouponController extends BaseController
      *     summary="Get a coupon by ID",
      *     tags={"Coupons"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", req/v1uired=true, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\Response(response=200, description="Coupon fetched successfully"),
      *     @OA\Response(response=404, description="Coupon not found")
      * )
@@ -148,7 +148,7 @@ class CouponController extends BaseController
      *     summary="Get a coupon for editing",
      *     tags={"Coupons"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", req/v1uired=true, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\Response(response=200, description="Coupon to edit fetched successfully")
      * )
      */
@@ -174,7 +174,7 @@ class CouponController extends BaseController
      *     summary="Update a coupon",
      *     tags={"Coupons"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", req/v1uired=true, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -244,7 +244,7 @@ class CouponController extends BaseController
      *     summary="Delete a coupon",
      *     tags={"Coupons"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", req/v1uired=true, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\Response(response=200, description="Coupon deleted successfully"),
      *     @OA\Response(response=400, description="Bad request")
      * )

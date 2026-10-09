@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 class EcommerceService extends BaseService
 {
 
-    private $user;
     // private $account;
     public function __construct(
         private readonly CustomerService $customerService,
@@ -22,9 +21,6 @@ class EcommerceService extends BaseService
         StoreFileResource $storeFileResource,
         protected ResponseHelper $responseHelper
     ) {
-        $this->user = $this->user();
-        // $this->account = $account;
-
         parent::__construct($storeFileResource, $responseHelper);
 
     }

@@ -13,11 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
-            $appService   = new AppService();
+//            $appService   = new AppService();
             $noprofile = $appService->getBaseImages()['noprofile'];
 
             $table->id();
             $table->morphs("ownerable");
+
+            
             $table->bigInteger('customerable_id')->nullable();
             $table->string('customerable_type')->nullable();
             $table->string('name');

@@ -441,69 +441,7 @@ public function deleteComment(Request $request, $task_id){
 
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/tasks/{taskId}/convert-to-todo",
-     *     operationId="convertTaskToTodo",
-     *     tags={"Tasks"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Convert a task to a todo",
-     *     description="Converts a task to a single todo. If task has subtasks, returns information about subtasks for user to choose conversion method.",
-     *     @OA\Parameter(
-     *         name="taskId",
-     *         in="path",
-     *         required=true,
-     *         description="ID of the task to convert",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=false,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="todo_type", type="string", enum={"account", "user"}, default="account", description="Type of todo to create")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Task converted to todo successfully or has subtasks",
-     *         @OA\JsonContent(
-     *             oneOf={
-     *                 @OA\Schema(
-     *                     type="object",
-     *                     @OA\Property(property="success", type="boolean", example=true),
-     *                     @OA\Property(
-     *                         property="data",
-     *                         type="object",
-     *                         @OA\Property(property="has_subtasks", type="boolean", example=true),
-     *                         @OA\Property(property="subtasks_count", type="integer", example=3),
-     *                         @OA\Property(property="message", type="string", example="Task has subtasks. Please choose how to proceed.")
-     *                     ),
-     *                     @OA\Property(property="message", type="string", example="Task has subtasks - choose conversion method")
-     *                 ),
-     *                 @OA\Schema(
-     *                     type="object",
-     *                     @OA\Property(property="success", type="boolean", example=true),
-     *                     @OA\Property(
-     *                         property="data",
-     *                         type="object",
-     *                         @OA\Property(property="todo", type="object")
-     *                     ),
-     *                     @OA\Property(property="message", type="string", example="Task converted to todo successfully")
-     *                 )
-     *             }
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Task not found",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Task not found"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
-     */
+
     public function convertToTodo(Request $request, $taskId)
     {
         $task = $this->account->tasks()->where('id', $taskId)->first();
@@ -542,66 +480,6 @@ public function deleteComment(Request $request, $task_id){
         return $this->sendResponse(["todo" => $todo], "Task converted to todo successfully");
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/tasks/{taskId}/break-into-todos",
-     *     operationId="breakTaskIntoTodos",
-     *     tags={"Tasks"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Break down a task into multiple todos",
-     *     description="Breaks down a task into multiple todos based on provided breakdown structure",
-     *     @OA\Parameter(
-     *         name="taskId",
-     *         in="path",
-     *         required=true,
-     *         description="ID of the task to break down",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"breakdown"},
-     *             @OA\Property(
-     *                 property="breakdown",
-     *                 type="array",
-     *                 description="Array of todo items to create",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     required={"title"},
-     *                     @OA\Property(property="title", type="string", example="Research phase"),
-     *                     @OA\Property(property="description", type="string", example="Gather requirements and research"),
-     *                     @OA\Property(property="assigned_to", type="integer", example=1, description="User ID to assign the todo to")
-     *                 )
-     *             ),
-     *             @OA\Property(property="todo_type", type="string", enum={"account", "user"}, default="account", description="Type of todo to create")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Task broken into todos successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="todos", type="array", @OA\Items(type="object"))
-     *             ),
-     *             @OA\Property(property="message", type="string", example="Task broken into todos successfully")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Task not found",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Task not found"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
-     */
     public function breakIntoTodos(Request $request, $taskId)
     {
         $task = $this->account->tasks()->where('id', $taskId)->first();
@@ -633,54 +511,7 @@ public function deleteComment(Request $request, $task_id){
         return $this->sendResponse(["todos" => $createdTodos], "Task broken into todos successfully");
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/tasks/{taskId}/convert-subtasks-to-todos",
-     *     operationId="convertSubtasksToTodos",
-     *     tags={"Tasks"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Convert task subtasks to todos",
-     *     description="Converts all subtasks of a given task into individual todos",
-     *     @OA\Parameter(
-     *         name="taskId",
-     *         in="path",
-     *         required=true,
-     *         description="ID of the task whose subtasks to convert",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=false,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="todo_type", type="string", enum={"account", "user"}, default="account", description="Type of todo to create")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Subtasks converted to todos successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="todos", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="converted_count", type="integer", example=3)
-     *             ),
-     *             @OA\Property(property="message", type="string", example="Subtasks converted to todos successfully")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Task not found or no subtasks found",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Task not found"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
-     */
+
     public function convertSubtasksToTodos(Request $request, $taskId)
     {
         $task = $this->account->tasks()->where('id', $taskId)->first();
@@ -719,64 +550,7 @@ public function deleteComment(Request $request, $task_id){
         ], "Subtasks converted to todos successfully");
     }
 
-    /*
-    @OA\Post(
-        path="/api/v1/calendars/create-from-task/{task_id}",
-        operationId="createCalendarFromTask",
-        tags={"Calendar"},
-        security={{"bearerAuth":{}}},
-        summary="Create a calendar event from an existing task",
-        description="Creates a calendar event from a task with automatic attendee management and conflict detection",
-        @OA\Parameter(
-            name="task_id",
-            in="path",
-            required=true,
-            description="ID of the task to create calendar event from",
-            @OA\Schema(type="integer")
-        ),
-        @OA\RequestBody(
-            required=true,
-            @OA\JsonContent(
-                required={"start_time", "end_time"},
-                @OA\Property(property="start_time", type="string", format="date-time", example="2025-09-22T10:00:00Z"),
-                @OA\Property(property="end_time", type="string", format="date-time", example="2025-09-22T11:00:00Z"),
-                @OA\Property(property="location", type="string", example="Office"),
-                @OA\Property(property="meeting_link", type="string", format="url", example="https://zoom.us/j/123456789"),
-                @OA\Property(property="reminder_minutes_before", type="integer", example=15),
-                @OA\Property(property="attendees", type="array", @OA\Items(type="integer"), description="Additional attendee user IDs")
-            )
-        ),
-        @OA\Response(
-            response=201,
-            description="Calendar event created from task successfully",
-            @OA\JsonContent(
-                type="object",
-                @OA\Property(property="success", type="boolean", example=true),
-                @OA\Property(property="data", type="object"),
-                @OA\Property(property="message", type="string", example="Calendar event created from task successfully")
-            )
-        ),
-        @OA\Response(
-            response=403,
-            description="Unauthorized to create calendar event for this task",
-            @OA\JsonContent(
-                type="object",
-                @OA\Property(property="success", type="boolean", example=false),
-                @OA\Property(property="message", type="string", example="Unauthorized to create calendar event for this task")
-            )
-        ),
-        @OA\Response(
-            response=409,
-            description="Time conflict detected",
-            @OA\JsonContent(
-                type="object",
-                @OA\Property(property="success", type="boolean", example=false),
-                @OA\Property(property="message", type="string", example="Time conflict detected"),
-                @OA\Property(property="errors", type="object", @OA\Property(property="conflicts", type="array"))
-            )
-        )
-    )
-    */
+
     public function createCalendarFromTask(Request $request, $taskId)
     {
         // This method should be in CalendarController, but adding swagger docs here for completeness
