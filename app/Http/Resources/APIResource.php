@@ -15,7 +15,7 @@ class ApiResource
         ], $code);
     }
 
-    public static function error(string $message, int $code, $errors = null):JsonResponse
+    public static function error(string $message, int $code, $errors = null)
     {
         return response()->json([
             'status'  => 'error',
@@ -23,7 +23,7 @@ class ApiResource
             'errors'  => $errors,
         ], $code);
     }
- 
+
 
 
 }

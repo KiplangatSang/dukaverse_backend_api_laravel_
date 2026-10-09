@@ -7,9 +7,9 @@ use App\Http\Resources\StoreFileResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class Items extends BaseService
+class ItemsService extends BaseService
 {
- 
+
     protected $currentAccount;
 
 

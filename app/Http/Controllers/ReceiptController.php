@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\ItemService;
 use App\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -57,6 +58,7 @@ class ReceiptController extends BaseController
      */
     public function printReceiptFromTerminal(Request $request)
     {
+        try{
         $validator = Validator::make($request->all(), [
             'retail_id'           => 'required|exists:retails,id',
             'sale_transaction_id' => 'required|exists:sale_transactions,id',
@@ -87,6 +89,11 @@ class ReceiptController extends BaseController
         }
 
         return $this->sendResponse(["receipt" => $result], "Receipt generated successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -110,6 +117,8 @@ class ReceiptController extends BaseController
         Invoice $invoice,
         $type
     ) {
+
+    try{
         $receipt_number = "";
 
         do {
@@ -130,6 +139,11 @@ class ReceiptController extends BaseController
         ]);
 
         return $receipt ?: false;
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -151,6 +165,7 @@ class ReceiptController extends BaseController
         SaleTransaction $saleTransaction,
         $type
     ) {
+        try{
         $invoice_number = "";
 
         do {
@@ -173,6 +188,11 @@ class ReceiptController extends BaseController
         ]);
 
         return $invoice ?: false;
+
+             } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -194,8 +214,8 @@ class ReceiptController extends BaseController
         Receipt $receipt,
         Invoice $invoice
     ) {
-        
 
+try{
          $sales_items     = $this->itemService->getSalesItems($retail, $saleTransaction);
 
          $sale_transaction_data =  $this->saleService->getReceiptTotals($saleTransaction);
@@ -221,6 +241,11 @@ class ReceiptController extends BaseController
 
         $pdf = Pdf::loadView('pdfs.receipt', $data)->setPaper('A6', 'portrait');
         return $pdf->download('receipt.pdf');
+
+                } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -234,7 +259,12 @@ class ReceiptController extends BaseController
      */
     public function printReceipt()
     {
+        try{
         // Placeholder for actual printing logic
         return $this->sendResponse([], "Receipt printing initiated.");
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

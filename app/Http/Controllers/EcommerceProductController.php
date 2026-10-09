@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Resources\ApiResource;
-
+use App\Services\AuthService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -13,6 +14,14 @@ use Illuminate\Support\Facades\Validator;
  */
 class EcommerceProductController extends BaseController
 {
+
+ public function __construct(
+        private readonly AuthService $authService,
+        ApiResource $apiResource
+    ) {
+      parent::__construct($apiResource);
+    }
+
     /**
      * @OA\Post(
      *     path="/api/v1/ecommerce/products/show-all",
@@ -32,6 +41,7 @@ class EcommerceProductController extends BaseController
      */
     public function showAllRetailProducts(Request $request)
     {
+        try{
         $user      = $this->user();
         $validator = Validator::make(request()->all(), [
             'show_all_products' => ['required', 'boolean'],
@@ -49,6 +59,11 @@ class EcommerceProductController extends BaseController
             return $this->sendError('Request failed', ['error' => "Could not update the product settings"]);
         }
         return $this->sendResponse(['result' => $result, 'message' => "Product settings have been set"], 'Request successful');
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -70,6 +85,7 @@ class EcommerceProductController extends BaseController
      */
     public function removeProductsFromEcommerceSite(Request $request)
     {
+        try{
         $user = $this->user();
 
         $validator = Validator::make(request()->all(), [
@@ -88,6 +104,11 @@ class EcommerceProductController extends BaseController
             return $this->sendError('Request failed', ['error' => "Could not update the product settings"]);
         }
         return $this->sendResponse(['result' => $result, 'message' => "Product settings have been set"], 'Request successful');
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -109,6 +130,7 @@ class EcommerceProductController extends BaseController
      */
     public function removeProductsInLowStockFromEcommerceSite(Request $request)
     {
+        try{
         $user = $this->user();
 
         $validator = Validator::make(request()->all(), [
@@ -127,6 +149,11 @@ class EcommerceProductController extends BaseController
             return $this->sendError('Request failed', ['error' => "Could not update the product settings"]);
         }
         return $this->sendResponse(['result' => $result, 'message' => "Product settings have been set"], 'Request successful');
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -144,7 +171,13 @@ class EcommerceProductController extends BaseController
      */
     public function addProductToEcommerceSite(Request $request)
     {
+        try{
         // You can expand this logic later, Swagger docs added for future use
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -167,6 +200,7 @@ class EcommerceProductController extends BaseController
      */
     public function removeAllProductsFromEcommerceSite(Request $request)
     {
+        try{
         $user = $this->user();
 
         $validator = Validator::make(request()->all(), [
@@ -187,6 +221,11 @@ class EcommerceProductController extends BaseController
             return $this->sendError('Request failed', ['error' => "Could not update the product settings"]);
         }
         return $this->sendResponse(['result' => $result, 'message' => "Product settings have been set"], 'Request successful');
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -200,7 +239,13 @@ class EcommerceProductController extends BaseController
      */
     public function removeProductFromEcommerceWhenStockIsLow()
     {
+        try{
         // Placeholder for manual stock removal logic
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -214,11 +259,17 @@ class EcommerceProductController extends BaseController
      */
     public function getEcommerceProducts(Request $request)
     {
+        try{
         $products = $this->ecommerce($request)->items;
         if (! $products) {
             return $this->sendError('Request failed', ['error' => "Could fetch products"]);
         }
         return $this->sendResponse(['products' => $products, 'message' => "Products fetched successfully"], 'Request successful');
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -234,11 +285,17 @@ class EcommerceProductController extends BaseController
      */
     public function getEcommerceProduct(Request $request, $product_id)
     {
+        try{
         $product = $this->ecommerce($request)->items()->with('sales', 'stocks')
             ->first(); // you may want to filter by ->where('id', $product_id)
         if (! $product) {
             return $this->sendError('Request failed', ['error' => "Could fetch product"]);
         }
         return $this->sendResponse(['product' => $product, 'message' => "Product fetched successfully"], 'Request successful');
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 }

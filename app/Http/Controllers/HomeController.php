@@ -1,10 +1,14 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 use App\Http\Controllers\BaseController;
 use App\Services\AnalyticsService;
 use App\Services\AuthService;
+use Exception;
 use Illuminate\Http\JsonResponse;
+use \Illuminate\Http\Request;
 
 class HomeController extends BaseController
 {
@@ -36,13 +40,18 @@ class HomeController extends BaseController
      *     @OA\Response(response=500, description="Server Error")
      * )
      */
-    public function dashboard(): JsonResponse
+    public function dashboard()
     {
-         $data = $this->analyticsService->index();
-        if (isset($data['error'])) {
-            return $this->apiResource->error($data['error'], 400);
+        try {
+            $data = $this->analyticsService->index();
+            if (isset($data['error'])) {
+                return $this->apiResource->error($data['error'], 400);
+            }
+            return $this->apiResource->success($data, "Data fetched successfully", 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-        return $this->apiResource->success($data, "Data fetched successfully", 200);
     }
 
     /**
@@ -70,7 +79,7 @@ class HomeController extends BaseController
      *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
-    public function permissionsList(): \Illuminate\Http\JsonResponse
+    public function permissionsList()
     {
         try {
             $account = $this->account();
@@ -81,14 +90,15 @@ class HomeController extends BaseController
         }
     }
 
-    public function store(\Illuminate\Http\Request $request)
+    public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string'
-        ]);
-
         try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string'
+            ]);
+
+
             $account = $this->account();
             $permission = $this->permissionsService->createPermission($account, $validated);
             return $this->apiResource->success($permission->toArray(), "Permission created successfully", 201);
@@ -162,12 +172,13 @@ class HomeController extends BaseController
      */
     public function update(\Illuminate\Http\Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string'
-        ]);
-
         try {
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'description' => 'nullable|string'
+            ]);
+
+
             // Check if permission belongs to user
             $account = $this->account();
             $permission = $this->permissionsService->listPermissions($account)
@@ -241,10 +252,10 @@ class HomeController extends BaseController
      *     )
      * )
      */
-    public function permissions(): JsonResponse
+    public function permissions()
     {
         try {
-             $result = $this->analyticsService->permissions();
+            $result = $this->analyticsService->permissions();
             if (isset($result['error'])) {
                 return $this->apiResource->error($result['error'], 400);
             }
@@ -271,10 +282,10 @@ class HomeController extends BaseController
      *     )
      * )
      */
-    public function user(): JsonResponse
+    public function user()
     {
         try {
-             $result = $this->analyticsService->showUser();
+            $result = $this->analyticsService->showUser();
             if (isset($data['error'])) {
                 return $this->apiResource->error($data['error'], 400);
             }
@@ -300,10 +311,10 @@ class HomeController extends BaseController
      *     )
      * )
      */
-    public function dashboardAnalytics(): JsonResponse
+    public function dashboardAnalytics()
     {
         try {
-             $data = $this->analyticsService->dashboardAnalytics();
+            $data = $this->analyticsService->dashboardAnalytics();
             if (isset($data['error'])) {
                 return $this->apiResource->error($data['error'], 400);
             }
@@ -329,10 +340,10 @@ class HomeController extends BaseController
      *     )
      * )
      */
-    public function dashboardProjects(): JsonResponse
+    public function dashboardProjects()
     {
         try {
-             $data = $this->analyticsService->dashboardProjects();
+            $data = $this->analyticsService->dashboardProjects();
             if (isset($data['error'])) {
                 return $this->apiResource->error($data['error'], 400);
             }
@@ -358,10 +369,10 @@ class HomeController extends BaseController
      *     )
      * )
      */
-    public function dashboardEcommerce(): JsonResponse
+    public function dashboardEcommerce()
     {
         try {
-             $data = $this->analyticsService->dashboarEcommerce();
+            $data = $this->analyticsService->dashboarEcommerce();
             if (isset($data['error'])) {
                 return $this->apiResource->error($data['error'], 400);
             }
@@ -387,10 +398,10 @@ class HomeController extends BaseController
      *     )
      * )
      */
-    public function dashboardWallet(): JsonResponse
+    public function dashboardWallet()
     {
         try {
-             $data = $this->analyticsService->dashboadWallet();
+            $data = $this->analyticsService->dashboadWallet();
             if (isset($data['error'])) {
                 return $this->apiResource->error($data['error'], 400);
             }
@@ -418,10 +429,10 @@ class HomeController extends BaseController
      * )
      */
 
-    public function dashboardCRM(): JsonResponse
+    public function dashboardCRM()
     {
         try {
-             $data = $this->analyticsService->dashboardCRM();
+            $data = $this->analyticsService->dashboardCRM();
             if (isset($data['error'])) {
                 return $this->apiResource->error($data['error'], 400);
             }

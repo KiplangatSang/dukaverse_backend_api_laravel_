@@ -13,8 +13,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('profiles', function (Blueprint $table) {
-            $appService   = new AppService();
-            $noprofile = $appService->getBaseImages()['noprofile'];
             $table->id();
             $table->bigInteger("profileable_id");
             $table->string("profileable_type");

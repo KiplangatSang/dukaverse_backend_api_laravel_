@@ -1,9 +1,13 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Comment;
+use App\Services\FirebaseService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +20,13 @@ use Illuminate\Support\Facades\Validator;
  */
 class CommentController extends BaseController
 {
+
+    public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly FirebaseService $firebaseService
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * @OA\Get(
      *     path="/api/v1/comments",
@@ -39,23 +50,28 @@ class CommentController extends BaseController
      */
     public function index($type = null)
     {
-        $all_comments     = $this->user()->comments;
-        $project_comments = $all_comments->where('commentable_type', Comment::COMMENTABLE_TYPES["project_comments"]);
-        $task_comments    = $all_comments->where('commentable_type', Comment::COMMENTABLE_TYPES["task_comments"]);
+        try {
+            $all_comments     = $this->user()->comments;
+            $project_comments = $all_comments->where('commentable_type', Comment::COMMENTABLE_TYPES["project_comments"]);
+            $task_comments    = $all_comments->where('commentable_type', Comment::COMMENTABLE_TYPES["task_comments"]);
 
-        if ($type === "project_comments") {
-            return $this->sendResponse(["project_comments" => $project_comments], 'success, comments fetched successfully');
+            if ($type === "project_comments") {
+                return $this->sendResponse(["project_comments" => $project_comments], 'success, comments fetched successfully');
+            }
+
+            if ($type === "task_comments") {
+                return $this->sendResponse(["task_comments" => $task_comments], 'success, comments fetched successfully');
+            }
+
+            return $this->sendResponse([
+                "all_comments"     => $all_comments,
+                "project_comments" => $project_comments,
+                "task_comments"    => $task_comments,
+            ], 'success, comments fetched successfully');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        if ($type === "task_comments") {
-            return $this->sendResponse(["task_comments" => $task_comments], 'success, comments fetched successfully');
-        }
-
-        return $this->sendResponse([
-            "all_comments"     => $all_comments,
-            "project_comments" => $project_comments,
-            "task_comments"    => $task_comments,
-        ], 'success, comments fetched successfully');
     }
 
     /**
@@ -73,8 +89,13 @@ class CommentController extends BaseController
      */
     public function create()
     {
-        $comment_types = Comment::COMMENTABLES;
-        return $this->sendResponse(["comment_types" => $comment_types], 'success, comments types fetched successfully');
+        try {
+            $comment_types = Comment::COMMENTABLES;
+            return $this->sendResponse(["comment_types" => $comment_types], 'success, comments types fetched successfully');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -103,31 +124,36 @@ class CommentController extends BaseController
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            "commentable_type" => "required",
-            "commentable_id"   => "required",
-            "content"          => ["required", "string"],
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                "commentable_type" => "required",
+                "commentable_id"   => "required",
+                "content"          => ["required", "string"],
+            ]);
 
-        if ($validator->fails()) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $validator->errors()]);
+            if ($validator->fails()) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $validator->errors()]);
+            }
+
+            $validatated = $validator->validated();
+
+            $comment = $this->user()->comments()->create([
+                "parent_id"        => $request->parent_comment_id,
+                "commentable_type" => $request->commentable_type ? Comment::COMMENTABLE_TYPES[$request->commentable_type] : null,
+                "commentable_id"   => $validatated['commentable_id'],
+                "content"          => $validatated['content'],
+                "user_id"          => Auth::id(),
+            ]);
+
+            if (! $comment) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $comment]);
+            }
+
+            return $this->sendResponse(["comment" => $comment], "success, The comment has been saved successfully.");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        $validatated = $validator->validated();
-
-        $comment = $this->user()->comments()->create([
-            "parent_id"        => $request->parent_comment_id,
-            "commentable_type" => $request->commentable_type ? Comment::COMMENTABLE_TYPES[$request->commentable_type] : null,
-            "commentable_id"   => $validatated['commentable_id'],
-            "content"          => $validatated['content'],
-            "user_id"          => Auth::id(),
-        ]);
-
-        if (! $comment) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $comment]);
-        }
-
-        return $this->sendResponse(["comment" => $comment], "success, The comment has been saved successfully.");
     }
 
     /**
@@ -150,11 +176,16 @@ class CommentController extends BaseController
      */
     public function show($comment)
     {
-        $comment = $this->user()->comments()->where('id', $comment)->first();
-        if (! $comment) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be found.", "result" => $comment]);
+        try {
+            $comment = $this->user()->comments()->where('id', $comment)->first();
+            if (! $comment) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be found.", "result" => $comment]);
+            }
+            return $this->sendResponse(["comment" => $comment], "success, The comment has been fetched successfully.");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-        return $this->sendResponse(["comment" => $comment], "success, The comment has been fetched successfully.");
     }
 
     /**
@@ -177,14 +208,19 @@ class CommentController extends BaseController
      */
     public function edit($comment)
     {
-        $comment = $this->user()->comments()->where('id', $comment)->first();
-        if (! $comment) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be found.", "result" => $comment]);
+        try {
+            $comment = $this->user()->comments()->where('id', $comment)->first();
+            if (! $comment) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be found.", "result" => $comment]);
+            }
+
+            $comment_types = Comment::COMMENTABLES;
+
+            return $this->sendResponse(["comment" => $comment, "comment_types" => $comment_types], "success, The comment has been fetched successfully.");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        $comment_types = Comment::COMMENTABLES;
-
-        return $this->sendResponse(["comment" => $comment, "comment_types" => $comment_types], "success, The comment has been fetched successfully.");
     }
 
     /**
@@ -216,32 +252,37 @@ class CommentController extends BaseController
      */
     public function update(UpdateCommentRequest $request, Comment $comment)
     {
-        $validator = Validator::make($request->all(), [
-            "commentable_type" => "required",
-            "commentable_id"   => "required",
-            "content"          => ["required", "string"],
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                "commentable_type" => "required",
+                "commentable_id"   => "required",
+                "content"          => ["required", "string"],
+            ]);
 
-        if ($validator->fails()) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $validator->errors()]);
+            if ($validator->fails()) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $validator->errors()]);
+            }
+
+            $validatated = $validator->validated();
+            $comment     = $this->user()->comments()->where('id', $comment)->first();
+
+            $result = $comment->update([
+                "parent_id"        => $request->parent_id,
+                "commentable_type" => $validatated['commentable_type'],
+                "commentable_id"   => $validatated['commentable_id'],
+                "content"          => $validatated['content'],
+            ]);
+
+            if (! $result) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $comment]);
+            }
+
+            $comment = $this->user()->comments()->where('id', $comment)->first();
+            return $this->sendResponse(["comment" => $comment], "success, The comment has been saved successfully.");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        $validatated = $validator->validated();
-        $comment     = $this->user()->comments()->where('id', $comment)->first();
-
-        $result = $comment->update([
-            "parent_id"        => $request->parent_id,
-            "commentable_type" => $validatated['commentable_type'],
-            "commentable_id"   => $validatated['commentable_id'],
-            "content"          => $validatated['content'],
-        ]);
-
-        if (! $result) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be saved.", "result" => $comment]);
-        }
-
-        $comment = $this->user()->comments()->where('id', $comment)->first();
-        return $this->sendResponse(["comment" => $comment], "success, The comment has been saved successfully.");
     }
 
     /**
@@ -264,10 +305,15 @@ class CommentController extends BaseController
      */
     public function destroy($comment)
     {
-        $result = Comment::destroy($comment);
-        if (! $result) {
-            return $this->sendError("Bad request", ["error" => "The comment could not be deleted.", "result" => $result]);
+        try {
+            $result = Comment::destroy($comment);
+            if (! $result) {
+                return $this->sendError("Bad request", ["error" => "The comment could not be deleted.", "result" => $result]);
+            }
+            return $this->sendResponse(["comment" => $result], "success, The comment has been deleted successfully.");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-        return $this->sendResponse(["comment" => $result], "success, The comment has been deleted successfully.");
     }
 }

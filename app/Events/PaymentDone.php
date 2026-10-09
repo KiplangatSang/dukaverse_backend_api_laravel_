@@ -38,3 +38,5 @@ class PaymentDone implements ShouldBroadcastNow, ShouldQueue
         return new PrivateChannel('transactions' . $this->transaction->id);
     }
 }
+
+

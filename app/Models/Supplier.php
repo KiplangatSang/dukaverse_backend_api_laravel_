@@ -8,10 +8,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Supplier extends Model {
     use HasFactory, SoftDeletes;
 
+    protected $guarded = [];
+    protected $appends = ['account_type'];
+    public function getAccountTypeAttribute()
+    {
+        return 'supplier';
+    }
+
+
     public function ownerable()
     {
         return $this->morphTo();
     }
+
+
 
     public function supplierable()
     {

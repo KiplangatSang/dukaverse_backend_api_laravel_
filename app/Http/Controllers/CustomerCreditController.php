@@ -1,11 +1,16 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Events\CustomerInvoice;
 use App\Http\Requests\StoreCustomerCreditRequest;
 use App\Http\Requests\UpdateCustomerCreditRequest;
 use App\Models\CustomerCredit;
+use App\Services\AuthService;
+use App\Services\CustomerCreditService;
+use App\Services\CustomerService;
 use App\Services\CustomersService;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,11 +23,16 @@ use Illuminate\Http\Request;
  */
 class CustomerCreditController extends BaseController
 {
-    public function customersService()
-    {
-        $ordersRepo = new CustomersService($this->getAccount());
-        return $ordersRepo;
+
+    public function __construct(
+        private readonly AuthService $authService,
+        private readonly CustomerService $customerService,
+        private readonly CustomerCreditService $customerCreditService,
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
     }
+
 
     /**
      * @OA\Get(
@@ -39,17 +49,17 @@ class CustomerCreditController extends BaseController
      */
     public function index()
     {
-        $credits = $this->getAccount()->customerCredits()
-            ->with('customer')
-            ->with('saleTransaction')
-            ->orderBy('created_at', "DESC")
-            ->get();
-
-        if (! $credits) {
-            return $this->sendError($credits, 'error, credit items could not be fetched');
+        try {
+            $result = $this->customerCreditService->index();
+            if (isset($result['error'])) {
+                return $this->sendError($result['error'], 'error, credit items could not be fetched', $result['httpCode'] ?? 500);
+            }
+            $credits = $result['data'];
+            return $this->sendResponse($credits, 'success, credit items fetched successfully.');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'error, credit items could not be fetched.');
         }
-
-        return $this->sendResponse($credits, 'success, credit items fetched successfully.');
     }
 
     /**
@@ -73,13 +83,23 @@ class CustomerCreditController extends BaseController
      */
     public function create($sale_transaction_id)
     {
-        $customerlist['customers'] = $this->getAccount()->customers()->latest()->get();
+        try{
+        $result = $this->customerCreditService->create($sale_transaction_id);
+        if (isset($result['error'])) {
+            return $this->sendError($result['error'], 'error, could not fetch customers for credit', $result['httpCode'] ?? 500);
+        }
+        $customerlist = $result['data'];
+
         if (! $customerlist) {
             return $this->sendError($customerlist, 'Error, could not fetch retail customers');
         }
 
-        $customerlist['transaction'] = $this->getAccount()->saleTransactions()->where("transaction_id", $sale_transaction_id)->first();
         return $this->sendResponse($customerlist, 'success, customers available for credit.');
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'error, credit items could not be fetched.');
+        }
     }
 
     /**
@@ -110,30 +130,14 @@ class CustomerCreditController extends BaseController
      */
     public function store($sale_transaction_id, StoreCustomerCreditRequest $request)
     {
-        $customer = $this->getAccount()->customers()->where('id', $request->customer_id)->first();
 
         try {
-            $transaction = $this->getAccount()->saleTransactions()
-                ->where('transaction_id', $sale_transaction_id)->first();
+            $result = $this->customerCreditService->store($sale_transaction_id, $request->all());
 
-            $transaction->update(['on_credit' => true]);
-
-            $this->getAccount()->sales()
-                ->where('sale_transaction_id', $transaction->id)
-                ->update(['on_credit' => true]);
-
-            $credit_item = $this->getAccount()->customerCredits()->create([
-                'sale_transaction_id' => $transaction->id,
-                "amount"              => $transaction->transaction_amount,
-                "amount_paid"         => $transaction->paid_amount,
-                "pay_status"          => $transaction->transaction_amount == $transaction->paid_amount,
-            ]);
-
-            $credit_item->customer()->save($customer);
-            $transaction->customer()->associate($customer);
-            $transaction->save();
-
-            return $this->sendResponse($credit_item->refresh(), 'Credit item created successfully.');
+            if (isset($result['error'])) {
+                return $this->sendError($result['error'], 'error, could not set this credit item', $result['httpCode'] ?? 500);
+            }
+            return $this->sendResponse($result['data'], 'Success, credit item set successfully.');
         } catch (Exception $ex) {
             info($ex->getMessage());
             return $this->sendError($ex->getMessage(), 'Error, could not set this credit item.');
@@ -159,13 +163,19 @@ class CustomerCreditController extends BaseController
      */
     public function show(CustomerCredit $customerCredit)
     {
-        $credit = $this->customersService()->getCustomersCredit($customerCredit->id);
-
-        if (! $credit) {
-            return $this->sendError($credit, 'error, could not fetch this credit item');
+       try{
+         $result = $this->customerCreditService->show($customerCredit->id);
+        if (isset($result['error'])) {
+            return $this->sendError($result['error'], 'error, credit item could not be fetched', $result['httpCode'] ?? 500);
         }
+        $credit = $result['data'];
 
         return $this->sendResponse($credit, 'success, credit item fetched successfully');
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'error, credit items could not be fetched.');
+        }
     }
 
     /**
@@ -190,19 +200,15 @@ class CustomerCreditController extends BaseController
      *     @OA\Response(response=200, description="Credit item updated successfully")
      * )
      */
-    public function update(UpdateCustomerCreditRequest $request, CustomerCredit $customerCredit)
+    public function update(UpdateCustomerCreditRequest $request, $customerCredit)
     {
         try {
-            $customercredit = $this->getAccount()
-                ->customerCredits()
-                ->where('id', $customerCredit->id)
-                ->first();
 
-            $pay_status            = $request->amount_paid == $customercredit->amount;
-            $request['pay_status'] = $pay_status;
-
-            $result = $customercredit->update($request->except('_token'));
-            return $result;
+            $result = $this->customerCreditService->update($request->all(), $customerCredit);
+            if (isset($result['error'])) {
+                return $this->sendError($result['error'], 'Error updating credit item.', $result['httpCode'] ?? 500);
+            }
+            return $this->sendResponse($result['data'], 'Success, credit item updated successfully.');
         } catch (Exception $ex) {
             return $this->sendError($ex->getMessage(), 'Error updating credit item.');
         }
@@ -226,9 +232,15 @@ class CustomerCreditController extends BaseController
      */
     public function destroy(CustomerCredit $customerCredit)
     {
-        $customerCredit->customer()->detach($customerCredit->customer);
-        CustomerCredit::destroy($customerCredit->id);
-        return $this->sendResponse([], 'Success, credit item deleted.');
+        try {
+            $result = $this->customerCreditService->destroy($customerCredit);
+            if (isset($result['error'])) {
+                return $this->sendError($result['error'], 'Error deleting credit item.', $result['httpCode'] ?? 500);
+            }
+            return $this->sendResponse([], 'Success, credit item deleted successfully.');
+        } catch (Exception $ex) {
+            return $this->sendError($ex->getMessage(), 'Error deleting credit item.');
+        }
     }
 
     /**
@@ -251,15 +263,13 @@ class CustomerCreditController extends BaseController
     public function invoice(Request $request)
     {
         try {
-            $customer = $this->getAccount()->customers()->where('id', $request->customer_id)->first();
-            $credit   = $this->getAccount()->customerCredits()->where('id', $request->credit_id)->first();
-            $result   = CustomerInvoice::dispatch($customer, $credit);
 
-            if (! $result) {
-                return $this->sendError($result, 'error, could not send the customer an invoice');
+            $result = $this->customerCreditService->invoice($request->all());
+            if (isset($result['error'])) {
+                return $this->sendError($result['error'], 'error, could not send the
+                    customer an invoice', $result['httpCode'] ?? 500);
             }
-
-            return $this->sendResponse($result, 'Success, customer invoice sent successfully.');
+            return $this->sendResponse($result['data'], 'Success, customer invoice sent successfully.');
         } catch (Exception $e) {
             info($e->getMessage());
             return $this->sendError($e->getMessage(), 'error, could not send this invoice.');

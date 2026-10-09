@@ -1,14 +1,22 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Ecommerce extends Model {
+class Ecommerce extends Model
+{
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
+
+    protected $appends = ['account_type'];
+    public function getAccountTypeAttribute()
+    {
+        return 'ecommerce';
+    }
 
     const VENDOR_ID_LENGTH = 36;
 
@@ -20,7 +28,6 @@ class Ecommerce extends Model {
     public function owners()
     {
         return $this->ownerable();
-
     }
 
     public function registeredOwner()
@@ -41,7 +48,6 @@ class Ecommerce extends Model {
     public function user()
     {
         return $this->registeredOwner();
-
     }
 
     public function products()
@@ -154,9 +160,9 @@ class Ecommerce extends Model {
         return $this->morphMany(Transaction::class, "ownerable");
     }
 
-    public function accounts()
+    public function wallets()
     {
-        return $this->morphMany(Account::class, "ownerable");
+        return $this->morphMany(Wallet::class, "ownerable");
     }
 
     public function subscriptions()
@@ -251,12 +257,10 @@ class Ecommerce extends Model {
     public function activities()
     {
         return $this->morphMany(UserActivity::class, 'ownerable');
-
     }
 
     public function paymentGateways()
     {
         return $this->morphMany(PaymentGateway::class, 'ownerable');
-
     }
 }

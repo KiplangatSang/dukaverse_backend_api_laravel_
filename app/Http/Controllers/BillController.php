@@ -1,36 +1,50 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreBillRequest;
 use App\Http\Requests\UpdateBillRequest;
 use App\Models\Bill;
+use App\Services\ThirdPartyService;
+use Exception;
 
 class BillController extends BaseController
 {
+
+    public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly ThirdPartyService $thirdPartyService,
+    ) {
+        parent::__construct($apiResource);
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
 
-        // $billslist = Bills::all();
+        try {
+            // $billslist = Bills::all();
 
-        $thirdPartyRepo   = new ThirdPartyService();
-        $thirdPartyImages = $thirdPartyRepo->getThirdPartyImages();
-        // $bill = Bills::where('id',$bill_id)->first();
-        $billPaymentData = [
-            'thirdPartyImages' => $thirdPartyImages,
-            // 'bill'  => $bill,
-        ];
+            $thirdPartyImages = $this->thirdPartyService->getThirdPartyImages();
+            // $bill = Bills::where('id',$bill_id)->first();
+            $billPaymentData = [
+                'thirdPartyImages' => $thirdPartyImages,
+                // 'bill'  => $bill,
+            ];
 
-        //dd($billslist);
-        // $billsdata = array(
-        //     'billslist' => $billslist,
-        // );
+            //dd($billslist);
+            // $billsdata = array(
+            //     'billslist' => $billslist,
+            // );
 
-        return $billPaymentData;
-
+            return $billPaymentData;
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -39,6 +53,7 @@ class BillController extends BaseController
     public function create()
     {
         //
+
     }
 
     /**
@@ -64,15 +79,20 @@ class BillController extends BaseController
     public function edit(Bill $bill)
     {
         //
-        $retail    = $this->getAccount();
-        $billslist = $retail->bills()->where('id', $bill->id)->first();
 
-        $billsdata = [
-            'customer' => $billslist,
-        ];
+        try {
+            $retail    = $this->getAccount();
+            $billslist = $retail->bills()->where('id', $bill->id)->first();
 
-        return $billsdata;
+            $billsdata = [
+                'customer' => $billslist,
+            ];
 
+            return $billsdata;
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -81,6 +101,11 @@ class BillController extends BaseController
     public function update(UpdateBillRequest $request, Bill $bill)
     {
         //
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -88,6 +113,11 @@ class BillController extends BaseController
      */
     public function destroy(Bill $bill)
     {
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
         //
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\Calendar;
 use App\Models\Task;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -72,6 +73,7 @@ class JobController extends BaseController
      */
     public function index(Request $request)
     {
+        try{
         $query = Job::active()->with('poster:id,name');
 
         if ($request->has('job_type') && $request->job_type) {
@@ -97,6 +99,11 @@ class JobController extends BaseController
                 'total' => $jobs->total(),
             ]
         ], "Jobs retrieved successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -136,6 +143,7 @@ class JobController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -176,6 +184,11 @@ class JobController extends BaseController
         ]);
 
         return $this->sendResponse(["job" => $job], "Job created successfully.", 201);
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -197,9 +210,15 @@ class JobController extends BaseController
      */
     public function show(Job $job)
     {
+        try{
         $job->load('poster:id,name', 'applications.applicant:id,name,email');
 
         return $this->sendResponse(["job" => $job], "Job retrieved successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -235,6 +254,7 @@ class JobController extends BaseController
      */
     public function update(Request $request, Job $job)
     {
+        try{
         if ($job->posted_by !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only update your own job postings."], 403);
         }
@@ -265,6 +285,11 @@ class JobController extends BaseController
         $job->update($request->validated());
 
         return $this->sendResponse(["job" => $job], "Job updated successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -281,6 +306,7 @@ class JobController extends BaseController
      */
     public function destroy(Job $job)
     {
+        try{
         if ($job->posted_by !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only delete your own job postings."], 403);
         }
@@ -288,6 +314,11 @@ class JobController extends BaseController
         $job->delete();
 
         return $this->sendResponse(["deleted" => true], "Job deleted successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -312,6 +343,7 @@ class JobController extends BaseController
      */
     public function apply(Request $request, Job $job)
     {
+        try{
         if (!$job->isAcceptingApplications()) {
             return $this->sendError("Bad request", ["error" => "This job is no longer accepting applications."], 400);
         }
@@ -344,6 +376,11 @@ class JobController extends BaseController
         ]);
 
         return $this->sendResponse(["application" => $application], "Application submitted successfully.", 201);
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -377,6 +414,7 @@ class JobController extends BaseController
      */
     public function getApplications(Job $job)
     {
+        try{
         if ($job->posted_by !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only view applications for your own job postings."], 403);
         }
@@ -384,6 +422,11 @@ class JobController extends BaseController
         $applications = $job->applications()->with('applicant:id,name,email')->get();
 
         return $this->sendResponse(["applications" => $applications], "Applications retrieved successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -408,6 +451,7 @@ class JobController extends BaseController
      */
     public function updateApplicationStatus(Request $request, JobApplication $application)
     {
+        try{
         if ($application->job->posted_by !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only update applications for your own job postings."], 403);
         }
@@ -432,6 +476,11 @@ class JobController extends BaseController
         }
 
         return $this->sendResponse(["application" => $application->load(['calendar', 'task'])], "Application status updated successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -463,12 +512,18 @@ class JobController extends BaseController
      */
     public function myApplications()
     {
+        try{
         $applications = JobApplication::where('applicant_id', Auth::id())
             ->with('job:id,title,location,job_type')
             ->latest()
             ->get();
 
         return $this->sendResponse(["applications" => $applications], "Your applications retrieved successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -496,6 +551,7 @@ class JobController extends BaseController
      */
     public function selectInterviewDate(Request $request, JobApplication $application)
     {
+        try{
         if ($application->applicant_id !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only select interview dates for your own applications."], 403);
         }
@@ -557,6 +613,11 @@ class JobController extends BaseController
         ]);
 
         return $this->sendResponse(["application" => $application->load(['calendar', 'task'])], "Interview date selected successfully.");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -564,6 +625,7 @@ class JobController extends BaseController
      */
     private function createInterviewCalendarAndTask(JobApplication $application)
     {
+        try{
         // Create task for interview preparation
         $task = Task::create([
             'title' => "Interview: {$application->job->title} - {$application->applicant->name}",
@@ -596,5 +658,9 @@ class JobController extends BaseController
             'calendar_id' => $calendar->id,
             'task_id' => $task->id,
         ]);
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

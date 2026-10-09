@@ -14,7 +14,8 @@ class StockService extends BaseService
 
     public function __construct(
          StoreFileResource $storeFileResource,
-        ResponseHelper $responseHelper
+        ResponseHelper $responseHelper,
+        private readonly  RequiredItemService $requiredService
     ) {
         parent::__construct($storeFileResource, $responseHelper);
      }
@@ -258,9 +259,9 @@ class StockService extends BaseService
                 "is_required" => true,
             ]
         );
-        $requiredRepo = new RequiredItemService($this->account);
+ 
 
-        $requiredResult = $requiredRepo->storeRequiredItems($item, $amount);
+        $requiredResult = $this->requiredService->storeRequiredItems($item, $amount);
         $stockData["stockUpdate"] = $stockUpdate;
 
         if (!$requiredResult) {

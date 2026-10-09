@@ -112,7 +112,7 @@ Content-Type: application/json
 ### Password Reset Flow
 
 #### Link Method
-1. User clicks reset link from email: `http://localhost:9000/reset-password?token={token}&email={email}`
+1. User clicks reset link from email: `http://localhost:5173/reset-password?token={token}&email={email}`
 2. Frontend extracts token and email from URL parameters
 3. User enters new password and confirmation
 4. Frontend makes API call to: `POST /api/v1/reset-password` with token, email, password, and confirmation
@@ -229,12 +229,12 @@ MAIL_FROM_NAME="${APP_NAME}"
 ### Frontend URL Configuration
 Update `config/app.php`:
 ```php
-'frontend_url' => env('FRONTEND_URL', 'http://localhost:9000'),
+'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 ```
 
 Set in `.env`:
 ```
-FRONTEND_URL=http://localhost:9000
+FRONTEND_URL=http://localhost:5173
 ```
 
 ## Security Considerations

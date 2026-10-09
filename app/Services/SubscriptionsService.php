@@ -1,9 +1,6 @@
 <?php
 namespace App\Services;
 
-use App\Http\Resources\StoreFileResource;
-use App\Http\Resources\ResponseHelper;
-
 use App\Models\Subscription;
 use App\Models\Tier;
 use App\Models\Coupon;
@@ -11,37 +8,52 @@ use App\Events\SubscriptionCreated;
 use App\Events\SubscriptionCancelled;
 use App\Events\SubscriptionReactivated;
 use App\Events\SubscriptionUpgraded;
- use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 
 class SubscriptionsService extends BaseService
 {
-    //
-
-    public function __construct(
-       protected StoreFileResource $storeFileResource,
-       protected ResponseHelper $responseHelper
-    ) {
-        parent::__construct($storeFileResource, $responseHelper);
-    }
-
     public function index()
     {
-        $subscriptions = Subscription::with(['tier', 'coupon', 'user'])->get();
-        return $this->responseHelper->respond(['subscriptions' => $subscriptions->toArray()], 'Subscriptions fetched successfully');
+        try {
+            $subscriptions = Subscription::with(['tier', 'coupon', 'user'])->get();
+            return [
+                'data' => ['subscriptions' => $subscriptions->toArray()],
+                'httpCode' => 200,
+                'message' => 'Subscriptions fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch subscriptions'
+            ];
+        }
     }
 
     public function create()
     {
-        $tiers = Tier::active()->get();
-        $coupons = Coupon::active()->get();
+        try {
+            $tiers = Tier::active()->get();
+            $coupons = Coupon::active()->get();
 
-        return $this->responseHelper->respond([
-            'tiers' => $tiers,
-            'coupons' => $coupons,
-        ], 'Subscription creation data fetched successfully');
+            return [
+                'data' => [
+                    'tiers' => $tiers,
+                    'coupons' => $coupons,
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription creation data fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch subscription creation data'
+            ];
+        }
     }
 
     public function store($data)
@@ -55,12 +67,20 @@ class SubscriptionsService extends BaseService
         ]);
 
         if ($validator->fails()) {
-            return $this->responseHelper->error('Bad request', ['errors' => $validator->errors()]);
+            return [
+                'error' => $validator->errors(),
+                'httpCode' => 400,
+                'message' => 'Bad request'
+            ];
         }
 
         $tier = Tier::find($data['tier_id']);
         if (!$tier || !$tier->is_active) {
-            return $this->responseHelper->error('Invalid or inactive tier', [], 400);
+            return [
+                'error' => [],
+                'httpCode' => 400,
+                'message' => 'Invalid or inactive tier'
+            ];
         }
 
         $coupon = null;
@@ -69,13 +89,19 @@ class SubscriptionsService extends BaseService
         if ($data['coupon_code']) {
             $coupon = Coupon::where('code', $data['coupon_code'])->first();
             if (!$coupon || !$coupon->isValid() || !$coupon->isApplicableToTier($data['tier_id'])) {
-                return $this->responseHelper->error('Invalid or inapplicable coupon', [], 400);
+                return [
+                    'error' => [],
+                    'httpCode' => 400,
+                    'message' => 'Invalid or inapplicable coupon'
+                ];
             }
 
             if (!$coupon->meetsMinimumAmount($data['subscription_price'])) {
-                return $this->responseHelper->error('Minimum purchase amount not met for coupon', [
-                    'minimum_amount' => $coupon->minimum_amount
-                ], 400);
+                return [
+                    'error' => ['minimum_amount' => $coupon->minimum_amount],
+                    'httpCode' => 400,
+                    'message' => 'Minimum purchase amount not met for coupon'
+                ];
             }
 
             $discountedPrice = $coupon->calculateDiscount($data['subscription_price']);
@@ -107,37 +133,68 @@ class SubscriptionsService extends BaseService
             // Fire subscription created event
             event(new SubscriptionCreated($subscription));
 
-            return $this->responseHelper->respond([
-                'subscription' => $subscription->load(['tier', 'coupon', 'user'])
-            ], 'Subscription created successfully');
+            return [
+                'data' => [
+                    'subscription' => $subscription->load(['tier', 'coupon', 'user'])
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription created successfully'
+            ];
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->responseHelper->error('Failed to create subscription', ['error' => $e->getMessage()], 500);
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to create subscription'
+            ];
         }
     }
 
     public function show(Subscription $subscription)
     {
-
-        $subscription = $subscription->load(['tier', 'coupon', 'user']);
-        return $this->responseHelper->respond([
-            'subscription' =>  $subscription->toArray()
-        ], 'Subscription fetched successfully');
+        try {
+            $subscription = $subscription->load(['tier', 'coupon', 'user']);
+            return [
+                'data' => [
+                    'subscription' => $subscription->toArray()
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch subscription'
+            ];
+        }
     }
 
     public function edit(Subscription $subscription)
     {
-        $tiers = Tier::active()->get();
-        $coupons = Coupon::active()->get();
+        try {
+            $tiers = Tier::active()->get();
+            $coupons = Coupon::active()->get();
 
-        $subscription = $subscription->load(['tier', 'coupon', 'user']);
+            $subscription = $subscription->load(['tier', 'coupon', 'user']);
 
-        return $this->responseHelper->respond([
-            'subscription' =>$subscription->toArray(),
-            'tiers' => $tiers->toArray(),
-            'coupons' => $coupons->toArray(),
-        ], 'Subscription to edit fetched successfully');
+            return [
+                'data' => [
+                    'subscription' => $subscription->toArray(),
+                    'tiers' => $tiers->toArray(),
+                    'coupons' => $coupons->toArray(),
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription to edit fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch subscription edit data'
+            ];
+        }
     }
 
     public function update($data, Subscription $subscription)
@@ -149,52 +206,84 @@ class SubscriptionsService extends BaseService
         ]);
 
         if ($validator->fails()) {
-            return $this->responseHelper->error('Bad request', ['errors' => $validator->errors()]);
+            return [
+                'error' => $validator->errors(),
+                'httpCode' => 400,
+                'message' => 'Bad request'
+            ];
         }
 
-        $updateData = [];
+        try {
+            $updateData = [];
 
-        if (isset($data['tier_id'])) {
-            $oldTier = $subscription->tier;
-            $tier = Tier::find($data['tier_id']);
-            if (!$tier || !$tier->is_active) {
-                return $this->responseHelper->error('Invalid or inactive tier', [], 400);
+            if (isset($data['tier_id'])) {
+                $oldTier = $subscription->tier;
+                $tier = Tier::find($data['tier_id']);
+                if (!$tier || !$tier->is_active) {
+                    return [
+                        'error' => [],
+                        'httpCode' => 400,
+                        'message' => 'Invalid or inactive tier'
+                    ];
+                }
+                $updateData['tier_id'] = $data['tier_id'];
+                $newTier = $tier;
             }
-            $updateData['tier_id'] = $data['tier_id'];
-            $newTier = $tier;
+
+            if (isset($data['auto_renewal'])) {
+                $updateData['auto_renewal'] = $data['auto_renewal'];
+            }
+
+            if (isset($data['is_active'])) {
+                $updateData['is_active'] = $data['is_active'];
+            }
+
+            $subscription->update($updateData);
+
+            // Fire upgrade event if tier was changed
+            if (isset($oldTier) && isset($newTier) && $oldTier->id !== $newTier->id) {
+                event(new SubscriptionUpgraded($subscription, $oldTier, $newTier, now()));
+            }
+
+            return [
+                'data' => [
+                    'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription updated successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to update subscription'
+            ];
         }
-
-        if (isset($data['auto_renewal'])) {
-            $updateData['auto_renewal'] = $data['auto_renewal'];
-        }
-
-        if (isset($data['is_active'])) {
-            $updateData['is_active'] = $data['is_active'];
-        }
-
-        $subscription->update($updateData);
-
-        // Fire upgrade event if tier was changed
-        if (isset($oldTier) && isset($newTier) && $oldTier->id !== $newTier->id) {
-            event(new SubscriptionUpgraded($subscription, $oldTier, $newTier, now()));
-        }
-
-        return $this->responseHelper->respond([
-            'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
-        ], 'Subscription updated successfully');
     }
 
 
     public function destroy(Subscription $subscription)
     {
-        $subscription->cancel();
+        try {
+            $subscription->cancel();
 
-        // Fire subscription cancelled event
-        event(new SubscriptionCancelled($subscription));
+            // Fire subscription cancelled event
+            event(new SubscriptionCancelled($subscription));
 
-        return $this->responseHelper->respond([
-            'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
-        ], 'Subscription cancelled successfully');
+            return [
+                'data' => [
+                    'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription cancelled successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to cancel subscription'
+            ];
+        }
     }
 
 
@@ -205,87 +294,175 @@ class SubscriptionsService extends BaseService
         ]);
 
         if ($validator->fails()) {
-            return $this->responseHelper->error('Bad request', ['errors' => $validator->errors()]);
+            return [
+                'error' => $validator->errors(),
+                'httpCode' => 400,
+                'message' => 'Bad request'
+            ];
         }
 
-        if (!$subscription->extendTrial($data['days'])) {
-            return $this->responseHelper->error('Failed to extend trial', [], 400);
-        }
+        try {
+            if (!$subscription->extendTrial($data['days'])) {
+                return [
+                    'error' => [],
+                    'httpCode' => 400,
+                    'message' => 'Failed to extend trial'
+                ];
+            }
 
-        return $this->responseHelper->respond([
-            'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
-        ], 'Trial extended successfully');
+            return [
+                'data' => [
+                    'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
+                ],
+                'httpCode' => 200,
+                'message' => 'Trial extended successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to extend trial'
+            ];
+        }
     }
 
 
     public function reactivate(Subscription $subscription)
     {
-        if ($subscription->is_active) {
-            return $this->responseHelper->error('Subscription is already active', [], 400);
+        try {
+            if ($subscription->is_active) {
+                return [
+                    'error' => [],
+                    'httpCode' => 400,
+                    'message' => 'Subscription is already active'
+                ];
+            }
+
+            if (!$subscription->reactivate()) {
+                return [
+                    'error' => [],
+                    'httpCode' => 400,
+                    'message' => 'Failed to reactivate subscription'
+                ];
+            }
+
+            // Fire subscription reactivated event
+            event(new SubscriptionReactivated($subscription));
+
+            return [
+                'data' => [
+                    'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
+                ],
+                'httpCode' => 200,
+                'message' => 'Subscription reactivated successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to reactivate subscription'
+            ];
         }
-
-        if (!$subscription->reactivate()) {
-            return $this->responseHelper->error('Failed to reactivate subscription', [], 400);
-        }
-
-        // Fire subscription reactivated event
-        event(new SubscriptionReactivated($subscription));
-
-        return $this->responseHelper->respond([
-            'subscription' => $subscription->fresh(['tier', 'coupon', 'user'])
-        ], 'Subscription reactivated successfully');
     }
 
 
     public function getUserSubscriptions($userId)
     {
-        $subscriptions = Subscription::where('user_id', $userId)
-            ->with(['tier', 'coupon'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        try {
+            $subscriptions = Subscription::where('user_id', $userId)
+                ->with(['tier', 'coupon'])
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        return $this->responseHelper->respond([
-            'subscriptions' => $subscriptions
-        ], 'User subscriptions fetched successfully');
+            return [
+                'data' => [
+                    'subscriptions' => $subscriptions
+                ],
+                'httpCode' => 200,
+                'message' => 'User subscriptions fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch user subscriptions'
+            ];
+        }
     }
 
 
     public function getActiveSubscriptions()
     {
-        $subscriptions = Subscription::active()
-            ->with(['tier', 'coupon', 'user'])
-            ->get();
+        try {
+            $subscriptions = Subscription::active()
+                ->with(['tier', 'coupon', 'user'])
+                ->get();
 
-        return $this->responseHelper->respond([
-            'subscriptions' => $subscriptions
-        ], 'Active subscriptions fetched successfully');
+            return [
+                'data' => [
+                    'subscriptions' => $subscriptions
+                ],
+                'httpCode' => 200,
+                'message' => 'Active subscriptions fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch active subscriptions'
+            ];
+        }
     }
 
     public function getExpiringSoon(Request $request)
     {
-        $days = $request->get('days', 7);
+        try {
+            $days = $request->get('days', 7);
 
-        $subscriptions = Subscription::expiringSoon($days)
-            ->with(['tier', 'coupon', 'user'])
-            ->get();
+            $subscriptions = Subscription::expiringSoon($days)
+                ->with(['tier', 'coupon', 'user'])
+                ->get();
 
-        return $this->responseHelper->respond([
-            'subscriptions' => $subscriptions
-        ], 'Expiring subscriptions fetched successfully');
+            return [
+                'data' => [
+                    'subscriptions' => $subscriptions
+                ],
+                'httpCode' => 200,
+                'message' => 'Expiring subscriptions fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch expiring subscriptions'
+            ];
+        }
     }
 
 
     public function getTrialEndingSoon(Request $request)
     {
-        $days = $request->get('days', 3);
+        try {
+            $days = $request->get('days', 3);
 
-        $subscriptions = Subscription::trialEndingSoon($days)
-            ->with(['tier', 'coupon', 'user'])
-            ->get();
+            $subscriptions = Subscription::trialEndingSoon($days)
+                ->with(['tier', 'coupon', 'user'])
+                ->get();
 
-        return $this->responseHelper->respond([
-            'subscriptions' => $subscriptions
-        ], 'Trial ending subscriptions fetched successfully');
+            return [
+                'data' => [
+                    'subscriptions' => $subscriptions
+                ],
+                'httpCode' => 200,
+                'message' => 'Trial ending subscriptions fetched successfully'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => ['error' => $e->getMessage()],
+                'httpCode' => 500,
+                'message' => 'Failed to fetch trial ending subscriptions'
+            ];
+        }
     }
 
 

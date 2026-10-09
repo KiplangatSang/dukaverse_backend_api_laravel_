@@ -5,6 +5,7 @@ use App\Http\Resources\ApiResource;
 use App\Helpers\Accounts\Account;
 use App\Models\Medium;
 use App\Services\FirebaseService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -37,10 +38,15 @@ class MediumController extends BaseController
      */
     public function index()
     {
+        try{
         $media = $this->user()->media;
 
         return $this->sendResponse(["media" => $media],
             'success, medias fetched successfully');
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -57,10 +63,15 @@ class MediumController extends BaseController
      */
     public function create()
     {
+        try{
         $file_owners = Medium::FILEABLES;
 
         return $this->sendResponse(["file_owners" => $file_owners],
             'success, medias fetched successfully');
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -93,6 +104,7 @@ class MediumController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $validator = Validator::make($request->all(), [
             "file_owner" => ["required"],
             "file"       => ["required"],
@@ -127,6 +139,10 @@ class MediumController extends BaseController
         }
 
         return $this->sendResponse(["medium" => $result], "success, The file media has been saved successfully.");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -154,6 +170,7 @@ class MediumController extends BaseController
      */
     public function show($medium)
     {
+        try{
         $medium = Medium::where('id', $medium)->first();
 
         if (! $medium) {
@@ -161,6 +178,10 @@ class MediumController extends BaseController
         }
 
         return $this->sendResponse(["medium" => $medium], "success, The file media has been fetched successfully.");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -184,6 +205,7 @@ class MediumController extends BaseController
      */
     public function edit($medium)
     {
+        try{
         $medium      = Medium::where('id', $medium)->first();
         $file_owners = Medium::FILEABLES;
 
@@ -192,6 +214,10 @@ class MediumController extends BaseController
         }
 
         return $this->sendResponse(["medium" => $medium, "file_owners" => $file_owners], "success, The file media has been fetched successfully.");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -231,6 +257,7 @@ class MediumController extends BaseController
      */
     public function update(Request $request, $medium)
     {
+        try{
         $validator = Validator::make($request->all(), [
             "file_owner" => ["required"],
             "file"       => ["required"],
@@ -274,6 +301,10 @@ class MediumController extends BaseController
         $medium = Medium::where('id', $medium)->first();
 
         return $this->sendResponse(["medium" => $medium], "success, The file media has been saved successfully.");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -301,10 +332,15 @@ class MediumController extends BaseController
      */
     public function destroy(Medium $medium)
     {
+        try{
         $result = Medium::destroy($medium);
         if (! $result) {
             return $this->sendError("Bad request", ["error" => "The file media could not be deleted.", "result" => $result]);
         }
         return $this->sendResponse(["result" => $result], "success, The file media has been deleted successfully.");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

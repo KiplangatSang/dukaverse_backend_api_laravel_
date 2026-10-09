@@ -73,6 +73,7 @@ class CampaignController extends BaseController
 
     public function index()
     {
+        try{
         //
 
         $campaigns = $this->account()->campaigns()
@@ -83,6 +84,11 @@ class CampaignController extends BaseController
             ->with("comments")->get();
 
         return $this->sendResponse(["campaigns" => $campaigns], "Data fetched successfully");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -111,6 +117,7 @@ class CampaignController extends BaseController
      */
     public function create()
     {
+        try{
         //
 
         $campaign_defaults = Campaign::CAMPAIGN_DEFAULTS;
@@ -127,6 +134,11 @@ class CampaignController extends BaseController
             "targets"           => $targets,
         ], "Data fetched successfully");
 
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -189,6 +201,7 @@ class CampaignController extends BaseController
 
     public function store(Request $request)
     {
+        try{
         //
 
         $validator = Validator::make($request->all(), [
@@ -269,10 +282,16 @@ class CampaignController extends BaseController
 
         return $this->sendResponse(["campaign" => $result], "Success, campaign created successfully");
 
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+
     }
 
     public function addMemberToCampaignTeam($campaign, Request $request)
     {
+        try{
 
         $campaign = Campaign::where('id', $campaign)->first();
 
@@ -312,6 +331,11 @@ class CampaignController extends BaseController
         $campaign = Campaign::where('id', $campaign)->first();
 
         return $this->sendResponse(["campaign" => $campaign], "Success, campaign created successfully");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
 
     }
     /**
@@ -358,6 +382,7 @@ class CampaignController extends BaseController
 
     public function show($campaign)
     {
+        try{
         //
 
         $campaign = Campaign::where('id', $campaign)->with(['leads',
@@ -382,6 +407,11 @@ class CampaignController extends BaseController
 
         return $this->sendResponse(["campaign" => $campaign], "Success, campaign created successfully");
 
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -389,6 +419,7 @@ class CampaignController extends BaseController
      */
     public function edit($campaign)
     {
+        try{
         //
 
         $campaign = Campaign::where('id', $campaign)->with(['leads',
@@ -406,6 +437,11 @@ class CampaignController extends BaseController
 
         return $this->sendResponse(["campaign" => $campaign, "campaign_status" => $campaign_status], "Data fetched successfully");
 
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -443,6 +479,7 @@ class CampaignController extends BaseController
      */
     public function update(Request $request, $campaign)
     {
+        try{
         //
 
         $campaign = Campaign::where('id', $campaign)->with(['leads',
@@ -488,6 +525,11 @@ class CampaignController extends BaseController
 
         return $this->sendResponse(["campaign" => $result], "Success, campaign update successfully");
 
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -510,6 +552,7 @@ class CampaignController extends BaseController
      */
     public function destroy($campaign)
     {
+        try{
         //
         $result = Campaign::destroy($campaign);
 
@@ -518,6 +561,11 @@ class CampaignController extends BaseController
         }
 
         return $this->sendResponse(["campaign" => $result], "Success, campaign created successfully");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
 
     }
 }

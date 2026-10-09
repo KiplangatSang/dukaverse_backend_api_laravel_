@@ -13,7 +13,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('offices', function (Blueprint $table) {
-            $noprofile = AppRepository::noprofile;
             $table->id();
             $table->morphs("ownerable");
             $table->bigInteger('officeable_id')->nullable();

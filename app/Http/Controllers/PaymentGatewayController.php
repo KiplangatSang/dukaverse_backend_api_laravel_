@@ -1,8 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Models\PaymentGateway;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,7 +19,7 @@ use Illuminate\Support\Facades\Auth;
 class PaymentGatewayController extends Controller
 {
 
-  public function __construct(
+    public function __construct(
         protected ApiResource $apiResource,
     ) {
         parent::__construct($apiResource);
@@ -48,8 +51,13 @@ class PaymentGatewayController extends Controller
 
     public function index()
     {
-        $gateways = PaymentGateway::all();
-        return response()->json($gateways, 200);
+        try {
+            $gateways = PaymentGateway::all();
+            return response()->json($gateways, 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -101,24 +109,29 @@ class PaymentGatewayController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'ownerable_type'   => 'nullable|string',
-            'ownerable_id'     => 'nullable|integer',
-            'gatewayable_type' => 'nullable|string',
-            'gatewayable_id'   => 'nullable|integer',
-            'name'             => 'required|string|max:255',
-            'description'      => 'nullable|string',
-            'meta_data'        => 'nullable|string',
-            'logo'             => 'nullable|string',
-            'icon'             => 'nullable|string',
-            'regulation'       => 'nullable|string',
-            'is_active'        => 'boolean',
-        ]);
+        try {
+            $validated = $request->validate([
+                'ownerable_type'   => 'nullable|string',
+                'ownerable_id'     => 'nullable|integer',
+                'gatewayable_type' => 'nullable|string',
+                'gatewayable_id'   => 'nullable|integer',
+                'name'             => 'required|string|max:255',
+                'description'      => 'nullable|string',
+                'meta_data'        => 'nullable|string',
+                'logo'             => 'nullable|string',
+                'icon'             => 'nullable|string',
+                'regulation'       => 'nullable|string',
+                'is_active'        => 'boolean',
+            ]);
 
-        $validated['user_id'] = Auth::id();
+            $validated['user_id'] = Auth::id();
 
-        $gateway = PaymentGateway::create($validated);
-        return response()->json($gateway, 201);
+            $gateway = PaymentGateway::create($validated);
+            return response()->json($gateway, 201);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -164,11 +177,16 @@ class PaymentGatewayController extends Controller
 
     public function show($id)
     {
-        $gateway = PaymentGateway::find($id);
-        if (! $gateway) {
-            return response()->json(['message' => 'Payment gateway not found'], 404);
+        try {
+            $gateway = PaymentGateway::find($id);
+            if (! $gateway) {
+                return response()->json(['message' => 'Payment gateway not found'], 404);
+            }
+            return response()->json($gateway, 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-        return response()->json($gateway, 200);
     }
 
     /**
@@ -197,23 +215,28 @@ class PaymentGatewayController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $gateway = PaymentGateway::find($id);
-        if (! $gateway) {
-            return response()->json(['message' => 'Payment gateway not found'], 404);
+        try {
+            $gateway = PaymentGateway::find($id);
+            if (! $gateway) {
+                return response()->json(['message' => 'Payment gateway not found'], 404);
+            }
+
+            $validated = $request->validate([
+                'name'        => 'string|max:255',
+                'description' => 'nullable|string',
+                'meta_data'   => 'nullable|string',
+                'logo'        => 'nullable|string',
+                'icon'        => 'nullable|string',
+                'regulation'  => 'nullable|string',
+                'is_active'   => 'boolean',
+            ]);
+
+            $gateway->update($validated);
+            return response()->json($gateway, 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        $validated = $request->validate([
-            'name'        => 'string|max:255',
-            'description' => 'nullable|string',
-            'meta_data'   => 'nullable|string',
-            'logo'        => 'nullable|string',
-            'icon'        => 'nullable|string',
-            'regulation'  => 'nullable|string',
-            'is_active'   => 'boolean',
-        ]);
-
-        $gateway->update($validated);
-        return response()->json($gateway, 200);
     }
 
     /**
@@ -234,12 +257,17 @@ class PaymentGatewayController extends Controller
      */
     public function destroy($id)
     {
-        $gateway = PaymentGateway::find($id);
-        if (! $gateway) {
-            return response()->json(['message' => 'Payment gateway not found'], 404);
-        }
+        try {
+            $gateway = PaymentGateway::find($id);
+            if (! $gateway) {
+                return response()->json(['message' => 'Payment gateway not found'], 404);
+            }
 
-        $gateway->delete();
-        return response()->json(['message' => 'Payment gateway deleted successfully'], 200);
+            $gateway->delete();
+            return response()->json(['message' => 'Payment gateway deleted successfully'], 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

@@ -54,7 +54,7 @@ return new class extends Migration
             $table->longText("message");
             $table->string("currency")->default("ksh");
             $table->string("purpose");
-            $table->boolean("status")->default(false);
+            $table->enum("status", Transaction::STATUSES)->default(Transaction::STATUSES[0]);;
             $table->enum("transaction_status", Transaction::TRANSACTION_STATUS)->default(Transaction::TRANSACTION_STATUS[0]);
             $table->longText("transaction_response")->nullable();
             $table->longText("transaction_meta")->nullable();

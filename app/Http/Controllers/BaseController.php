@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Helpers\Accounts\Account;
@@ -58,7 +59,6 @@ class BaseController extends Controller
             return true;
         }
         return false;
-
     }
 
     public function logPageView(Request $request)
@@ -79,7 +79,6 @@ class BaseController extends Controller
         ]);
 
         return $activity;
-
     }
 
     public function saveUserLocationWithIp(Request $request)
@@ -128,7 +127,6 @@ class BaseController extends Controller
         }
 
         return $meta_data;
-
     }
 
     public function getAccount()
@@ -208,7 +206,6 @@ class BaseController extends Controller
 
         info(["basecontroller account" => $account]);
         return $account;
-
     }
 
     public function accountMembers()
@@ -223,7 +220,6 @@ class BaseController extends Controller
         $members = $account_manager->members();
 
         return $members;
-
     }
 
     public function getAccountList()
@@ -252,7 +248,6 @@ class BaseController extends Controller
         }
 
         return $account;
-
     }
 
     public function getEcommerce()
@@ -270,11 +265,10 @@ class BaseController extends Controller
             abort(403, 'Unauthorized or vendor not specified.');
         }
 
-// Optionally: check if the vendor exists and belongs to the authenticated user
+        // Optionally: check if the vendor exists and belongs to the authenticated user
         $vendor = Ecommerce::where('vendor_id', $vendorId)->first();
 
         return $vendor;
-
     }
 
     public function formatPhoneNumber($code, $phone_number)
@@ -342,7 +336,6 @@ class BaseController extends Controller
             // Create the directory with 0755 permissions and enable recursive directory creation
             // File::makeDirectory($fullDirectoryPath, 0755, true);
             File::makeDirectory($fullDirectoryPath);
-
         }
 
         $pdfPath = $directory . "/" . $name;
@@ -372,11 +365,14 @@ class BaseController extends Controller
 
     public function sendResponse($result, $message, $code = null)
     {
+        // If the result is NOT an array, convert it
+        if (!is_array($result)) {
+            $result = $result->toArray();
+        }
 
         return $this->apiResource->success($result, $message, code: $code ?? 200);
-
-        // return response()->json($response, 200);
     }
+
 
     /**
      * return error response.
@@ -482,12 +478,6 @@ class BaseController extends Controller
         return $response;
     }
 
-    public function getRetailEmployeePermissions()
-    {
-        # code...
-        $permissions = Retail::employeePermissions();
-        return $permissions;
-    }
     public function getUserUnreadNotifications()
     {
         return $this->user()->unreadNotifications()->latest()->get();

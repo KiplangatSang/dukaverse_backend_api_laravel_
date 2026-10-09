@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AppNotificationController;
 use App\Http\Controllers\AssignEmployeeRole;
@@ -16,6 +17,9 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CreditItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerCreditController;
+use App\Http\Controllers\DeliveryApp\DeliveryAppController;
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\DeliveryPersonController;
 use App\Http\Controllers\EcommerceController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EmployeeController;
@@ -64,7 +68,14 @@ use App\Http\Controllers\TodoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoCallController;
 use App\Http\Controllers\WalletController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\RestaurantController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DeliveryApp\AccreditationController;
+use App\Http\Controllers\DeliveryApp\UploadController;
+use App\Http\Controllers\DeliveryApp\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,7 +107,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/register/roles/{type}', [RegisterController::class, 'fetchRegisterRoles']);
     Route::get('/register/roles', [RegisterController::class, 'fetchRegisterRoles']);
 
-    // Route::get('/register/roles/{type}/levels/{level}', [RegisterController::class, 'fetchRegisterRoles']);
+    Route::get('/register/roles/{type}/levels/{level}', [RegisterController::class, 'fetchRegisterRoles']);
 
     Route::post('/login/validate-token', [UserController::class, 'loginUsingToken']);
 
@@ -113,13 +124,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/platforms/{platform}/users/{user}/remove', [PlatformController::class, 'removeUserFromPlatform']);
         Route::get('/platforms/{platform}/users/{user}/role', [PlatformController::class, 'getUserRoleInPlatform']);
         Route::get('/platforms/{platform}/users/{user}/permissions', [PlatformController::class, 'getUserPermissionsInPlatform']);
-
     });
 
-// Email verification route
+    // Email verification route
     Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
 
-// Resend the verification email if the user hasn’t verified yet
+    // Resend the verification email if the user hasn’t verified yet
     Route::post('/email/resend', [VerificationController::class, 'resend'])->middleware('auth:sanctum')->name('verification.resend');
     Route::post('/email/verify-code', [VerificationController::class, 'verifyEmailCode'])->middleware('auth:sanctum')->name('verification.verify-code');
     Route::post('/phone/send-otp', [VerificationController::class, 'sendOtp'])->middleware('auth:sanctum')->name('verification.send-otp');
@@ -166,8 +176,8 @@ Route::prefix('v1')->group(function () {
         Route::get('accounts/get-account_type/{type}', [AccountController::class, "index"]);
         Route::get('accounts/get-account_types', [AccountController::class, "getAccountTypes"]);
         // Route::middleware('hasretail')->group(function () {
-        Route::middleware('hasaccount')->group(function () {
-            // Route::resource('retailsessions', SessionAccountController::class);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::resource('retailsessions', SessionAccountController::class);
 
             // Route::middleware('hassessionretail')->group(function () {
             Route::middleware('hassessionaccount')->group(function () {
@@ -184,12 +194,14 @@ Route::prefix('v1')->group(function () {
                     Route::get('/dashboard-wallet', [HomeController::class, 'dashboadWallet']);
                 });
 
-                Route::prefix('retail-items')->group(function () {
-                    Route::resource('/', RetailItemController::class);
-                    Route::resource('{retail-item}/stocks', StockController::class);
-                    Route::post('/upload-excel', [RetailItemController::class, 'uploadExcel']);
-                    Route::post('/upload-image', [RetailItemController::class, 'uploadImage']);
+                Route::name('retail-items.stocks')->group(function () {
+                    Route::resource('/retail-items/{retail_item}/stocks', StockController::class);
                 });
+                Route::post('/retail-items/{retail_item}', [RetailItemController::class, 'update']);
+                Route::resource('retail-items', RetailItemController::class);
+                Route::post('/retail-items/upload-excel', [RetailItemController::class, 'uploadExcel']);
+                Route::post('/retail-items/upload-image', [RetailItemController::class, 'uploadImage']);
+
 
                 //Stock
                 Route::post('/stocks/reports/generate-pdf', [StockController::class, 'generatePDF']);
@@ -204,6 +216,10 @@ Route::prefix('v1')->group(function () {
                     Route::get('/{retail_item}/index', [SaleController::class, 'index']);
                     Route::resource('/', SaleController::class);
                 });
+
+                Route::resource('credit-sales', CreditItemController::class);
+
+
 
                 //sale transactions
                 Route::prefix('sale-transactions')->group(function () {
@@ -241,11 +257,12 @@ Route::prefix('v1')->group(function () {
                     Route::post("{employee_id}/edit/roles/unassign/{role_id}", [EmployeeController::class, 'unAssignEmployeeRole']);
 
                     Route::resource('assign/roles', EmployeeController::class);
-
                 });
 
                 //items on credit
                 Route::resource('/credit-items', CreditItemController::class);
+
+                Route::resource('/customer-credits', CustomerCreditController::class);
 
                 //customers
                 Route::resource('/customers', CustomerController::class);
@@ -266,6 +283,16 @@ Route::prefix('v1')->group(function () {
                 Route::resource('/required-items', RequiredItemController::class);
 
                 Route::resource('/supplies', SupplyController::class);
+
+                // Inventory management
+                Route::prefix('inventory')->group(function () {
+                    Route::get('/', [InventoryController::class, 'index']);
+                    Route::post('/convert-required-to-order', [InventoryController::class, 'convertRequiredToOrder']);
+                    Route::post('/convert-order-to-supply', [InventoryController::class, 'convertOrderToSupply']);
+                    Route::post('/convert-supply-to-stock', [InventoryController::class, 'convertSupplyToStock']);
+                    Route::get('/trace-supply/{supply_id}', [InventoryController::class, 'traceSupplyToOrder']);
+                    Route::post('/restock-stock', [InventoryController::class, 'restockStockFromSupply']);
+                });
 
                 Route::prefix('market')->group(function () {
                     // employee sales
@@ -295,9 +322,11 @@ Route::prefix('v1')->group(function () {
                     Route::post('account/password/update', [AccountController::class, 'updatePassword']);
                 });
 
+                Route::post('ecommerce', [EcommerceController::class,'ecommerceData']);
+                Route::delete('ecommerce/{id}', [EcommerceController::class,'ecommerceData']);
                 Route::prefix('ecommerce')->group(function () {
                     Route::get('/data', [EcommerceController::class, 'ecommerceData']);
-                    Route::post('/register/validate-user', [EcommerceController::class, 'validateUserRequest']);
+                    Route::post('/register/validate', [EcommerceController::class, 'validateUserRequest']);
                     Route::post('/register', [EcommerceController::class, 'registerEcommerceShop']);
                     Route::get('/products', [EcommerceProductController::class, 'getEcommerceProducts']);
                     Route::get('/payment/gateways/create', [EcommerceController::class, 'getCreatePaymentGatewaysData']);
@@ -314,7 +343,6 @@ Route::prefix('v1')->group(function () {
                     Route::get('/products/{product}', [EcommerceProductController::class, 'getEcommerceProduct']);
                     Route::post('/settings/save', [EcommerceSettingController::class, 'saveEcommerceSettings']);
                 });
-
             });
 
             Route::prefix('receipts')->group(function () {
@@ -335,10 +363,8 @@ Route::prefix('v1')->group(function () {
                 Route::post('/stkpush/{user_id}/{trans_id}', [MpesaResponseController::class, 'stkPushResponse']);
                 Route::post('/stkpush', [MpesaResponseController::class, 'stkPushResponse']);
                 Route::post('reverse', [MpesaResponseController::class, 'reversal']);
-
                 Route::post('/query/result/{id}', [MpesaResponseController::class, 'queryResult']);
                 Route::post('/query/confirmation/{id}', [MpesaResponseController::class, 'queryConfirmation']);
-
             });
 
             //comments
@@ -483,18 +509,24 @@ Route::prefix('v1')->group(function () {
                 Route::post('reverse', [MpesaResponseController::class, 'reversal']);
 
                 Route::post('/query/confirmation/{id}', [MpesaResponseController::class, 'queryConfirmation']);
-
             });
+
+            Route::resource('tiers', TierController::class);
+
+            Route::get('/tiers/{tier}/permissions', [PermissionTierController::class, 'index']);
+
+
 
             //admin
 
             Route::prefix('admin')->group(function () {
 
                 //tiers
-                Route::prefix('tiers')->group(function () {
-                    Route::resource('/', TierController::class);
-                    Route::resource('/{tier}/permissions', PermissionTierController::class);
-                });
+                Route::resource('tiers', TierController::class);
+                Route::get('tiers/{tier}/permissions', [PermissionTierController::class, 'index']);
+                Route::post('tiers/{tier}/permissions', [PermissionTierController::class, 'assignPermissionToTier']);
+                Route::delete('tiers/{tier}/permissions/{permission}', [PermissionTierController::class, 'removePermissionFromTier']);
+
 
                 //email management
                 Route::prefix('emails')->group(function () {
@@ -505,9 +537,7 @@ Route::prefix('v1')->group(function () {
                     Route::post('/send', [EmailController::class, 'sendEmail']);
                     Route::put('/notifications/{notification}/processed', [EmailController::class, 'markProcessed']);
                 });
-
             });
-
         });
 
         // Route::post('send-fcm-token', [FcmCloudMessagingController::class, 'firebaseTokenStorage']);
@@ -518,7 +548,7 @@ Route::prefix('v1')->group(function () {
         // Route::post('sendNotification', [FcmCloudMessagingController::class, 'sendNotification']);
         // Route::post('delete-tokendata', [FcmCloudMessagingController::class, 'deleterecords']);
 
-// payments
+        // payments
         Route::prefix('payments')->group(function () {
             Route::get('/gateways', [PaymentController::class, 'ecommercePaymentGatewaysAvailable']);
             Route::post('/gateways', [PaymentController::class, 'setEcommercePaymentGateways']);
@@ -584,7 +614,162 @@ Route::prefix('v1')->group(function () {
 
             // Coupons Routes
             Route::resource('coupons', CouponController::class);
+        });
+        // Restaurant APIs
+        Route::apiResource('restaurants', RestaurantController::class);
+        Route::get('restaurants/{id}/tables', [RestaurantController::class, 'getTables']);
+        Route::post('restaurants/{id}/tables', [RestaurantController::class, 'createTable']);
+        Route::put('restaurants/{restaurantId}/tables/{tableId}/status', [RestaurantController::class, 'updateTableStatus']);
+        Route::get('restaurants/{id}/staff', [RestaurantController::class, 'getStaff']);
+        Route::post('restaurants/{id}/staff', [RestaurantController::class, 'addStaff']);
+        Route::get('restaurants/{id}/analytics', [RestaurantController::class, 'getAnalytics']);
 
+        // Menu APIs
+        Route::prefix('restaurants/{restaurantId}/menu')->group(function () {
+            Route::get('/categories', [MenuController::class, 'getCategories']);
+            Route::post('/categories', [MenuController::class, 'createCategory']);
+            Route::put('/categories/{categoryId}', [MenuController::class, 'updateCategory']);
+            Route::get('/items', [MenuController::class, 'getItems']);
+            Route::post('/items', [MenuController::class, 'createItem']);
+            Route::put('/items/{itemId}', [MenuController::class, 'updateItem']);
+            Route::get('/', [MenuController::class, 'getCompleteMenu']);
+            Route::get('/search', [MenuController::class, 'searchItems']);
+            Route::put('/items/{itemId}/availability', [MenuController::class, 'updateItemAvailability']);
+            Route::put('/bulk-availability', [MenuController::class, 'bulkUpdateAvailability']);
+        });
+
+        // Kitchen APIs
+        Route::prefix('restaurants/{restaurantId}/kitchen')->group(function () {
+            Route::get('/orders', [KitchenController::class, 'getOrders']);
+            Route::put('/orders/{orderId}/items/{itemId}/status', [KitchenController::class, 'updateItemStatus']);
+            Route::get('/stations', [KitchenController::class, 'getStations']);
+            Route::get('/performance', [KitchenController::class, 'getPerformance']);
+        });
+
+
+        Route::prefix('deliveries')->group(function () {
+
+            // Get available delivery jobs
+            Route::get('/available', [DeliveryAppController::class, 'available']);
+
+            // Place a bid on a job
+            Route::post('/{jobId}/bid', [DeliveryAppController::class, 'bid']);
+
+            // Get my active bids
+            Route::get('/my-bids', [DeliveryAppController::class, 'myBids']);
+
+            // Accept a delivery job
+            Route::post('/{jobId}/accept', [DeliveryAppController::class, 'accept']);
+
+            // Update delivery status
+            Route::put('/{jobId}/status', [DeliveryAppController::class, 'updateStatus']);
+
+            // Get delivery history
+            Route::get('/history', [DeliveryAppController::class, 'history']);
+        });
+
+
+
+        // Delivery APIs
+        Route::prefix('delivery')->group(function () {
+            Route::get('/orders', [DeliveryController::class, 'index']);
+            Route::post('/orders', [DeliveryController::class, 'store']);
+            Route::put('/orders/{orderId}/status', [DeliveryController::class, 'updateStatus']);
+            Route::put('/orders/{orderId}/assign', [DeliveryController::class, 'assignRider']);
+            Route::get('/riders/available', [DeliveryController::class, 'getAvailableRiders']);
+            Route::post('/riders/{riderId}/location', [DeliveryController::class, 'updateRiderLocation']);
+            Route::get('/orders/{orderId}/tracking', [DeliveryController::class, 'getTracking']);
+            Route::post('/orders/{orderId}/rating', [DeliveryController::class, 'submitRating']);
+            Route::get('/reports/performance', [DeliveryController::class, 'getPerformanceReport']);
+        });
+
+        // Delivery Person APIs
+        Route::apiResource('delivery-people', DeliveryPersonController::class);
+        Route::prefix('delivery-people')->group(function () {
+            Route::post('/{deliveryPerson}/verify', [DeliveryPersonController::class, 'verify']);
+            Route::post('/{deliveryPerson}/accredit', [DeliveryPersonController::class, 'accredit']);
+            Route::put('/{deliveryPerson}/status', [DeliveryPersonController::class, 'updateStatus']);
+            Route::get('/{deliveryPerson}/earnings', [DeliveryPersonController::class, 'getEarnings']);
+            Route::get('/{deliveryPerson}/deliveries', [DeliveryPersonController::class, 'getDeliveries']);
+            Route::post('/{deliveryPerson}/online', [DeliveryPersonController::class, 'goOnline']);
+            Route::post('/{deliveryPerson}/offline', [DeliveryPersonController::class, 'goOffline']);
+            Route::put('/{deliveryPerson}/available', [DeliveryPersonController::class, 'setAvailable']);
+        });
+    });
+    // User Profile routes
+    Route::prefix('user')->group(function () {
+        Route::get('profile', [UserController::class, 'profile']);
+        Route::put('profile', [UserController::class, 'updateProfile']);
+        Route::put('vehicle', [UserController::class, 'updateVehicle']);
+    });
+
+    // Protected routes (require authentication)
+    Route::prefix('rider')->middleware(['auth:sanctum'])->group(function () {
+
+
+        // Subscription routes
+        Route::prefix('subscriptions')->group(function () {
+            Route::get('plans', [SubscriptionController::class, 'plans']);
+            Route::post('subscribe', [SubscriptionController::class, 'subscribe']);
+            Route::get('current', [SubscriptionController::class, 'current']);
+            Route::post('cancel', [SubscriptionController::class, 'cancel']);
+            Route::post('reactivate', [SubscriptionController::class, 'reactivate']);
+        });
+
+        // Verification routes
+        Route::prefix('verification')->group(function () {
+            Route::post('initiate', [VerificationController::class, 'initiate']);
+            Route::post('verify', [VerificationController::class, 'verify']);
+            Route::get('status', [VerificationController::class, 'status']);
+        });
+
+        // Accreditation routes
+        Route::prefix('accreditation')->group(function () {
+            Route::post('apply', [AccreditationController::class, 'apply']);
+            Route::get('status', [AccreditationController::class, 'status']);
+            Route::post('upload-document', [AccreditationController::class, 'uploadDocument']);
+            Route::get('requirements', [AccreditationController::class, 'requirements']);
+            Route::post('renew', [AccreditationController::class, 'renew']);
+        });
+
+        // Payment routes
+        Route::prefix('payments')->group(function () {
+            Route::post('process', [PaymentController::class, 'process']);
+            Route::get('status/{paymentId}', [PaymentController::class, 'status']);
+            Route::get('history', [PaymentController::class, 'history']);
+            Route::post('webhook', [PaymentController::class, 'webhook']);
+        });
+
+        // Delivery routes
+        Route::prefix('deliveries')->group(function () {
+            Route::get('available', [DeliveryAppController::class, 'available']);
+            Route::post('{jobId}/bid', [DeliveryAppController::class, 'bid']);
+            Route::get('my-bids', [DeliveryAppController::class, 'myBids']);
+            Route::post('{jobId}/accept', [DeliveryAppController::class, 'accept']);
+            Route::put('{jobId}/status', [DeliveryAppController::class, 'updateStatus']);
+            Route::get('history', [DeliveryAppController::class, 'history']);
+        });
+
+        // Service Details routes
+        Route::get('subscription/details', [SubscriptionController::class, 'details']);
+        Route::get('verification/details', [VerificationController::class, 'details']);
+        Route::get('accreditation/details', [AccreditationController::class, 'details']);
+
+        // Notification routes
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::put('notifications/{notificationId}/read', [NotificationController::class, 'markAsRead']);
+
+        // Upload routes
+        Route::prefix('upload')->group(function () {
+            Route::post('document', [UploadController::class, 'document']);
+            Route::post('vehicle-photo', [UploadController::class, 'vehiclePhoto']);
+        });
+
+        // Admin routes (require admin role)
+        Route::middleware(['role:admin'])->prefix('admin')->group(function () {
+            Route::get('users', [AdminController::class, 'users']);
+            Route::get('deliveries', [AdminController::class, 'deliveries']);
+            Route::put('user/{userId}/status', [AdminController::class, 'updateUserStatus']);
         });
     });
 });

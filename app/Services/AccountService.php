@@ -230,7 +230,7 @@ class AccountService extends BaseService
             return $this->responseHelper->error('Bad request', ['errors' => $accountModel['error']]);
         }
 
-        return $this->responseHelper->respond(['account' => $accountModel], 'Account fetched successfully');
+        return $this->responseHelper->respond(['account' => $this->account], 'Account fetched successfully');
     }
 
     public function createSimpleOffice(array $data)

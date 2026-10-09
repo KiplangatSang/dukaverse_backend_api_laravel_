@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
- use App\Models\Customer;
+use App\Models\Customer;
 use App\Services\CustomersService;
 use App\Services\AuthService;
 use App\Services\CustomerService;
@@ -15,7 +17,7 @@ class CustomerController extends BaseController
 
     public function __construct(
         private readonly AuthService $authService,
-         private readonly CustomerService $customerService ,
+        private readonly CustomerService $customerService,
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
@@ -81,10 +83,13 @@ class CustomerController extends BaseController
     public function destroy(Customer $customer)
     {
         try {
-            $this->customerService->deleteCustomer($customer);
-            return redirect('/customers/index')->with('success', 'Customer removed successfully');
+            $result =  $this->customerService->deleteCustomer($customer);
+            if (isset($result['error'])) {
+                return $this->sendError($result['error'], [], $result['httpCode'] ?? 500);
+            }
+            return $this->sendResponse([], "Customer deleted successfully");
         } catch (Exception $e) {
-            return redirect('/customers/index')->with('error', 'Could not delete customer: ' . $e->getMessage());
+            return $this->sendError('Server Error', ['message' => $e->getMessage()], $result['httpCode'] ?? 500);
         }
     }
 }

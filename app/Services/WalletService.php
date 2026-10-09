@@ -12,7 +12,8 @@ class WalletService extends BaseService
 
     public function __construct(
         protected readonly StoreFileResource $storeFileResource,
-        protected readonly ResponseHelper $responseHelper
+        protected readonly ResponseHelper $responseHelper,
+        private readonly AppService $appService
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }
@@ -71,7 +72,7 @@ class WalletService extends BaseService
         return $result;
     }
 
-    
+
     public function getWallets(): array
     {
         $wallets = $this->account->wallets()->get();
@@ -123,13 +124,13 @@ class WalletService extends BaseService
 
 //          Income
 
-        $revenue = $this->getRevenue();
+        $revenue = $this->appService->getRevenue($this->account, date('m'));
 //  Expenses
 
-        $expenses = $this->getExpenses();
+        $expenses = $this->appService->getExpenses($this->account, date('m'));
 
 // Transfer
-        $transfer = $this->getExpenses();
+        $transfer = $this->appService->getExpenses($this->account, date('m'));
 
         return [
             "revenue"  => $revenue,

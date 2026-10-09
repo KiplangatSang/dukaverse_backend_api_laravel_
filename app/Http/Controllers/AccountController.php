@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
- use App\Models\Account;
+use App\Models\Account;
 use App\Http\Resources\StoreFileResource; // Added use statement
 use App\Http\Resources\ResponseHelper; // Added use statement
 use App\Services\AccountService;
@@ -61,7 +62,7 @@ class AccountController extends BaseController
             $accounts = $this->accountService->getIndexData($request->type);
             return $this->sendResponse($accounts['data'], "Accounts fetched successfully");
         } catch (Exception $e) {
-            return $this->sendError('Error fetching accounts',["errors" => $e->getMessage()]);
+            return $this->sendError('Error fetching accounts', ["errors" => $e->getMessage()]);
         }
     }
 
@@ -85,25 +86,6 @@ class AccountController extends BaseController
         }
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/accounts",
-     *     tags={"Accounts"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Create a new account",
-     *     @OA\Response(response=201, description="Account created")
-     * )
-     */
-    public function store(StoreAccountRequest $request)
-    {
-  
-        // try {
-        //     $account = $this->accountService->createAccount($request->validated());
-        //     return $this->sendResponse($account, "Account created successfully", 201);
-        // } catch (\Exception $e) {
-        //     return $this->sendError('Error creating account', $e->getMessage());
-        // }
-    }
 
     /**
      * @OA\Get(
@@ -111,88 +93,22 @@ class AccountController extends BaseController
      *     tags={"Accounts"},
      *     security={{"bearerAuth":{}}},
      *     summary="Get a specific account",
-     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\Response(response=200, description="Successful operation")
      * )
      */
     public function show($account)
     {
-        $accountModel = $this->accountService->getShowData($account);
-        if(isset($accountModel['error'])) {
-            return $this->sendError('Error fetching account', $accountModel['error'], $accountModel['code'] ?? 400);
-        }
-        $this->authorize('view', $accountModel);
 
         try {
+            $accountModel = $this->accountService->getShowData($account);
+            if (isset($accountModel['error'])) {
+                return $this->sendError('Error fetching account', $accountModel['error'], 400);
+            }
+
             return $this->sendResponse($accountModel, "Account fetched successfully");
         } catch (\Exception $e) {
             return $this->sendError('Error fetching account', $e->getMessage());
         }
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/api/v1/accounts/{account}/edit",
-     *     tags={"Accounts"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Show form for editing an account",
-     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Successful operation")
-     * )
-     */
-    public function edit($account)
-    {
-        try {
-            $data = $this->accountService->getShowData($account);
-            return $this->sendResponse($data, "Edit data fetched successfully");
-        } catch (\Exception $e) {
-            return $this->sendError('Error fetching edit data', $e->getMessage());
-        }
-    }
-
-    /**
-     * @OA\Put(
-     *     path="/api/v1/accounts/{account}",
-     *     tags={"Accounts"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Update an account",
-     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Account updated")
-     * )
-     */
-    public function update(UpdateAccountRequest $request, $account)
-    {
-        // $accountModel = $this->accountService->getShowData($account);
-        // $this->authorize('update', $accountModel);
-
-        // try {
-        //     $updatedAccount = $this->accountService->updateAccount($account, $request->validated());
-        //     return $this->sendResponse($updatedAccount, "Account updated successfully");
-        // } catch (\Exception $e) {
-        //     return $this->sendError('Error updating account', $e->getMessage());
-        // }
-    }
-
-    /**
-     * @OA\Delete(
-     *     path="/api/v1/accounts/{account}",
-     *     tags={"Accounts"},
-     *     security={{"bearerAuth":{}}},
-     *     summary="Delete an account",
-     *     @OA\Parameter(name="account", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=204, description="Account deleted")
-     * )
-     */
-    public function destroy($account)
-    {
-        // $accountModel = $this->accountService->getShowData($account);
-        // $this->authorize('delete', $accountModel);
-
-        // try {
-        //     $result = $this->accountService->deleteAccount($account);
-        //     return $this->sendResponse($result, "Account deleted successfully");
-        // } catch (\Exception $e) {
-        //     return $this->sendError('Error deleting account', $e->getMessage());
-        // }
     }
 }

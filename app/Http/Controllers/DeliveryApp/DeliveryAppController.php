@@ -5,6 +5,7 @@ namespace App\Http\Controllers\DeliveryApp;
 use App\Http\Controllers\BaseController;
 use App\Http\Resources\ApiResource;
 use App\Services\DeliveryApp\DeliveryAppService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,7 +16,7 @@ class DeliveryAppController extends BaseController
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
-    }
+        }
 
     /**
      * @OA\Get(
@@ -49,6 +50,7 @@ class DeliveryAppController extends BaseController
      */
     public function available(Request $request)
     {
+        try{
         $validator = Validator::make($request->query(), [
             'lat' => 'nullable|numeric|between:-90,90',
             'lng' => 'nullable|numeric|between:-180,180',
@@ -66,7 +68,12 @@ class DeliveryAppController extends BaseController
         }
 
         return $this->apiResource->success($result['data'], $result['message'], $result['httpCode']);
-    }
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+        }
 
     /**
      * @OA\Post(
@@ -96,6 +103,7 @@ class DeliveryAppController extends BaseController
      */
     public function bid(Request $request, $jobId)
     {
+        try{
         $validator = Validator::make($request->all(), [
             'bid_amount' => 'required|numeric|min:0',
             'estimated_time' => 'required|integer|min:1',
@@ -112,7 +120,12 @@ class DeliveryAppController extends BaseController
         }
 
         return $this->apiResource->success($result['data'], $result['message'], $result['httpCode']);
-    }
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+        }
 
     /**
      * @OA\Get(
@@ -128,6 +141,7 @@ class DeliveryAppController extends BaseController
      */
     public function myBids(Request $request)
     {
+        try{
         $result = $this->deliveryAppService->getMyBids($request->user());
 
         if (!$result['success']) {
@@ -135,7 +149,12 @@ class DeliveryAppController extends BaseController
         }
 
         return $this->apiResource->success($result['data'], $result['message'], $result['httpCode']);
-    }
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+        }
 
     /**
      * @OA\Post(
@@ -157,6 +176,7 @@ class DeliveryAppController extends BaseController
      */
     public function accept(Request $request, $jobId)
     {
+        try{
         $result = $this->deliveryAppService->acceptJob($request->user(), $jobId);
 
         if (!$result['success']) {
@@ -164,7 +184,12 @@ class DeliveryAppController extends BaseController
         }
 
         return $this->apiResource->success(null, $result['message'], $result['httpCode']);
-    }
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+        }
 
     /**
      * @OA\Put(
@@ -193,6 +218,7 @@ class DeliveryAppController extends BaseController
      */
     public function updateStatus(Request $request, $jobId)
     {
+        try{
         $validator = Validator::make($request->all(), [
             'status' => 'required|string|in:picked_up,in_transit,delivered',
         ]);
@@ -208,7 +234,12 @@ class DeliveryAppController extends BaseController
         }
 
         return $this->apiResource->success(null, $result['message'], $result['httpCode']);
-    }
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+        }
 
     /**
      * @OA\Get(
@@ -224,6 +255,7 @@ class DeliveryAppController extends BaseController
      */
     public function history(Request $request)
     {
+        try{
         $result = $this->deliveryAppService->getHistory($request->user());
 
         if (!$result['success']) {
@@ -231,5 +263,10 @@ class DeliveryAppController extends BaseController
         }
 
         return $this->apiResource->success($result['data'], $result['message'], $result['httpCode']);
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

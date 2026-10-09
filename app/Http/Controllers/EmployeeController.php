@@ -1,14 +1,17 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
- use App\Models\Employee;
+use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\EmployeesService;
 use App\Services\AuthService;
+use App\Services\EmployeeService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -29,20 +32,13 @@ class EmployeeController extends BaseController
 
     public function __construct(
         private readonly AuthService $authService,
+        private readonly EmployeeService $employeeService,
         ApiResource $apiResource
     ) {
         parent::__construct($apiResource);
     }
 
-    public function employeeService()
-    {
-        # code...
 
-        $this->retail = $this->getAccount();
-
-        $this->employeesRepo = new EmployeesService($this->retail);
-        return $this->employeesRepo;
-    }
     /**
      * Display a listing of the resource.
      */
@@ -63,14 +59,18 @@ class EmployeeController extends BaseController
      */
     public function index()
     {
-        //
-        $employee_list = $this->employeeService()->getEmployees();
-        if (! $employee_list) {
-            $this->sendError($employee_list, 'error, could not fetch employees');
+        try {
+            //
+            $employee_list = $this->employeeService->getEmployees();
+            if (! $employee_list) {
+                $this->sendError($employee_list, 'error, could not fetch employees');
+            }
+
+            return $this->sendResponse($employee_list, 'Success, list of employees');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        return $this->sendResponse($employee_list, 'Success, list of employees');
-
     }
 
     /**
@@ -89,19 +89,23 @@ class EmployeeController extends BaseController
      */
     public function create()
     {
-        //
-        $roles      = $this->getAccount()->roles()->get();
-        $user_roles = User::ROLETYPES;
-        $user_level = User::USER_LEVEL;
-        $empdata    = [
-            'checked_status' => false,
-            'email'          => "",
-            'employee_roles' => $roles,
-            'user_roles'     => $user_roles,
-            'user_levels'    => $user_level,
-        ];
-        return $this->sendResponse($empdata, 'Success, You can create an employee account');
-
+        try {
+            //
+            $roles      = $this->getAccount()->roles()->get();
+            $user_roles = User::ROLETYPES;
+            $user_level = User::USER_LEVEL;
+            $empdata    = [
+                'checked_status' => false,
+                'email'          => "",
+                'employee_roles' => $roles,
+                'user_roles'     => $user_roles,
+                'user_levels'    => $user_level,
+            ];
+            return $this->sendResponse($empdata, 'Success, You can create an employee account');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -130,41 +134,45 @@ class EmployeeController extends BaseController
      */
     public function validateAccountExistence(Request $request)
     {
-        if ($request->email) {
-            $request->validate(
-                [
-                    'email' => ['required', 'email', 'unique:users'],
-                ]
-            );
-        }
-        if ($request->phone_number) {
-            $request->validate(
-                [
-                    "phone_number" => ['required', 'unique:users'],
-                ]
-            );
-        }
-
-        if (request()->email && request()->status == "incomplete") {
-            $employeeWithAccount = $this->employeeWithAccount($request->email);
-            if ($employeeWithAccount) {
-                return $this->sendError('error', "The employee email owner is already registered as an employee");
-            } else {
-                // $roles   = $this->getRetailEmployeeRoles();
-                $empdata = [
-                    'email'          => $request->email,
-                    'checked_status' => true,
-                    // 'roles'          => $roles,
-                ];
-                return $this->sendResponse($empdata, "Email validated, you can continue with the registration");
-
+        try {
+            if ($request->email) {
+                $request->validate(
+                    [
+                        'email' => ['required', 'email', 'unique:users'],
+                    ]
+                );
             }
-        }
+            if ($request->phone_number) {
+                $request->validate(
+                    [
+                        "phone_number" => ['required', 'unique:users'],
+                    ]
+                );
+            }
 
+            if (request()->email && request()->status == "incomplete") {
+                $employeeWithAccount = $this->employeeWithAccount($request->email);
+                if ($employeeWithAccount) {
+                    return $this->sendError('error', "The employee email owner is already registered as an employee");
+                } else {
+                    // $roles   = $this->getRetailEmployeeRoles();
+                    $empdata = [
+                        'email'          => $request->email,
+                        'checked_status' => true,
+                        // 'roles'          => $roles,
+                    ];
+                    return $this->sendResponse($empdata, "Email validated, you can continue with the registration");
+                }
+            }
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     public function registerUser(Request $request)
     {
+
 
         try {
             $result = $this->authService->apiRegister($request->all());
@@ -174,8 +182,9 @@ class EmployeeController extends BaseController
             }
 
             return $this->apiResource->success($result['data'], 'Registration successful', 201);
-        } catch (\Exception $e) {
-            return $this->apiResource->error($e->getMessage(), 500);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
     }
 
@@ -205,91 +214,99 @@ class EmployeeController extends BaseController
      */
     public function store(StoreEmployeeRequest $request)
     {
-        //
-        $employee_to_register = User::where('email', $request->email)
-            ->orwhere('phone_number', $request['phone_number'])
-            ->orwhere('username', $request['firstname'] . " " . $request['lastname'])
-            ->first();
-
-        $employee = $employee_to_register;
-
-        $password = "password";
-        $data     = [
-            'name'                  => $request['firstname'] . " " . $request['lastname'],
-            'email'                 => $request['email'],
-            'username'              => '@' . $request['lastname'],
-            'password'              => $password,
-            'phone_number'          => $request['phone_number'],
-            'password_confirmation' => ($password),
-            'is_retailer'           => false,
-            'is_retail_employee'    => true,
-            'is_supplier'           => false,
-            'employee_role'         => $request['employee_role'],
-            "role"                  => $request->user_role,
-            "user_level"            => $request->user_level,
-
-        ];
-
-        if (! $employee_to_register) {
-            $validator = Validator::make($data,
-                [
-                    'name'          => ['required', 'string', 'max:255', 'unique:users'],
-                    'username'      => ['required', 'string', 'max:255', 'unique:users'],
-                    'email'         => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                    'password'      => ['required', 'string', 'min:8', 'confirmed'],
-                    'employee_role' => 'required',
-                    'role'          => 'required',
-                    'phone_number'  => ['required', 'min:8', 'max:255', 'unique:users'],
-                ]);
-            if ($validator->fails()) {
-                return $this->sendError('Error', ['Error, Employee could not be created', $validator->errors()]);
-            }
-            $registered_user_account = $this->registerUser(new Request($data));
-            $registered_user_account = json_decode($registered_user_account->getContent(), true);
-
-            $employee = $registered_user_account['data']['user'];
-            $employee = User::where('id', $employee['id'])->first();
-        } else {
-            $employee = $employee_to_register;
-        }
-
         try {
-            $user_id      = $employee->id;
-            $employeedata = $request->only([
-                'employee_national_id',
-                'employee_role',
-                'employee_salary',
-            ]);
+            //
+            $employee_to_register = User::where('email', $request->email)
+                ->orwhere('phone_number', $request['phone_number'])
+                ->orwhere('username', $request['firstname'] . " " . $request['lastname'])
+                ->first();
 
-            $validator = Validator::make($employeedata, [
-                // 'employee_national_id' => 'required',
-                'employee_role' => 'required',
-                // 'employee_salary'      => 'required',
-            ]);
+            $employee = $employee_to_register;
 
-            if ($validator->fails()) {
-                return $this->sendError('Error', ['Error, Employee could not be created', $validator->errors()]);
+            $password = "password";
+            $data     = [
+                'name'                  => $request['firstname'] . " " . $request['lastname'],
+                'email'                 => $request['email'],
+                'username'              => '@' . $request['lastname'],
+                'password'              => $password,
+                'phone_number'          => $request['phone_number'],
+                'password_confirmation' => ($password),
+                'is_retailer'           => false,
+                'is_retail_employee'    => true,
+                'is_supplier'           => false,
+                'employee_role'         => $request['employee_role'],
+                "role"                  => $request->user_role,
+                "user_level"            => $request->user_level,
+
+            ];
+
+            if (! $employee_to_register) {
+                $validator = Validator::make(
+                    $data,
+                    [
+                        'name'          => ['required', 'string', 'max:255', 'unique:users'],
+                        'username'      => ['required', 'string', 'max:255', 'unique:users'],
+                        'email'         => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                        'password'      => ['required', 'string', 'min:8', 'confirmed'],
+                        'employee_role' => 'required',
+                        'role'          => 'required',
+                        'phone_number'  => ['required', 'min:8', 'max:255', 'unique:users'],
+                    ]
+                );
+                if ($validator->fails()) {
+                    return $this->sendError('Error', ['Error, Employee could not be created', $validator->errors()]);
+                }
+                $registered_user_account = $this->registerUser(new Request($data));
+                $registered_user_account = json_decode($registered_user_account->getContent(), true);
+
+                $employee = $registered_user_account['data']['user'];
+                $employee = User::where('id', $employee['id'])->first();
+            } else {
+                $employee = $employee_to_register;
             }
 
-            $employee = $this->account()->employees()->updateOrCreate(
-                ["user_id" => $user_id],
-                ['employee_salary'     => $employeedata['employee_salary'] ?? null,
-                    'employee_national_id' => $employeedata['employee_national_id'] ?? null,
-                ]
-            );
+            try {
+                $user_id      = $employee->id;
+                $employeedata = $request->only([
+                    'employee_national_id',
+                    'employee_role',
+                    'employee_salary',
+                ]);
 
-            $role = $this->account()->roles()->where('id', $employeedata['employee_role'])->first();
+                $validator = Validator::make($employeedata, [
+                    // 'employee_national_id' => 'required',
+                    'employee_role' => 'required',
+                    // 'employee_salary'      => 'required',
+                ]);
 
-            $role->employees()->attach($employee->id);
+                if ($validator->fails()) {
+                    return $this->sendError('Error', ['Error, Employee could not be created', $validator->errors()]);
+                }
 
-            if (! $employee) {
-                return $this->sendError('Error', 'Error, Employee could not be created');
+                $employee = $this->account()->employees()->updateOrCreate(
+                    ["user_id" => $user_id],
+                    [
+                        'employee_salary'     => $employeedata['employee_salary'] ?? null,
+                        'employee_national_id' => $employeedata['employee_national_id'] ?? null,
+                    ]
+                );
+
+                $role = $this->account()->roles()->where('id', $employeedata['employee_role'])->first();
+
+                $role->employees()->attach($employee->id);
+
+                if (! $employee) {
+                    return $this->sendError('Error', 'Error, Employee could not be created');
+                }
+
+                return $this->sendResponse($employee, 'Success, Employee data saved successfully');
+            } catch (Exception $ex) {
+
+                return $this->sendError($ex->getMessage(), 'Error, Error registering employee');
             }
-
-            return $this->sendResponse($employee, 'Success, Employee data saved successfully');
         } catch (Exception $ex) {
-
-            return $this->sendError($ex->getMessage(), 'Error, Error registering employee');
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
     }
 
@@ -309,11 +326,16 @@ class EmployeeController extends BaseController
      */
     public function show($employee)
     {
-        //
-        $employee = Employee::where('id', $employee)
-            ->with('user.userProfile')
-            ->with("roles")
-            ->first();
+        try {
+            //
+            $employee = Employee::where('id', $employee)
+                ->with('user.userProfile')
+                ->with("roles")
+                ->first();
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
         return $this->sendResponse($employee, 'Success, Employee data');
     }
 
@@ -322,13 +344,18 @@ class EmployeeController extends BaseController
      */
     public function edit(Employee $employee)
     {
-        //
-        $employee = Employee::where('id', $employee->id)
-            ->with('user')
-            ->with('roles')
-            ->first();
-        $employeeRoles             = $this->getAccount()->roles()->latest()->get();
-        $employee['employeeRoles'] = $employeeRoles;
+        try {
+            //
+            $employee = Employee::where('id', $employee->id)
+                ->with('user')
+                ->with('roles')
+                ->first();
+            $employeeRoles             = $this->getAccount()->roles()->latest()->get();
+            $employee['employeeRoles'] = $employeeRoles;
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
         return $this->sendResponse($employee, 'Success, Employee data');
     }
 
@@ -363,15 +390,19 @@ class EmployeeController extends BaseController
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
-        //
-        $validated = $request->validated();
-        $result    = $employee->update(
-            $validated,
-        );
-        if (! $result) {
-            return $this->sendError('Error', 'Error, Employee could not be updated');
+        try {
+            //
+            $validated = $request->validated();
+            $result    = $employee->update(
+                $validated,
+            );
+            if (! $result) {
+                return $this->sendError('Error', 'Error, Employee could not be updated');
+            }
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
         return $this->sendResponse($employee, 'Success, Employee data updated successfully');
     }
 
@@ -391,32 +422,41 @@ class EmployeeController extends BaseController
      */
     public function destroy(Employee $employee)
     {
-        //
-        $result = Employee::destroy($employee->id);
+        try {
+            //
+            $result = Employee::destroy($employee->id);
 
-        if (! $result) {
-            return $this->sendError('Error', 'Error, Employee could not be deleted');
+            if (! $result) {
+                return $this->sendError('Error', 'Error, Employee could not be deleted');
+            }
+
+            return $this->sendResponse($employee, 'Success, Employee data deleted successfully');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        return $this->sendResponse($employee, 'Success, Employee data deleted successfully');
-
     }
 
     public function employeeWithAccount($email = null, $phone_number = null)
     {
-        $user = null;
-        if ($email) {
-            $user = User::where('email', $email)->first();
-        } elseif ($phone_number) {
-            $user = User::where('phone_number', $phone_number)->first();
-        } elseif ($email && $phone_number) {
-            $user = User::where('email', $email)->orWhere('phone_number', $phone_number)->first();
-        }
+        try {
+            $user = null;
+            if ($email) {
+                $user = User::where('email', $email)->first();
+            } elseif ($phone_number) {
+                $user = User::where('phone_number', $phone_number)->first();
+            } elseif ($email && $phone_number) {
+                $user = User::where('email', $email)->orWhere('phone_number', $phone_number)->first();
+            }
 
-        if ($user) {
-            return $user;
-        } else {
-            return false;
+            if ($user) {
+                return $user;
+            } else {
+                return false;
+            }
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
     }
 
@@ -446,25 +486,29 @@ class EmployeeController extends BaseController
      */
     public function assignEmployeeRole(Request $request)
     {
+        try {
 
-        $validator = Validator::make($request->all(), [
-            'role_id'     => ['required'],
-            'employee_id' => ['required', 'exists:employees,id'],
-        ]);
+            $validator = Validator::make($request->all(), [
+                'role_id'     => ['required'],
+                'employee_id' => ['required', 'exists:employees,id'],
+            ]);
 
-        $employee = Employee::where('id', $request->employee_id)->first();
-        $result   = null;
-        foreach ($request->roles as $role) {
+            $employee = Employee::where('id', $request->employee_id)->first();
+            $result   = null;
+            foreach ($request->roles as $role) {
 
-            $result = $employee->roles()->syncWithoutDetaching($role['id']);
+                $result = $employee->roles()->syncWithoutDetaching($role['id']);
+            }
+
+            if ($result) {
+                return $this->sendResponse($result, "Role added successfully");
+            }
+
+            return $this->sendError("Failed", "Unable to add role");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        if ($result) {
-            return $this->sendResponse($result, "Role added successfully");
-        }
-
-        return $this->sendError("Failed", "Unable to add role");
-
     }
 
     /**
@@ -486,19 +530,24 @@ class EmployeeController extends BaseController
      */
     public function unAssignEmployeeRole(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'role_id'     => ['required', 'integer', 'exists:roles,id'],
-            'employee_id' => ['required', 'exists:employees,id'],
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'role_id'     => ['required', 'integer', 'exists:roles,id'],
+                'employee_id' => ['required', 'exists:employees,id'],
+            ]);
 
-        $employee = Employee::where('id', $request->employee_id)->first();
-        $role     = Role::where('id', $request->role_id)->first();
-        $result   = $employee->roles()->detach($role);
+            $employee = Employee::where('id', $request->employee_id)->first();
+            $role     = Role::where('id', $request->role_id)->first();
+            $result   = $employee->roles()->detach($role);
 
-        if ($result) {
-            return $this->sendResponse($result, "Role added successfully");
+            if ($result) {
+                return $this->sendResponse($result, "Role added successfully");
+            }
+
+            return $this->sendError("Failed", "Unable to add role");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        return $this->sendError("Failed", "Unable to add role");
     }
 }

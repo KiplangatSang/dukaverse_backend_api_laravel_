@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
- use App\Services\SaleService;
+use App\Services\SaleService;
 use App\Services\AuthService;
+use Exception;
 use Illuminate\Http\Request;
 
 /**
@@ -15,20 +18,13 @@ use Illuminate\Http\Request;
  */
 class EmployeeSaleController extends BaseController
 {
-    private $salesrepo;
-    private $retail;
 
     public function __construct(
         private readonly AuthService $authService,
-        ApiResource $apiResource
+        ApiResource $apiResource,
+        protected readonly SaleService $salesService
     ) {
         parent::__construct($apiResource);
-    }
-
-    private function salesService()
-    {
-        $this->retail           = $this->getAccount();
-        return $this->salesrepo = new SaleService($this->getAccount());
     }
 
     /**
@@ -52,25 +48,30 @@ class EmployeeSaleController extends BaseController
      */
     public function index($employee = null)
     {
-        $this->salesService();
-        $employees_sales = null;
-        if ($employee) {
-            $employees_sales = $this->getAccount()->employees()
-                ->where('id', $employee)->whereHas('saleTransactions')
-                ->with('user')
-                ->with('saleTransactions.sales.items')->first();
+        try {
+            $this->salesService;
+            $employees_sales = null;
+            if ($employee) {
+                $employees_sales = $this->getAccount()->employees()
+                    ->where('id', $employee)->whereHas('saleTransactions')
+                    ->with('user')
+                    ->with('saleTransactions.sales.items')->first();
 
-            if ($employees_sales) {
-                $employees_sales['sold_items']      = count($employees_sales->sales()->get());
-                $employees_sales['sold_categories'] = count($employees_sales->sales()->distinct('retail_item_id')->get('retail_item_id'));
-                $employees_sales['revenue']         = $employees_sales->saleTransactions()->sum('paid_amount');
-                return $this->sendResponse($employees_sales, 'Success, Employee sales list');
+                if ($employees_sales) {
+                    $employees_sales['sold_items']      = count($employees_sales->sales()->get());
+                    $employees_sales['sold_categories'] = count($employees_sales->sales()->distinct('retail_item_id')->get('retail_item_id'));
+                    $employees_sales['revenue']         = $employees_sales->saleTransactions()->sum('paid_amount');
+                    return $this->sendResponse($employees_sales, 'Success, Employee sales list');
+                } else {
+                    return $this->sendError("Error", 'Error, Employee has no sales');
+                }
             } else {
-                return $this->sendError("Error", 'Error, Employee has no sales');
+                $employees_sales = $this->getAccount()->employees()->whereHas('saleTransactions')->with('user')->with('saleTransactions.sales.items')->get();
+                return $this->sendResponse($employees_sales->toArray(), 'Success, employees sales list');
             }
-        } else {
-            $employees_sales = $this->getAccount()->employees()->whereHas('saleTransactions')->with('user')->with('saleTransactions.sales.items')->get();
-            return $this->sendResponse($employees_sales, 'Success, employees sales list');
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'Error, could not fetch employee sales data');
         }
     }
 
@@ -94,7 +95,13 @@ class EmployeeSaleController extends BaseController
      */
     public function store(Request $request)
     {
-        // Implementation for storing new sales (if needed)
+        try {
+            // Implementation for storing new sales (if needed)
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'Error, could not fetch employee sales data');
+        }
     }
 
     /**
@@ -121,34 +128,39 @@ class EmployeeSaleController extends BaseController
      */
     public function show($employee_id, $transaction_id = null)
     {
-        if ($employee_id && $transaction_id) {
-            $employee = $this->getAccount()->employees()
-                ->where('id', $employee_id)->whereHas('saleTransactions')
-                ->with('user')
-                ->with('saleTransactions.sales.items')->first();
+        try {
+            if ($employee_id && $transaction_id) {
+                $employee = $this->getAccount()->employees()
+                    ->where('id', $employee_id)->whereHas('saleTransactions')
+                    ->with('user')
+                    ->with('saleTransactions.sales.items')->first();
 
-            $employee_sales = $employee->saleTransactions()->where('id', $transaction_id)->with('sales.items')->first();
+                $employee_sales = $employee->saleTransactions()->where('id', $transaction_id)->with('sales.items')->first();
 
-            if ($employee_sales) {
-                $employee_sales['employee']        = $employee;
-                $employee_sales['sold_items']      = count($employee_sales->sales()->get());
-                $employee_sales['sold_categories'] = count($employee_sales->sales()->distinct('retail_item_id')->get('retail_item_id'));
-                $employee_sales['revenue']         = $employee_sales->paid_amount;
-                return $this->sendResponse($employee_sales, 'Success, Employee sales list');
+                if ($employee_sales) {
+                    $employee_sales['employee']        = $employee;
+                    $employee_sales['sold_items']      = count($employee_sales->sales()->get());
+                    $employee_sales['sold_categories'] = count($employee_sales->sales()->distinct('retail_item_id')->get('retail_item_id'));
+                    $employee_sales['revenue']         = $employee_sales->paid_amount;
+                    return $this->sendResponse($employee_sales, 'Success, Employee sales list');
+                } else {
+                    return $this->sendError("Error", 'Error, Employee has no sales');
+                }
             } else {
-                return $this->sendError("Error", 'Error, Employee has no sales');
-            }
-        } else {
-            $allSales        = $this->salesService()->getEmployeeSales($employee_id);
-            $solditemscount  = count($allSales['sales']);
-            $salesTotalPrice = $allSales['sales']->sum('selling_price');
-            $salesdata       = [
-                'employee'       => $allSales,
-                'solditemscount' => $solditemscount,
-                'revenue'        => $salesTotalPrice,
-            ];
+                $allSales        = $this->salesService->getEmployeeSales($employee_id);
+                $solditemscount  = count($allSales['sales']);
+                $salesTotalPrice = $allSales['sales']->sum('selling_price');
+                $salesdata       = [
+                    'employee'       => $allSales,
+                    'solditemscount' => $solditemscount,
+                    'revenue'        => $salesTotalPrice,
+                ];
 
-            return $this->sendResponse($salesdata, 'Success, Employee sales');
+                return $this->sendResponse($salesdata, 'Success, Employee sales');
+            }
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'Error, could not fetch employee sales data');
         }
     }
 
@@ -166,17 +178,22 @@ class EmployeeSaleController extends BaseController
      */
     public function destroy($employee_id, $transaction_id = null)
     {
-        $employee = $this->getAccount()->employees()
-            ->where('id', $employee_id)->first();
-        $sale_transaction = $employee->saleTransactions()->where('id', $transaction_id)->first();
-        $result           = $sale_transaction->update(
-            ['employee_id' => null]
-        );
+        try {
+            $employee = $this->getAccount()->employees()
+                ->where('id', $employee_id)->first();
+            $sale_transaction = $employee->saleTransactions()->where('id', $transaction_id)->first();
+            $result           = $sale_transaction->update(
+                ['employee_id' => null]
+            );
 
-        if ($result) {
-            return $this->sendResponse($result, 'Data updated successfully');
-        } else {
-            return $this->sendError('Error', 'Data could not be updated');
+            if ($result) {
+                return $this->sendResponse($result, 'Data updated successfully');
+            } else {
+                return $this->sendError('Error', 'Data could not be updated');
+            }
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->sendError($ex->getMessage(), 'Error, could not fetch employee sales data');
         }
     }
 
@@ -194,18 +211,23 @@ class EmployeeSaleController extends BaseController
      */
     public function destroySaleItem($employee_id, $sale_item_id)
     {
-        $employee = $this->getAccount()->employees()
-            ->where('id', $employee_id)->first();
+        try {
+            $employee = $this->getAccount()->employees()
+                ->where('id', $employee_id)->first();
 
-        $sale_item = $employee->sales()->where('id', $sale_item_id)->first();
-        $result    = $sale_item->update(
-            ['employee_id' => null]
-        );
+            $sale_item = $employee->sales()->where('id', $sale_item_id)->first();
+            $result    = $sale_item->update(
+                ['employee_id' => null]
+            );
 
-        if ($result) {
-            return $this->sendResponse($result, 'Data updated successfully');
-        } else {
-            return $this->sendError('Error', 'Data could not be updated');
+            if ($result) {
+                return $this->sendResponse($result, 'Data updated successfully');
+            } else {
+                return $this->sendError('Error', 'Data could not be updated');
+            }
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
     }
 }

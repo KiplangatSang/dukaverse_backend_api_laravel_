@@ -13,6 +13,12 @@ class Office extends Model
 
     protected $guarded = [];
 
+    protected $appends = ['account_type'];
+    public function getAccountTypeAttribute()
+    {
+        return 'office';
+    }
+
     public function ownerable()
     {
         return $this->morphTo();
@@ -172,9 +178,9 @@ class Office extends Model
         return $this->accountTransactions();
     }
 
-    public function accounts()
+    public function wallets()
     {
-        return $this->morphMany(Account::class, "ownerable");
+        return $this->morphMany(Wallet::class, "ownerable");
     }
 
     public function subscriptions()

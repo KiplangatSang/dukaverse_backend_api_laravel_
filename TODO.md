@@ -1,17 +1,37 @@
-# TODO: Fix Authentication Error for API Routes
+# TODO: Implement DeliveryPerson Model, Migration, and APIs
 
-## Issue Description
-The application is throwing a "Route [login] not defined" error when an unauthenticated request is made to protected API routes. Instead of returning an "unauthenticated" response, it's attempting to redirect to a login route that doesn't exist.
+## Steps to Complete
 
-## Root Cause
-The default Laravel `Authenticate` middleware is configured to redirect unauthenticated users to a 'login' route. For API routes using Sanctum, this should instead return a JSON response with an "unauthenticated" message, but the middleware is not recognizing API requests as expecting JSON responses.
+1. **Create DeliveryPerson Model** (`app/Models/DeliveryPerson.php`)
+   - ✅ Define fillable attributes based on migration schema
+   - ✅ Add casts for decimals, dates, json
+   - ✅ Implement relationships: deliveries, earnings, vehicles, bids, coupons
+   - ✅ Add scopes: active, online, available, verified, accredited, pending, suspended
+   - ✅ Include methods: verify, accredit, updateStatus, goOnline, goOffline, calculateRating, etc.
 
-## Steps to Fix
-1. Create a custom `Authenticate` middleware that prevents redirection for API routes
-2. Update `bootstrap/app.php` to use the custom middleware
-3. Configure exception handling to return proper JSON responses for authentication failures
-4. Test the fix to ensure API routes return 401 with "unauthenticated" message instead of redirecting
+2. **Create DeliveryPersonService** (`app/Services/DeliveryPersonService.php`)
+   - ✅ Create service extending BaseService
+   - ✅ Implement CRUD operations with proper error handling
+   - ✅ Add file upload handling for photos
+   - ✅ Include specialized methods: verify, accredit, updateStatus, getEarnings, getDeliveries
 
-## Files to Modify
-- `app/Http/Middleware/CustomAuthenticate.php` (create new)
-- `bootstrap/app.php` (update middleware alias and exception handling)
+3. **Create DeliveryPersonController** (`app/Http/Controllers/DeliveryPersonController.php`)
+   - ✅ Create controller extending BaseController
+   - ✅ Implement CRUD operations: index, show, store, update, destroy
+   - ✅ Add specialized methods: verify, accredit, updateStatus, getEarnings, getDeliveries
+   - ✅ Include proper validation, authorization, and error handling
+
+4. **Create Request Classes**
+   - ✅ StoreDeliveryPersonRequest with validation rules
+   - ✅ UpdateDeliveryPersonRequest with validation rules
+
+5. **Add API Routes** (`routes/api.php`)
+   - ✅ Added resource routes for delivery-people
+   - ✅ Added additional routes for verification, accreditation, status updates, online/offline status
+
+6. **Run Migrations** (if not already run)
+   - ✅ Executed `php artisan migrate --force` to ensure delivery_people table exists
+
+7. **Test APIs**
+   - ⏳ Verify all endpoints work correctly
+   - ⏳ Check relationships and data integrity

@@ -1,15 +1,20 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
- use App\Models\Tier;
+use App\Models\Tier;
+use App\Services\TierService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TierController extends BaseController
 {
-     public function __construct(
-        ApiResource $apiResource
+    public function __construct(
+        ApiResource $apiResource,
+        private readonly TierService $tierService,
     ) {
         parent::__construct($apiResource);
     }
@@ -30,7 +35,7 @@ class TierController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/tiers",
+     *     path="/api/v1/admin/tiers",
      *     summary="Get all tiers",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
@@ -39,13 +44,21 @@ class TierController extends BaseController
      */
     public function index()
     {
-        $tiers = Tier::all();
-        return $this->sendResponse(['tiers' => $tiers], 'Tiers fetched successfully');
+        try {
+            $result = $this->tierService->getAllTiers();
+            if (isset($result['error'])) {
+                return $this->sendError('Error fetching tiers', ['error' => $result['error']]);
+            }
+
+            return $this->sendResponse($result["data"], 'Tiers fetched successfully');
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
+        }
     }
 
     /**
      * @OA\Get(
-     *     path="/api/tiers/create",
+     *     path="/api/v1/admin/tiers/create",
      *     summary="Get tier creation metadata",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
@@ -54,18 +67,21 @@ class TierController extends BaseController
      */
     public function create()
     {
-        $tier_types        = Tier::tier_types;
-        $billing_durations = Tier::BILLINGDURATIONS;
+        try {
 
-        return $this->sendResponse([
-            'tier_types'        => $tier_types,
-            'billing_durations' => $billing_durations,
-        ], 'Tiers data fetched successfully');
+            $result = $this->tierService->create();
+            if (isset($result['error'])) {
+                return $this->sendError('Error fetching tier creation metadata', ['error' => $result['error']]);
+            }
+            return $this->sendResponse($result["data"], 'Tiers data fetched successfully');
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
+        }
     }
 
     /**
      * @OA\Post(
-     *     path="/api/tiers",
+     *     path="/api/v1/admin/tiers",
      *     summary="Create a new tier",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
@@ -89,54 +105,47 @@ class TierController extends BaseController
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            "name"             => ['required'],
-            "description"      => ['required'],
-            "type"             => ['required'],
-            "price"            => ['required'],
-            "benefits"         => ['required'],
-            "billing_duration" => ['required'],
-            "is_active"        => ['required'],
-            "is_recommended"   => ['required'],
-        ]);
+        try {
 
-        if ($validator->fails()) {
-            return $this->sendError('Bad request', ['errors' => $validator->errors()]);
+            $result = $this->tierService->store($request->all());
+            if (isset($result['error'])) {
+                return $this->sendError('Bad request', ['errors' => $result['error']]);
+            }
+            return $this->sendResponse($result["data"], 'Tier created successfully');
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
         }
-
-        $dukaverse = $this->dukaverse();
-        $tier      = $dukaverse->tiers()->create($request->all());
-
-        if (! $tier) {
-            return $this->sendError('Bad request', [
-                'errors'  => $validator->errors(),
-                'message' => 'Tier could not be created',
-            ]);
-        }
-
-        return $this->sendResponse(['tier' => $tier], 'Tier created successfully');
     }
 
     /**
      * @OA\Get(
-     *     path="/api/tiers/{id}",
+     *     path="/api/v1/admin/tiers/{tier}",
      *     summary="Get a tier by ID",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="tier", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\Response(response=200, description="Tier fetched successfully"),
      *     @OA\Response(response=404, description="Tier not found")
      * )
      */
-    public function show(string $id)
+    public function show(string $tier)
     {
-        $tier = Tier::where('id', $id)->first();
-        return $this->sendResponse(['tier' => $tier], 'Tier fetched successfully');
+        try {
+
+            $result = $this->tierService->show($tier);
+
+            if(isset($result['error'])) {
+                return $this->sendError('Tier not found', ['message' => 'No tier found with the given ID'], 404);
+            }
+            return $this->sendResponse($result["data"], 'Tier fetched successfully');
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
+        }
     }
 
     /**
      * @OA\Get(
-     *     path="/api/tiers/{id}/edit",
+     *     path="/api/v1/admin/tiers/{id}/edit",
      *     summary="Get a tier for editing",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
@@ -146,20 +155,21 @@ class TierController extends BaseController
      */
     public function edit(string $id)
     {
-        $tier              = Tier::where('id', $id)->first();
-        $tier_types        = Tier::tier_types;
-        $billing_durations = Tier::BILLINGDURATIONS;
+        try {
+            $result = $this->tierService->edit($id);
 
-        return $this->sendResponse([
-            'tier'              => $tier,
-            'tier_types'        => $tier_types,
-            'billing_durations' => $billing_durations,
-        ], 'Tier to edit fetched successfully');
+            if(isset($result['error'])) {
+                return $this->sendError('Tier not found', ['message' => 'No tier found with the given ID'], 404);
+            }
+            return $this->sendResponse($result["data"], 'Tier to edit fetched successfully');
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
+        }
     }
 
     /**
      * @OA\Put(
-     *     path="/api/tiers/{id}",
+     *     path="/api/v1/admin/tiers/{id}",
      *     summary="Update a tier",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
@@ -184,38 +194,26 @@ class TierController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        $validator = Validator::make($request->all(), [
-            "name"             => ['required'],
-            "description"      => ['required'],
-            "benefits"         => ['required'],
-            "type"             => ['required'],
-            "price"            => ['required'],
-            "billing_duration" => ['required'],
-            "is_active"        => ['required'],
-            "is_recommended"   => ['required'],
-        ]);
+        try {
 
-        if ($validator->fails()) {
-            return $this->sendError('Bad request', ['errors' => $validator->errors()]);
+            $result = $this->tierService->update($request->all(), $id);
+            if (isset($result['error'])) {
+                return $this->sendError('Bad request', ['errors' => $result['error']]);
+            }
+
+            $result = $this->tierService->show($id);
+            if(isset($result['error'])) {
+                return $this->sendError('Tier not found', ['message' => 'No tier found with the given ID'], 404);
+            }
+            return $this->sendResponse($result["data"], 'Tier updated successfully');
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
         }
-
-        $tier   = Tier::where('id', $id)->first();
-        $result = $tier->update($request->all());
-
-        if (! $result) {
-            return $this->sendError('Bad request', [
-                'errors'  => $validator->errors(),
-                'message' => 'Tier could not be updated',
-            ]);
-        }
-
-        $tier = Tier::where('id', $id)->first();
-        return $this->sendResponse(['tier' => $tier], 'Tier updated successfully');
     }
 
     /**
      * @OA\Delete(
-     *     path="/api/tiers/{id}",
+     *     path="/api/v1/admin/tiers/{id}",
      *     summary="Delete a tier",
      *     tags={"Tiers"},
      *     security={{"bearerAuth":{}}},
@@ -226,12 +224,16 @@ class TierController extends BaseController
      */
     public function destroy(string $id)
     {
-        $result = Tier::destroy($id);
+        try {
 
-        if (! $result) {
-            return $this->sendError('Bad request', ['message' => 'Tier could not be deleted']);
+            $result = $this->tierService->destroy($id);
+            if (isset($result['error'])) {
+                return $this->sendError('Bad request', ['errors' => $result['error']]);
+            }
+            return $this->sendResponse($result["data"], 'Tier deleted successfully');
+
+        } catch (Exception $ex) {
+            return $this->sendError('Server Error', ['error' => $ex->getMessage()], 500);
         }
-
-        return $this->sendResponse([], 'Tier deleted successfully');
     }
 }

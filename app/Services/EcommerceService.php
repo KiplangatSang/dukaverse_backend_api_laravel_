@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 class EcommerceService extends BaseService
 {
 
-    private $user;
     // private $account;
     public function __construct(
         private readonly CustomerService $customerService,
@@ -22,9 +21,6 @@ class EcommerceService extends BaseService
         StoreFileResource $storeFileResource,
         protected ResponseHelper $responseHelper
     ) {
-        $this->user = $this->user();
-        // $this->account = $account;
-
         parent::__construct($storeFileResource, $responseHelper);
 
     }
@@ -123,8 +119,6 @@ class EcommerceService extends BaseService
 
     public function getGraphData()
     {
-        $salesRepo   = new SaleService($this->account);
-        $revenueRepo = new RevenueService($this->account);
 
         $dates = null;
         try {
@@ -141,9 +135,9 @@ class EcommerceService extends BaseService
         foreach ($dates as $date) {
             $month     = $date->month;
             $monthName = $date->month_name;
-            $sales     = $this->getMonthlySales($salesRepo, $month);
+            $sales     = $this->getMonthlySales($salesService, $month);
 
-            $revenue = $this->getMonthlyRevenue($revenueRepo, $month);
+            $revenue = $this->getMonthlyRevenue($revenueService, $month);
 
             //set piechart data
             $salesPData[]   = $this->pieChartData($sales, $monthName);
@@ -156,15 +150,15 @@ class EcommerceService extends BaseService
 
     }
 
-    public function getMonthlySales($salesRepo = null, $period = null)
+    public function getMonthlySales($salesService = null, $period = null)
     {
-        $sale = $salesRepo->getMonthlySales($period)->sum('paid_amount');
+        $sale = $salesService->getMonthlySales($period)->sum('paid_amount');
         return $sale;
     }
 
-    public function getMonthlyRevenue($revenueRepo, $period)
+    public function getMonthlyRevenue($revenueService, $period)
     {
-        $revenue = $revenueRepo->getMonthlyRevenue($period)->sum('revenue');
+        $revenue = $revenueService->getMonthlyRevenue($period)->sum('revenue');
         return $revenue;
     }
 
@@ -203,7 +197,6 @@ class EcommerceService extends BaseService
     public function getRevenue()
     {
 
-        $this->revenueService = new RevenueService($this->account);
         $revenue              = $this->revenueService->getRevenue();
         return $revenue;
 
@@ -212,7 +205,6 @@ class EcommerceService extends BaseService
     public function getRevenueGrowth()
     {
 
-        $this->revenueService = new RevenueService($this->account);
         $revenue              = $this->revenueService->getRevenueGrowth();
         return $revenue;
 
@@ -260,7 +252,6 @@ class EcommerceService extends BaseService
     public function getPreviousMonthRevenue()
     {
 
-        $this->revenueService = new RevenueService($this->account);
         $month                = date('m');
 
         $revenue = $this->revenueService->getAllRevenue(month: $month - 1);
@@ -271,7 +262,6 @@ class EcommerceService extends BaseService
     public function getTotalDaysRevenue()
     {
 
-        $this->revenueService = new RevenueService($this->account);
         $revenue              = $this->revenueService->getTotalDaysRevenue();
         return $revenue;
 

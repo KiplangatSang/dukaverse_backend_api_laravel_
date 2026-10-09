@@ -1,15 +1,18 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreLoanRequest;
 use App\Http\Requests\UpdateLoanRequest;
 use App\Models\Loan;
+use Exception;
 
 class LoanController extends Controller
 {
 
-  public function __construct(
+    public function __construct(
         protected ApiResource $apiResource,
     ) {
         parent::__construct($apiResource);
@@ -19,9 +22,14 @@ class LoanController extends Controller
      */
     public function index()
     {
-        //
-        $loans = Loan::all();
-        return $loans;
+        try {
+            //
+            $loans = Loan::all();
+            return $loans;
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -29,7 +37,13 @@ class LoanController extends Controller
      */
     public function create()
     {
-        //
+        try {
+            //
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -37,7 +51,13 @@ class LoanController extends Controller
      */
     public function store(StoreLoanRequest $request)
     {
-        //
+        try {
+            //
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -45,7 +65,13 @@ class LoanController extends Controller
      */
     public function show(Loan $loan)
     {
-        //
+        try {
+            //
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -53,7 +79,13 @@ class LoanController extends Controller
      */
     public function edit(Loan $loan)
     {
-        //
+        try {
+            //
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -61,7 +93,13 @@ class LoanController extends Controller
      */
     public function update(UpdateLoanRequest $request, Loan $loan)
     {
-        //
+        try {
+            //
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -69,6 +107,11 @@ class LoanController extends Controller
      */
     public function destroy(Loan $loan)
     {
-        //
+        try {
+            //
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

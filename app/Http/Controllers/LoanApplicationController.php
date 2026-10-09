@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateLoanApplicationRequest;
 use App\Models\Loan;
 use App\Models\LoanApplication;
 use App\Services\ThirdPartyService;
+use Exception;
 
 /**
  * @OA\Tag(
@@ -17,6 +18,14 @@ use App\Services\ThirdPartyService;
  */
 class LoanApplicationController extends BaseController
 {
+
+public function __construct(
+        protected ApiResource $apiResource,
+        protected readonly ThirdPartyService $thirdPartyService,
+    ) {
+        parent::__construct($apiResource);
+    }
+
     /**
      * @OA\Get(
      *     path="/api/v1/loans/{loan}/applications",
@@ -43,6 +52,7 @@ class LoanApplicationController extends BaseController
      */
     public function index(Loan $loan)
     {
+        try{
         // Get the first loan application for this loan (or latest one)
         $loanApplication = $loan->loanApplications()->latest()->first();
 
@@ -80,6 +90,10 @@ class LoanApplicationController extends BaseController
             'loan_application' => $loanApplication,
             'styling'          => $styling,
         ], "Loan application data fetched successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -112,6 +126,7 @@ class LoanApplicationController extends BaseController
      */
     public function store(StoreLoanApplicationRequest $request)
     {
+        try{
         $loanApplication = LoanApplication::create($request->validated());
 
         if (! $loanApplication) {
@@ -122,6 +137,10 @@ class LoanApplicationController extends BaseController
             ['loan_application' => $loanApplication],
             "Loan application created successfully"
         );
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -145,10 +164,15 @@ class LoanApplicationController extends BaseController
      */
     public function show(LoanApplication $loanApplication)
     {
+        try{
         return $this->sendResponse(
             ['loan_application' => $loanApplication],
             "Loan application fetched successfully"
         );
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -183,6 +207,7 @@ class LoanApplicationController extends BaseController
      */
     public function update(UpdateLoanApplicationRequest $request, LoanApplication $loanApplication)
     {
+        try{
         $updated = $loanApplication->update($request->validated());
 
         if (! $updated) {
@@ -193,6 +218,10 @@ class LoanApplicationController extends BaseController
             ['loan_application' => $loanApplication->fresh()],
             "Loan application updated successfully"
         );
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -220,6 +249,7 @@ class LoanApplicationController extends BaseController
      */
     public function destroy(LoanApplication $loanApplication)
     {
+        try{
         $deleted = $loanApplication->delete();
 
         if (! $deleted) {
@@ -227,6 +257,10 @@ class LoanApplicationController extends BaseController
         }
 
         return $this->sendResponse([], "Loan application deleted successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -254,18 +288,22 @@ class LoanApplicationController extends BaseController
      */
     public function payLoanRequest($loanApplicationId)
     {
+        try{
         $loanApplication = LoanApplication::find($loanApplicationId);
 
         if (! $loanApplication) {
             return $this->sendError('Loan application not found');
         }
-
-        $thirdPartyRepo   = new ThirdPartyService();
-        $thirdPartyImages = $thirdPartyRepo->getThirdPartyImages();
+        $thirdPartyImages = $this->thirdPartyService->getThirdPartyImages();
 
         return $this->sendResponse([
             'third_party_images' => $thirdPartyImages,
             'loan_application'   => $loanApplication,
         ], "Loan payment data fetched successfully");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

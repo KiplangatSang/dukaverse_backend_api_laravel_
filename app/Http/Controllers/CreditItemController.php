@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Resources\ApiResource;
-
+use App\Services\AuthService;
 use App\Services\SaleService;
+use Exception;
 use Illuminate\Http\Request;
 
 /**
@@ -16,20 +17,16 @@ class CreditItemController extends BaseController
     private $salesrepo;
     private $retail;
 
-    /**
-     * Get the SaleService instance for the current retail store.
-     *
-     * @return \App\Services\SalesService|bool
-     */
-    public function salesService()
-    {
-        $this->retail = $this->getAccount();
-        if (! $this->retail) {
-            return false;
-        }
 
-        return new SaleService($this->retail);
+    public function __construct(
+        private readonly AuthService $authService,
+        ApiResource $apiResource,
+        protected readonly SaleService $salesService
+    ) {
+        parent::__construct($apiResource);
     }
+
+
 
     /**
      * @OA\Get(
@@ -57,7 +54,8 @@ class CreditItemController extends BaseController
      */
     public function index()
     {
-        $creditItems = $this->salesService()->getCreditItems();
+        try{
+        $creditItems = $this->salesService->getCreditItems();
 
         $soldItems = 0;
         foreach ($creditItems as $creditItem) {
@@ -69,6 +67,11 @@ class CreditItemController extends BaseController
         $salesdata['customers'] = $this->getAccount()->customers()->with('credits')->get();
 
         return $this->sendResponse(['salesdata' => $salesdata], "Data fetched successfully");
+
+          } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -98,14 +101,20 @@ class CreditItemController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $request->validate([
             'transaction_id' => 'required|string',
             'customer_id'    => 'required|integer',
         ]);
 
-        $this->salesService()->setCreditItems($request->transaction_id, $request->customer_id);
+        $this->salesService->setCreditItems($request->transaction_id, $request->customer_id);
 
         return $this->sendResponse([], "Credit item stored successfully", 201);
+
+           } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -133,7 +142,13 @@ class CreditItemController extends BaseController
      */
     public function show($id)
     {
+        try{
         // TODO: Implement fetching a single credit item by ID
+
+            } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -168,7 +183,13 @@ class CreditItemController extends BaseController
      */
     public function update(Request $request, $id)
     {
+        try{
         // TODO: Implement updating a credit item
+
+           } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -196,6 +217,11 @@ class CreditItemController extends BaseController
      */
     public function destroy($id)
     {
+        try{
         // TODO: Implement deleting a credit item
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 }

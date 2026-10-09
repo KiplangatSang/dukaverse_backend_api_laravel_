@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
- 
+
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\ApiResource;
@@ -18,14 +18,13 @@ use Illuminate\Support\Str;
  */
 class OrderController extends BaseController
 {
-    protected OrderService $orderService;
 
     public function __construct(
         private readonly AuthService $authService,
-        ApiResource $apiResource
+        ApiResource $apiResource,
+        private readonly OrderService $orderService,
     ) {
         parent::__construct($apiResource);
-        $this->orderService = new OrderService(new OrderService($this->getAccount()), $this->getAccount());
     }
 
     /**

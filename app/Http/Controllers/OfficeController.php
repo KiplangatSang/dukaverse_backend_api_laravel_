@@ -10,6 +10,7 @@ use App\Services\AppService;
 use App\Services\AuthService;
 use App\Services\FirebaseService;
 use App\Services\GoodsandServicesService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -48,12 +49,18 @@ class OfficeController extends BaseController
      */
     public function index()
     {
+        try{
         $offices = $this->user()->offices;
 
         if (! $offices) {
             return $this->sendError('Offices data could not be fetched', ['offices' => $offices]);
         }
         return $this->sendResponse(['offices' => $offices], 'Data fetched successfully');
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -70,6 +77,7 @@ class OfficeController extends BaseController
      */
     public function create()
     {
+        try{
         $region          = $this->appService->getLocationDetails();
         $officeGoods     = GoodsandServicesService::GOODS;
         $officesServices = GoodsandServicesService::SERVICES;
@@ -89,6 +97,11 @@ class OfficeController extends BaseController
             return $this->sendError('Offices data could not be fetched', ['result' => $office_data]);
         }
         return $this->sendResponse(['office_data' => $office_data], 'Data fetched successfully');
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -110,6 +123,7 @@ class OfficeController extends BaseController
      */
     public function createSimpleOffice(Request $request)
     {
+        try{
         try {
             $result = $this->accountService->createSimpleOffice($request->all());
 
@@ -120,6 +134,11 @@ class OfficeController extends BaseController
         } catch (\Exception $e) {
             return $this->sendError('Error creating office', $e->getMessage());
         }
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -142,6 +161,7 @@ class OfficeController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $validator = Validator::make($request->all(), [
             "name"               => "required",
             "goods_and_services" => "required",
@@ -179,6 +199,11 @@ class OfficeController extends BaseController
         }
 
         return $this->sendResponse(['result' => $officeResult], "Account created successfully");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -193,7 +218,13 @@ class OfficeController extends BaseController
      */
     public function show(Office $office)
     {
+        try{
         //
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -210,6 +241,7 @@ class OfficeController extends BaseController
      */
     public function update(UpdateOfficeRequest $request, Office $office)
     {
+        try{
         if ($request->goods_and_services) {
             $goods_and_services            = json_decode($office->goods_and_services);
             $goods                         = array_merge((array) $goods_and_services, $request->goods_and_services);
@@ -218,6 +250,11 @@ class OfficeController extends BaseController
 
         $office->update($request->all());
         return back()->with("success", "Profile data Updated");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -232,6 +269,7 @@ class OfficeController extends BaseController
      */
     public function destroy($office)
     {
+        try{
         $officeResult = Office::destroy($office);
 
         if (! $officeResult) {
@@ -239,6 +277,11 @@ class OfficeController extends BaseController
         }
 
         return $this->sendResponse(['result' => $officeResult], 'Office deleted successfully');
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -263,6 +306,7 @@ class OfficeController extends BaseController
      */
     public function paymentPreference($id, Request $request)
     {
+        try{
         $request->validate([
             "paymentpreference" => "required",
         ]);
@@ -292,6 +336,11 @@ class OfficeController extends BaseController
         ]);
 
         return back()->with("success", "Payment preference data Updated");
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -314,6 +363,7 @@ class OfficeController extends BaseController
      */
     public function updateOfficeProfile(Request $request)
     {
+        try{
         $office          = $this->account();
         $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if (request()->hasFile('file')) {
@@ -325,6 +375,11 @@ class OfficeController extends BaseController
         ]);
 
         return 200;
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -347,6 +402,7 @@ class OfficeController extends BaseController
      */
     public function uploadOfficeDocuments(Request $request)
     {
+        try{
         $office          = $this->account();
         $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if (request()->hasFile('file')) {
@@ -364,6 +420,11 @@ class OfficeController extends BaseController
         ]);
 
         return 200;
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -386,6 +447,7 @@ class OfficeController extends BaseController
      */
     public function uploadRelevantDocuments(Request $request)
     {
+        try{
         $office          = $this->account();
         $fileNameToStore = $this->appService->getBaseImages()['nofile'];
         if (request()->hasFile('file')) {
@@ -402,5 +464,10 @@ class OfficeController extends BaseController
         $office->update([
             "office_relevant_documents" => json_encode($documents),
         ]);
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

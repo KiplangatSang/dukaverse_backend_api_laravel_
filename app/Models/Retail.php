@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,22 @@ class Retail extends Model
     use HasFactory, Notifiable;
 
     protected $guarded = [];
+
+
+    protected $appends = ['account_type'];
+    public function getAccountTypeAttribute()
+    {
+        return 'retail';
+    }
+
+
+    public static function employeePermissions()
+    {
+        # code...
+        $permissions = Role::EMPLOYEE_PERMISSIONS;
+        return $permissions;
+    }
+
     public function ownerable()
     {
         return $this->morphTo();
@@ -31,7 +48,6 @@ class Retail extends Model
     public function user()
     {
         return $this->owners()->where('ownerable_type', User::class)->where('ownerable_id', Auth::id());
-
     }
 
     public function registeredOwner()
@@ -52,13 +68,6 @@ class Retail extends Model
     public function retailOwners()
     {
         return $this->ownerable();
-    }
-
-    public static function employeePermissions()
-    {
-        # code...
-        $permissions = Role::EMPLOYEE_PERMISSIONS;
-        return $permissions;
     }
 
     public function profile()
@@ -167,9 +176,9 @@ class Retail extends Model
         return $this->morphMany(Transaction::class, "ownerable");
     }
 
-    public function accounts()
+    public function wallets()
     {
-        return $this->morphMany(Account::class, "ownerable");
+        return $this->morphMany(Wallet::class, "ownerable");
     }
 
     public function subscriptions()
@@ -259,7 +268,10 @@ class Retail extends Model
     public function activities()
     {
         return $this->morphMany(UserActivity::class, 'ownerable');
-
     }
 
+    public function tiers()
+    {
+        return $this->morphMany(Tier::class, 'ownerable');
+    }
 }

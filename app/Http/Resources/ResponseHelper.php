@@ -5,6 +5,11 @@ class ResponseHelper
 {
     public static function respond($data = null, $message = 'Successful response', $httpCode = 200)
     {
+
+          if (!is_array($data)) {
+            $data = $data->toArray();
+        }
+
         return [
             'data'     => $data,
             'httpCode' => $httpCode,

@@ -4,6 +4,7 @@ use App\Http\Resources\ApiResource;
 
 use App\Models\Message;
 use App\Models\Retail;
+use Exception;
 use Illuminate\Http\Request;
 
 /**
@@ -46,9 +47,14 @@ class MessageController extends BaseController
 
     public function index()
     {
+        try{
         $messages                 = $this->retail()->messages()->latest()->get();
         $messagesdata['messages'] = $messages;
         return $this->sendResponse($messagesdata, 'success, messages');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -66,8 +72,13 @@ class MessageController extends BaseController
      */
     public function create()
     {
+        try{
         $message = $this->retail()->messages()->get();
         return $this->sendResponse($message, 'success, message');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -91,6 +102,7 @@ class MessageController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $request['sender_id'] = $this->user()->id;
         $request['retail_id'] = $this->retail()->id;
         $result               = $this->retail()->messages()->create($request->all());
@@ -103,6 +115,10 @@ class MessageController extends BaseController
         $this->sendNotification($result);
 
         return $this->sendResponse($result, 'Success! Message sent. Awaiting response');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -125,15 +141,25 @@ class MessageController extends BaseController
      */
     public function show(Message $message)
     {
+        try{
         $message = Message::where('id', $message->id)
             ->with('retail')
             ->first();
         return $this->sendResponse($message, 'Success! Message sent. Await response');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     public function edit(Message $message)
     {
+        try{
         //
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -163,6 +189,7 @@ class MessageController extends BaseController
      */
     public function update(Request $request, Message $message)
     {
+        try{
         $response = [
             "key"     => "retail",
             "message" => $request->message,
@@ -194,6 +221,10 @@ class MessageController extends BaseController
         }
 
         return $this->sendResponse($message, 'success! Message sent successfully');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -216,12 +247,17 @@ class MessageController extends BaseController
      */
     public function destroy(Message $message)
     {
+        try{
         $result = Message::destroy($message->id);
         if (! $result) {
             return $this->sendError('error', 'This item could not be deleted');
         }
 
         return $this->sendResponse('success', 'This item has been deleted successfully');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -245,6 +281,7 @@ class MessageController extends BaseController
      */
     public function messageTenant(Request $request)
     {
+        try{
         $message = $this->retail()->message()->where('retail_id', $request->retail_id)
             ->first();
 
@@ -265,10 +302,15 @@ class MessageController extends BaseController
         }
 
         return $this->sendResponse($message, 'Success, message sent successfully');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     public function sendNotification($message)
     {
+        try{
         if ($message->retail) {
             $this->notifyRetail($message->retail_id, $message);
         } else {
@@ -276,21 +318,35 @@ class MessageController extends BaseController
         }
 
         return true;
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     public function notifyRetail($retail_id, $message)
     {
+        try{
         $retail = Retail::where('id', $retail_id)->first();
         // $retail->user->notify(new RetailNotification($message));
         return true;
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     public function notifyRetails($message)
     {
+        try{
         $retails = Retail::with('user')->get();
         foreach ($retails as $retail) {
             // $retail->notify(new RetailNotification($message));
         }
         return true;
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

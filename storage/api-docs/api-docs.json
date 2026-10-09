@@ -12,27 +12,10 @@
                     "Accounts"
                 ],
                 "summary": "Get list of accounts",
-                "operationId": "27eb27444be51de1fad6b0f51082e0df",
+                "operationId": "d0843c66644ffb27960437c18bbec269",
                 "responses": {
                     "200": {
                         "description": "Successful operation"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Create a new account",
-                "operationId": "f0003c122130a41b2d5450cffb1d65e4",
-                "responses": {
-                    "201": {
-                        "description": "Account created"
                     }
                 },
                 "security": [
@@ -48,7 +31,7 @@
                     "Accounts"
                 ],
                 "summary": "Show form for creating an account",
-                "operationId": "194b6982a09ce7d9e324e7b7b97fc2bc",
+                "operationId": "6a6c17d166bcc9380fe8734d44b8c6b8",
                 "responses": {
                     "200": {
                         "description": "Successful operation"
@@ -61,103 +44,20 @@
                 ]
             }
         },
-        "/api/v1/accounts/{account}": {
+        "/api/v1/accounts/{type}": {
             "get": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Get a specific account",
-                "operationId": "44e6ab17b452e3ea556008ac723bfab1",
+                "operationId": "d1873ae76ee9bc4fb4b7e4544903a608",
                 "parameters": [
                     {
                         "name": "account",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Update an account",
-                "operationId": "93ee2a5ad64099dcaf18e5aeff0f289a",
-                "parameters": [
-                    {
-                        "name": "account",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Account updated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Delete an account",
-                "operationId": "351d618f1986d54fccee477f9c60091a",
-                "parameters": [
-                    {
-                        "name": "account",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Account deleted"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/accounts/{account}/edit": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Show form for editing an account",
-                "operationId": "30f95767f18bbc8e330987089a036729",
-                "parameters": [
-                    {
-                        "name": "account",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -773,12 +673,12 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "user@example.com"
+                                        "example": "johndoe@example.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "secret123"
+                                        "example": "password123"
                                     }
                                 },
                                 "type": "object"
@@ -1921,6 +1821,112 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Failed to send OTP."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/phone/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify phone OTP",
+                "description": "Verify the OTP sent to the user's phone number",
+                "operationId": "verifyPhoneOtp",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "otp": {
+                                        "description": "6-digit OTP code",
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Phone number verified successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Phone number verified successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Phone number verified successfully"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired OTP",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid or expired OTP."
                                         },
                                         "data": {
                                             "type": "array",
@@ -3652,13 +3658,13 @@
                 ]
             }
         },
-        "/api/coupons": {
+        "/api/v1/coupons": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get all coupons",
-                "operationId": "de1c8db4ca4b3c683e03dffd02a9f448",
+                "operationId": "bb7229a66fa8a8bec78d3393e623d2bf",
                 "responses": {
                     "200": {
                         "description": "Coupons fetched successfully"
@@ -3675,7 +3681,7 @@
                     "Coupons"
                 ],
                 "summary": "Create a new coupon",
-                "operationId": "f3ffee4301fb5522bc31d0dd443a07e8",
+                "operationId": "ee1482adde4ea84755f99ce5d08e1e2b",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -3758,13 +3764,13 @@
                 ]
             }
         },
-        "/api/coupons/create": {
+        "/api/v1/coupons/create": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get coupon creation metadata",
-                "operationId": "506293e27bd1439c717b67a9620cb761",
+                "operationId": "43d4075971f1c3d707ad2359590c0f29",
                 "responses": {
                     "200": {
                         "description": "Coupon creation metadata fetched successfully"
@@ -3777,13 +3783,13 @@
                 ]
             }
         },
-        "/api/coupons/{id}": {
+        "/api/v1/coupons/{id}": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get a coupon by ID",
-                "operationId": "fc0581b6388ac380af23011bb4ca9fdd",
+                "operationId": "e5ba695f60837ac60f3dc3eccbf2b2f1",
                 "parameters": [
                     {
                         "name": "id",
@@ -3813,7 +3819,7 @@
                     "Coupons"
                 ],
                 "summary": "Update a coupon",
-                "operationId": "057e26e126d3c2474c93f0ab7047a507",
+                "operationId": "4470fda9ed48626ebac3d3e255f0a4b9",
                 "parameters": [
                     {
                         "name": "id",
@@ -3910,7 +3916,7 @@
                     "Coupons"
                 ],
                 "summary": "Delete a coupon",
-                "operationId": "17bea67ca5229520f7a6975f625ca627",
+                "operationId": "d477dd4444ece3a2cabd027c661c155b",
                 "parameters": [
                     {
                         "name": "id",
@@ -3936,13 +3942,13 @@
                 ]
             }
         },
-        "/api/coupons/{id}/edit": {
+        "/api/v1/coupons/{id}/edit": {
             "get": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Get a coupon for editing",
-                "operationId": "51379d9bdecc8e869ece05f892c41df1",
+                "operationId": "f2a4e0dcb867dfe6c593a2de8d0f5610",
                 "parameters": [
                     {
                         "name": "id",
@@ -3965,13 +3971,13 @@
                 ]
             }
         },
-        "/api/coupons/validate": {
+        "/api/v1/coupons/validate": {
             "post": {
                 "tags": [
                     "Coupons"
                 ],
                 "summary": "Validate a coupon code",
-                "operationId": "93d93652dcb6201932b083ac045eac68",
+                "operationId": "f7f71932703cd94a348d16c5397a36fb",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -4474,6 +4480,1819 @@
                 "responses": {
                     "200": {
                         "description": "Invoice sent successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accreditation/apply": {
+            "post": {
+                "tags": [
+                    "Accreditation"
+                ],
+                "summary": "Apply for accreditation",
+                "operationId": "dd425d7cbb4cee157706c9c694014db8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "business_type",
+                                    "years_experience",
+                                    "specializations",
+                                    "references"
+                                ],
+                                "properties": {
+                                    "business_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "individual",
+                                            "business"
+                                        ]
+                                    },
+                                    "years_experience": {
+                                        "type": "integer"
+                                    },
+                                    "specializations": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "references": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Accreditation application submitted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accreditation/status": {
+            "get": {
+                "tags": [
+                    "Accreditation"
+                ],
+                "summary": "Get accreditation status",
+                "operationId": "58abe88feed89cc3970255898f90385b",
+                "responses": {
+                    "200": {
+                        "description": "Accreditation status retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accreditation/upload-document": {
+            "post": {
+                "tags": [
+                    "Accreditation"
+                ],
+                "summary": "Upload accreditation documents",
+                "operationId": "6590328c5788abba5117edaad2d13972",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "business_license",
+                                            "insurance",
+                                            "background_check",
+                                            "training_certificate"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Document uploaded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accreditation/requirements": {
+            "get": {
+                "tags": [
+                    "Accreditation"
+                ],
+                "summary": "Get accreditation requirements",
+                "operationId": "cdc56519f6ef248d4803365919cca718",
+                "responses": {
+                    "200": {
+                        "description": "Accreditation requirements retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accreditation/renew": {
+            "post": {
+                "tags": [
+                    "Accreditation"
+                ],
+                "summary": "Renew accreditation",
+                "operationId": "3430fd38e44e72c7b152ad92eb165978",
+                "responses": {
+                    "200": {
+                        "description": "Accreditation renewal initiated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/accreditation/details": {
+            "get": {
+                "tags": [
+                    "Service Details"
+                ],
+                "summary": "Get accreditation service details",
+                "operationId": "7331ea60a7977dc712394ad04a6f7655",
+                "responses": {
+                    "200": {
+                        "description": "Accreditation details retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get all users (admin only)",
+                "operationId": "e98846f1c4a516b9049935d064ee16ef",
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/deliveries": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get all deliveries (admin only)",
+                "operationId": "016b6a9ba8d35706c0ee6df5bbd261ea",
+                "responses": {
+                    "200": {
+                        "description": "Deliveries retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/user/{userId}/status": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update user status (admin only)",
+                "operationId": "ade00f8966a47d3479a46f5b78f477de",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "verified": {
+                                        "type": "boolean"
+                                    },
+                                    "accredited": {
+                                        "type": "boolean"
+                                    },
+                                    "subscribed": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login user",
+                "operationId": "35fda137aedfea9ec65c178437f72380",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register new user",
+                "operationId": "da46c658183941b7d8a9d8e9891f4462",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "nationalId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registration successful"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user",
+                "operationId": "8f7c7369d37ba0a9bf2d361f49405da7",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/verify-email": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Send email verification code",
+                "operationId": "a9e8368ca66048301f9dabef8738d4ec",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/verify-code": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email with code",
+                "operationId": "e2125933cfcf9b0f1b19f579745c3adc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "code": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request password reset",
+                "operationId": "8d568bfbe75ac4db78fbda65c5f12d93",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset link sent"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset password with token",
+                "operationId": "c7d0099f37c8ed272c4ebba6f2c7e10a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 8
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/google-signin": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Google OAuth sign-in",
+                "operationId": "606c50d0fd73544ff8b4467e0e2f8a3a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "access_token"
+                                ],
+                                "properties": {
+                                    "access_token": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Google sign-in successful"
+                    }
+                }
+            }
+        },
+        "/api/v1/deliveries/available": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get available delivery jobs",
+                "operationId": "91f5929209f5f79c01d1d3dfe153e3bc",
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitude",
+                        "required": false
+                    },
+                    {
+                        "name": "lng",
+                        "in": "query",
+                        "description": "Longitude",
+                        "required": false
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Search radius in km",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Available jobs retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/{jobId}/bid": {
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Place a bid on a delivery job",
+                "operationId": "7d498bb97006f0cde06648751bc34d92",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "bid_amount",
+                                    "estimated_time"
+                                ],
+                                "properties": {
+                                    "bid_amount": {
+                                        "type": "number",
+                                        "minimum": 0
+                                    },
+                                    "estimated_time": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bid placed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/my-bids": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get user's active bids",
+                "operationId": "e2313b05250bced3bf921cd30b36ccfd",
+                "responses": {
+                    "200": {
+                        "description": "Active bids retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/{jobId}/accept": {
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Accept a delivery job",
+                "operationId": "1ea6e6d6631683f09ae1032a07f20b76",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job accepted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/{jobId}/status": {
+            "put": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Update delivery status",
+                "operationId": "930ae1b6252ac257424f46ed2a49ec0b",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "picked_up",
+                                            "in_transit",
+                                            "delivered"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/deliveries/history": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get delivery history",
+                "operationId": "ef0288b64bef8daa59edb658f3536a99",
+                "responses": {
+                    "200": {
+                        "description": "Delivery history retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-app/notifications": {
+            "get": {
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Get user notifications",
+                "operationId": "e546c7088b91c3d21b66be3eac18706c",
+                "responses": {
+                    "200": {
+                        "description": "Notifications retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-app/notifications/{notificationId}/read": {
+            "put": {
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Mark notification as read",
+                "operationId": "01f68a997a01e9baad198c848a6c8421",
+                "parameters": [
+                    {
+                        "name": "notificationId",
+                        "in": "path",
+                        "description": "Notification ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/process": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Process a payment",
+                "operationId": "ffe4b3755f8e1d9c80f1b0693607c228",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "payment_method",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "verification",
+                                            "accreditation",
+                                            "subscription"
+                                        ]
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "card",
+                                            "paypal",
+                                            "apple_pay",
+                                            "google_pay"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "minimum": 0
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment initiated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/status/{paymentId}": {
+            "get": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Check payment status",
+                "operationId": "bb263514fe92bc025c56ba131e760739",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "description": "Payment ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment status retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/history": {
+            "get": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Get payment history",
+                "operationId": "d3ce83e061a10f0bcaf17aebf4319911",
+                "responses": {
+                    "200": {
+                        "description": "Payment history retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/webhook": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Stripe webhook for payment confirmations",
+                "operationId": "33be2a961e8a08d3160baa6209296642",
+                "requestBody": {
+                    "description": "Stripe webhook payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed successfully"
+                    }
+                }
+            }
+        },
+        "/api/v1/subscriptions/plans": {
+            "get": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Get available subscription plans",
+                "operationId": "6f0d8dd24ebb0e5a76f6d7773ab3fc01",
+                "responses": {
+                    "200": {
+                        "description": "Plans retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/subscriptions/subscribe": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Subscribe to a plan",
+                "operationId": "44521311ba52d10b048088f2a439a3dc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plan_id",
+                                    "payment_method"
+                                ],
+                                "properties": {
+                                    "plan_id": {
+                                        "type": "string"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "card",
+                                            "paypal",
+                                            "apple_pay",
+                                            "google_pay"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Subscription created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/subscriptions/current": {
+            "get": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Get current subscription",
+                "operationId": "4616523534d03ff0d3c220f92eaf9a5d",
+                "responses": {
+                    "200": {
+                        "description": "Current subscription retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/subscriptions/cancel": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Cancel subscription",
+                "operationId": "f0ef5bd350a9e178f33fa4df360dad35",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "cancel_at_period_end": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription cancelled successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/subscriptions/reactivate": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Reactivate cancelled subscription",
+                "operationId": "0dae73d2e19397c72f64bf916181c63a",
+                "responses": {
+                    "200": {
+                        "description": "Subscription reactivated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/subscription/details": {
+            "get": {
+                "tags": [
+                    "Service Details"
+                ],
+                "summary": "Get subscription service details",
+                "operationId": "016ab7414fbf21fb5f4b1110159b6880",
+                "responses": {
+                    "200": {
+                        "description": "Subscription details retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/upload/document": {
+            "post": {
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Upload verification documents",
+                "operationId": "b42a691d5f16d480fa85153a9de70ae5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "id_card",
+                                            "license",
+                                            "insurance"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Document uploaded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/upload/vehicle-photo": {
+            "post": {
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Upload vehicle photos",
+                "operationId": "a3ca15961affec3b5503b468e9c4d01b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "front",
+                                            "side",
+                                            "back"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Photo uploaded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/profile": {
+            "get": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Get user profile",
+                "operationId": "fff33dbf7ce2957ab58d857703a47a55",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Update user profile",
+                "operationId": "eef7edf991667402f2f0aa8952a8c0dc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/vehicle": {
+            "put": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Update vehicle information",
+                "operationId": "af506e3e03552a3832d0bc6e5449d7fc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "make",
+                                    "model",
+                                    "year",
+                                    "license_plate",
+                                    "color",
+                                    "vin"
+                                ],
+                                "properties": {
+                                    "make": {
+                                        "type": "string"
+                                    },
+                                    "model": {
+                                        "type": "string"
+                                    },
+                                    "year": {
+                                        "type": "integer"
+                                    },
+                                    "license_plate": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    },
+                                    "vin": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vehicle information updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/verification/initiate": {
+            "post": {
+                "tags": [
+                    "Verification"
+                ],
+                "summary": "Initiate verification process",
+                "operationId": "8977717534485a37e6f8cc6bdafe7d6d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "email",
+                                            "phone",
+                                            "identity"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification initiated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/verification/verify": {
+            "post": {
+                "tags": [
+                    "Verification"
+                ],
+                "summary": "Complete verification",
+                "operationId": "4ec8055b932036fa05fe91745899ed7f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "verification_id",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "verification_id": {
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification completed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/verification/status": {
+            "get": {
+                "tags": [
+                    "Verification"
+                ],
+                "summary": "Get verification status",
+                "operationId": "8a99452e349d02f888d301550f73c4d2",
+                "responses": {
+                    "200": {
+                        "description": "Verification status retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/verification/details": {
+            "get": {
+                "tags": [
+                    "Service Details"
+                ],
+                "summary": "Get verification service details",
+                "operationId": "e9d3822fbfd7f82fef0567e9f654ab87",
+                "responses": {
+                    "200": {
+                        "description": "Verification details retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/orders": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get delivery orders",
+                "operationId": "e20ac85dd41b5f326306d5622b074c88",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "query",
+                        "description": "Filter by restaurant ID",
+                        "required": false
+                    },
+                    {
+                        "name": "rider_id",
+                        "in": "query",
+                        "description": "Filter by rider ID",
+                        "required": false
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery orders retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Create delivery order",
+                "operationId": "4b0c3c04e05cd077b19108f2a95bcf6e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_id",
+                                    "delivery_location"
+                                ],
+                                "properties": {
+                                    "order_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "pickup_location": {
+                                        "type": "object"
+                                    },
+                                    "delivery_location": {
+                                        "type": "object"
+                                    },
+                                    "estimated_distance": {
+                                        "type": "number"
+                                    },
+                                    "estimated_duration": {
+                                        "type": "integer"
+                                    },
+                                    "fee": {
+                                        "type": "number"
+                                    },
+                                    "special_instructions": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Delivery order created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/orders/{orderId}/status": {
+            "put": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Update delivery order status",
+                "operationId": "ae5ca8b9a6cbfb4111a7b3ba2564362c",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "Delivery Order ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "assigned",
+                                            "picked_up",
+                                            "in_transit",
+                                            "delivered",
+                                            "cancelled",
+                                            "failed"
+                                        ]
+                                    },
+                                    "rider_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Delivery status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/orders/{orderId}/assign": {
+            "put": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Assign rider to delivery",
+                "operationId": "553d83abbb4976efd6429a38ffd9edb1",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "Delivery Order ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rider_id"
+                                ],
+                                "properties": {
+                                    "rider_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rider assigned successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/riders/available": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get available riders",
+                "operationId": "e7fcd301d2b8f9e8ec193e70d9cff6e6",
+                "parameters": [
+                    {
+                        "name": "location",
+                        "in": "query",
+                        "description": "Location coordinates (lat,lng)",
+                        "required": false
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Search radius in km",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Available riders retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/riders/{riderId}/location": {
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Update rider location",
+                "operationId": "7c25dd12444f54d151c9f5c470d68704",
+                "parameters": [
+                    {
+                        "name": "riderId",
+                        "in": "path",
+                        "description": "Rider ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "latitude",
+                                    "longitude"
+                                ],
+                                "properties": {
+                                    "latitude": {
+                                        "type": "number"
+                                    },
+                                    "longitude": {
+                                        "type": "number"
+                                    },
+                                    "accuracy": {
+                                        "type": "number"
+                                    },
+                                    "speed": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rider location updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/orders/{orderId}/tracking": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get delivery tracking information",
+                "operationId": "7d52169a52224cb6677ec58842333efc",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "Delivery Order ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery tracking information retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/orders/{orderId}/rating": {
+            "post": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Submit delivery rating",
+                "operationId": "242c68602fef56e63db09a692a49a2fe",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "Delivery Order ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rating"
+                                ],
+                                "properties": {
+                                    "rating": {
+                                        "type": "integer",
+                                        "maximum": 5,
+                                        "minimum": 1
+                                    },
+                                    "rider_rating": {
+                                        "type": "integer",
+                                        "maximum": 5,
+                                        "minimum": 1
+                                    },
+                                    "food_rating": {
+                                        "type": "integer",
+                                        "maximum": 5,
+                                        "minimum": 1
+                                    },
+                                    "packaging_rating": {
+                                        "type": "integer",
+                                        "maximum": 5,
+                                        "minimum": 1
+                                    },
+                                    "comment": {
+                                        "type": "string"
+                                    },
+                                    "tip_amount": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Delivery rating submitted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery/reports/performance": {
+            "get": {
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "Get delivery performance report",
+                "operationId": "7f45c327ac239ab38fe1ed2f5ebab13e",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "required": false
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "End date (YYYY-MM-DD)",
+                        "required": false
+                    },
+                    {
+                        "name": "rider_id",
+                        "in": "query",
+                        "description": "Filter by rider ID",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery performance report generated successfully"
                     }
                 },
                 "security": [
@@ -5841,13 +7660,13 @@
                 ]
             }
         },
-        "/api/v1/employees/assign-role": {
+        "/api/v1/employees/{employee_id}/edit/roles/assign": {
             "post": {
                 "tags": [
                     "Employees"
                 ],
                 "summary": "Assign roles to employee",
-                "operationId": "f440e064ed02d9836d2ed6d5d0dc596b",
+                "operationId": "6b6ac8c0c04a4b0790b96411b7804f95",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -5892,13 +7711,13 @@
                 ]
             }
         },
-        "/api/v1/employees/unassign-role": {
+        "/api/v1/employees/{employee_id}/edit/roles/unassign/{role_id}": {
             "post": {
                 "tags": [
                     "Employees"
                 ],
                 "summary": "Unassign a role from employee",
-                "operationId": "c0f6c21b9026fcd445894a7bf2a1d38d",
+                "operationId": "08579ba20fca5e6d201dcaf75eb257dc",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -6118,14 +7937,14 @@
                 ]
             }
         },
-        "/api/v1/analytics/dashboard": {
+        "/api/v1/analytics/data": {
             "get": {
                 "tags": [
                     "Analytics"
                 ],
                 "summary": "Get analytics dashboard data",
                 "description": "Fetch the main analytics dashboard data",
-                "operationId": "c914b65d5aff635d9babcaee5065a0f6",
+                "operationId": "df33926ed309d4bfd6d97761baf0aa35",
                 "responses": {
                     "200": {
                         "description": "Data fetched successfully",
@@ -6543,7 +8362,7 @@
                     "Analytics"
                 ],
                 "summary": "Get e-commerce analytics",
-                "operationId": "81308aa95c69e4301ea2e871758ed204",
+                "operationId": "3f739bf8eef97d6a0cd32f1a92294f79",
                 "responses": {
                     "200": {
                         "description": "E-commerce analytics data",
@@ -6577,7 +8396,7 @@
                     "Analytics"
                 ],
                 "summary": "Get wallet analytics",
-                "operationId": "a1e648a95790dde28b8dbea1874e5ddd",
+                "operationId": "6b75714eb13f3817429bb6c5f1334713",
                 "responses": {
                     "200": {
                         "description": "Wallet analytics data",
@@ -6596,6 +8415,275 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/analytics/dashboard-crm": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get CRM analytics",
+                "operationId": "32628998160040c3f496a5b1dca32b65",
+                "responses": {
+                    "200": {
+                        "description": "CRM analytics data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": true,
+                                    "message": "Data fetched successfully",
+                                    "data": {
+                                        "leads": 30,
+                                        "conversions": 15
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/inventory": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Get inventory data",
+                "operationId": "4c6266820dcc86d9c9d5d6ca66eb4ec8",
+                "responses": {
+                    "200": {
+                        "description": "Inventory data retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Error retrieving inventory data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/inventory/convert-required-to-order": {
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Convert required item to order",
+                "operationId": "b2297c39915e089253df7b045969a138",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "required_item_id",
+                                    "supplier_id"
+                                ],
+                                "properties": {
+                                    "required_item_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order created successfully"
+                    },
+                    "500": {
+                        "description": "Error creating order"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/inventory/convert-order-to-supply": {
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Convert order to supply",
+                "operationId": "5d89639e8131377dea66d71212145ac1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_id"
+                                ],
+                                "properties": {
+                                    "order_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supply created successfully"
+                    },
+                    "500": {
+                        "description": "Error creating supply"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/inventory/convert-supply-to-stock": {
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Convert supply to stock",
+                "operationId": "4948a0a7654021b4e6084b79477be173",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "supply_id"
+                                ],
+                                "properties": {
+                                    "supply_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Stock created successfully"
+                    },
+                    "500": {
+                        "description": "Error creating stock"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/inventory/trace-supply/{supply_id}": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Trace supply back to order",
+                "operationId": "f1072995a4af44078fb551878f8f8851",
+                "parameters": [
+                    {
+                        "name": "supply_id",
+                        "in": "path",
+                        "description": "Supply ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order traced successfully"
+                    },
+                    "404": {
+                        "description": "Order not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/inventory/restock-stock": {
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Restock stock from supply",
+                "operationId": "1d8978e8f1aac1f3de17071bb7803aca",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "stock_id",
+                                    "supply_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "stock_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "supply_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 10
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Stock restocked successfully"
+                    },
+                    "400": {
+                        "description": "Insufficient quantity in supply"
                     }
                 },
                 "security": [
@@ -7516,6 +9604,189 @@
                 ]
             }
         },
+        "/api/v1/restaurants/{restaurantId}/kitchen/orders": {
+            "get": {
+                "tags": [
+                    "Kitchen"
+                ],
+                "summary": "Get kitchen orders",
+                "operationId": "2f58f49611467d490f107a1edd427299",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status (confirmed, preparing, ready)",
+                        "required": false
+                    },
+                    {
+                        "name": "station",
+                        "in": "query",
+                        "description": "Filter by station (grill, salad, beverage, etc.)",
+                        "required": false
+                    },
+                    {
+                        "name": "priority",
+                        "in": "query",
+                        "description": "Filter by priority (normal, urgent, rush)",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kitchen orders retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/kitchen/orders/{orderId}/items/{itemId}/status": {
+            "put": {
+                "tags": [
+                    "Kitchen"
+                ],
+                "summary": "Update kitchen item status",
+                "operationId": "6b7dca009a8df3a60349fe4e1a2cca76",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "Order ID",
+                        "required": true
+                    },
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "Order Item ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "preparing",
+                                            "ready",
+                                            "cancelled"
+                                        ]
+                                    },
+                                    "station": {
+                                        "type": "string"
+                                    },
+                                    "assigned_to": {
+                                        "type": "string"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/kitchen/stations": {
+            "get": {
+                "tags": [
+                    "Kitchen"
+                ],
+                "summary": "Get kitchen stations",
+                "operationId": "0353d09c921f9a7b7c7ced2875a1c496",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kitchen stations retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/kitchen/performance": {
+            "get": {
+                "tags": [
+                    "Kitchen"
+                ],
+                "summary": "Get kitchen performance metrics",
+                "operationId": "d48d559c4c3b4cfc574d4cf76fd14c95",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Time period (today, week, month)",
+                        "required": false
+                    },
+                    {
+                        "name": "station",
+                        "in": "query",
+                        "description": "Filter by specific station",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kitchen performance metrics retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/leads": {
             "get": {
                 "tags": [
@@ -8311,6 +10582,389 @@
                 ]
             }
         },
+        "/api/v1/restaurants/{restaurantId}/menu/categories": {
+            "get": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Get menu categories",
+                "operationId": "c139ea74891b6693b5e8b4d3459e7171",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Menu categories retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Create menu category",
+                "operationId": "e3cc1b36af6b2b38dc0464f2d696bd97",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "image_url": {
+                                        "type": "string"
+                                    },
+                                    "parent_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "sort_order": {
+                                        "type": "integer"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "inactive"
+                                        ]
+                                    },
+                                    "is_available": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Menu category created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu/categories/{categoryId}": {
+            "put": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Update menu category",
+                "operationId": "9e1c004cb409a8d5726d32b4b51158d9",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "categoryId",
+                        "in": "path",
+                        "description": "Category ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Menu category updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu/items": {
+            "get": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Get menu items",
+                "operationId": "1ffeb9ff4851757fce23648862321e60",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Menu items retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Create menu item",
+                "operationId": "731dea5616d03b967300982624a0731e",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Menu item created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu/items/{itemId}": {
+            "put": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Update menu item",
+                "operationId": "b74b5829d4ba2ac70dcd9eef6cd0fbe0",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "Menu Item ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Menu item updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu": {
+            "get": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Get complete menu",
+                "operationId": "25766d5c3da1bc322a412c5cb10a186e",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Complete menu retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu/search": {
+            "get": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Search menu items",
+                "operationId": "75538bc307cb83e830434d39027f1316",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Menu search completed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu/items/{itemId}/availability": {
+            "put": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Update item availability",
+                "operationId": "279361489f91a6e6928140092da28142",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "Menu Item ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "is_available"
+                                ],
+                                "properties": {
+                                    "is_available": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item availability updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/menu/bulk-availability": {
+            "put": {
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "Bulk update item availability",
+                "operationId": "f1efd805eec922f2067cce75e7fa8dda",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "items"
+                                ],
+                                "properties": {
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "id",
+                                                "is_available"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "is_available": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bulk availability update completed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/messages": {
             "get": {
                 "tags": [
@@ -8598,6 +11252,75 @@
                 ]
             }
         },
+        "/api/v1/payments/mpesa/status/{transaction_id}": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Check M-PESA payment status",
+                "description": "Polls the status of an M-PESA STK Push payment.",
+                "operationId": "pollMpesaPaymentResult",
+                "parameters": [
+                    {
+                        "name": "transaction_id",
+                        "in": "path",
+                        "description": "M-PESA Checkout Request ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "ws_CO_123456789"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment status retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "completed"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "254712345678"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "example": 100
+                                                },
+                                                "receipt_number": {
+                                                    "type": "string",
+                                                    "example": "QHJ123456789"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Payment request not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/notifications": {
             "get": {
                 "tags": [
@@ -8605,7 +11328,7 @@
                 ],
                 "summary": "Get all notifications",
                 "description": "Fetch all notifications for the authenticated user and retail account",
-                "operationId": "f840a445048dd4bb44357e5a7918027e",
+                "operationId": "getAllNotifications",
                 "responses": {
                     "200": {
                         "description": "Success, list of notifications",
@@ -8692,7 +11415,7 @@
                 ],
                 "summary": "Get a single notification",
                 "description": "Fetch a notification by its ID for the authenticated user",
-                "operationId": "f5f3da4fd310433cabeb6155152016bc",
+                "operationId": "getNotificationById",
                 "parameters": [
                     {
                         "name": "id",
@@ -8754,7 +11477,7 @@
                 ],
                 "summary": "Update a notification",
                 "description": "Mark a notification as read or update its properties",
-                "operationId": "50babf38ef85ed462fa720d87551b221",
+                "operationId": "updateNotification",
                 "parameters": [
                     {
                         "name": "id",
@@ -8806,7 +11529,7 @@
                 ],
                 "summary": "Delete a notification",
                 "description": "Delete a notification by its ID",
-                "operationId": "fe20bb65f56af8afdc02f28f4513dd4b",
+                "operationId": "deleteNotification",
                 "parameters": [
                     {
                         "name": "id",
@@ -8926,7 +11649,7 @@
                     "Offices"
                 ],
                 "summary": "Create a simple office with minimal details",
-                "operationId": "3dc3b7c90af41deaf66e2b384ae53890",
+                "operationId": "ed934937ce12e3e3587faacc44af4448",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -9106,7 +11829,7 @@
                     "Offices"
                 ],
                 "summary": "Upload or update office profile image",
-                "operationId": "62c257a9fc82d835fa31a0b715832de0",
+                "operationId": "9838df3006198574fd55ca3856a88299",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -9135,13 +11858,13 @@
                 ]
             }
         },
-        "/api/v1/offices/documents/business-permit": {
+        "/api/v1/offices/documents/upload": {
             "post": {
                 "tags": [
                     "Offices"
                 ],
                 "summary": "Upload office business permit",
-                "operationId": "babbec2022bb282038d40e01389f1532",
+                "operationId": "6e9abbe50d0db6154747d306cf1bf0ab",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -10522,6 +13245,299 @@
                 }
             }
         },
+        "/api/v1/payments/mpesa/stkpush": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Initiate M-PESA STK Push payment",
+                "description": "Initiates an M-PESA STK Push payment request to customer's phone.",
+                "operationId": "initiateMpesaSTKPush",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number",
+                                    "amount",
+                                    "account_reference"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "254712345678"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "account_reference": {
+                                        "type": "string",
+                                        "example": "ORDER_12345"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Payment for order"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "STK Push initiated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "M-PESA STK Push initiated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "checkout_request_id": {
+                                                    "type": "string",
+                                                    "example": "ws_CO_123456789"
+                                                },
+                                                "response_code": {
+                                                    "type": "string",
+                                                    "example": "0"
+                                                },
+                                                "customer_message": {
+                                                    "type": "string",
+                                                    "example": "Success. Request accepted for processing"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "STK Push initiation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/poll/status/{transaction_id}": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Check M-PESA payment status",
+                "description": "Polls the status of an M-PESA STK Push payment.",
+                "operationId": "checkMpesaPaymentStatus",
+                "parameters": [
+                    {
+                        "name": "transaction_id",
+                        "in": "path",
+                        "description": "M-PESA Checkout Request ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "ws_CO_123456789"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment status retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "completed"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "254712345678"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "example": 100
+                                                },
+                                                "receipt_number": {
+                                                    "type": "string",
+                                                    "example": "QHJ123456789"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Payment request not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/mpesa/callback": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Handle M-PESA payment callback",
+                "description": "Handles callback from M-PESA after payment completion.",
+                "operationId": "handleMpesaCallback",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "description": "M-PESA callback payload",
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Callback processed successfully"
+                    }
+                }
+            }
+        },
+        "/api/v1/payments/card": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Process card payment",
+                "description": "Processes a payment using credit/debit card via Stripe.",
+                "operationId": "processCardPayment",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "currency",
+                                    "payment_method_id"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "example": "USD"
+                                    },
+                                    "payment_method_id": {
+                                        "type": "string",
+                                        "example": "pm_123456789"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Card payment for order"
+                                    },
+                                    "payer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "payer_type": {
+                                        "type": "string",
+                                        "example": "App\\\\Models\\\\User"
+                                    },
+                                    "payee_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "payee_type": {
+                                        "type": "string",
+                                        "example": "App\\\\Models\\\\User"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Card payment processed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Card payment processed successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "transaction_id": {
+                                                    "type": "string",
+                                                    "example": "txn_123456789"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "completed"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Payment processing failed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/payment-gateways": {
             "get": {
                 "tags": [
@@ -10870,14 +13886,14 @@
                 ]
             }
         },
-        "/api/v1/tiers/{tier}/permissions": {
+        "/api/v1/admin/tiers/{tier}/permissions": {
             "post": {
                 "tags": [
                     "Tier-Permissions"
                 ],
                 "summary": "Assign permissions to a tier",
                 "description": "Assign one or more permissions to a specific subscription tier.",
-                "operationId": "144c118521aa8fa687b3044815011f9f",
+                "operationId": "9a715f0392c0facf75e8099999458765",
                 "parameters": [
                     {
                         "name": "tier",
@@ -10931,14 +13947,14 @@
                 ]
             }
         },
-        "/api/v1/tiers/{tier}/permissions/{permission}": {
+        "/api/v1/admin/tiers/{tier}/permissions/{permission}": {
             "delete": {
                 "tags": [
                     "Tier-Permissions"
                 ],
                 "summary": "Remove a permission from a tier",
                 "description": "Remove a specific permission from a subscription tier.",
-                "operationId": "8d9d72bb8dbec534c1042a234a988f9a",
+                "operationId": "d554a564213da3a0dae08b3ad17ca568",
                 "parameters": [
                     {
                         "name": "tier",
@@ -12663,6 +15679,488 @@
                     },
                     "400": {
                         "description": "No items selected"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants": {
+            "get": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Get restaurants",
+                "operationId": "edd56765710407a7ca2f654206d81a79",
+                "parameters": [
+                    {
+                        "name": "owner_id",
+                        "in": "query",
+                        "description": "Filter by owner ID",
+                        "required": false
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name or description",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Restaurants retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Create restaurant",
+                "operationId": "1e8bf99418f620d1c2979ae1302825be",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "address",
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "address": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "website": {
+                                        "type": "string"
+                                    },
+                                    "latitude": {
+                                        "type": "number"
+                                    },
+                                    "longitude": {
+                                        "type": "number"
+                                    },
+                                    "operating_hours": {
+                                        "type": "object"
+                                    },
+                                    "tax_rate": {
+                                        "type": "number"
+                                    },
+                                    "currency": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Restaurant created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}": {
+            "get": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Get restaurant details",
+                "operationId": "0bfc8f05011033346593d16dd81a9312",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Restaurant details retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Update restaurant",
+                "operationId": "357d21f107e404bea013d680fa902a65",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "address": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "inactive",
+                                            "suspended"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Restaurant updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/tables": {
+            "get": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Get restaurant tables",
+                "operationId": "7a9e99b69466a64bb431b6ec171839db",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tables retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Create restaurant table",
+                "operationId": "21d45e04107608bf840f0c04e35bc102",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "table_number",
+                                    "capacity"
+                                ],
+                                "properties": {
+                                    "table_number": {
+                                        "type": "string"
+                                    },
+                                    "capacity": {
+                                        "type": "integer"
+                                    },
+                                    "section": {
+                                        "type": "string"
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Table created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/tables/{tableId}/status": {
+            "put": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Update table status",
+                "operationId": "bd3c8430d143aeb7ae4bd90af165b715",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "tableId",
+                        "in": "path",
+                        "description": "Table ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "available",
+                                            "occupied",
+                                            "reserved",
+                                            "cleaning"
+                                        ]
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Table status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/staff": {
+            "get": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Get restaurant staff",
+                "operationId": "9a9b9eb9f3afeac019b7fb7d198c6cfa",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "description": "Filter by role",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Staff retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Add staff to restaurant",
+                "operationId": "885d9c3ec77aa9e4d19911ff64a57378",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "first_name",
+                                    "last_name",
+                                    "email",
+                                    "role",
+                                    "role_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string"
+                                    },
+                                    "role_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "hourly_rate": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Staff member added successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurantId}/analytics": {
+            "get": {
+                "tags": [
+                    "Restaurants"
+                ],
+                "summary": "Get restaurant analytics",
+                "operationId": "987782f2d4869261bca729d70c7cc2a4",
+                "parameters": [
+                    {
+                        "name": "restaurantId",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "required": false
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "End date (YYYY-MM-DD)",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analytics retrieved successfully"
                     }
                 },
                 "security": [
@@ -14623,13 +18121,13 @@
                 ]
             }
         },
-        "/api/subscriptions": {
+        "/api/v1/subscriptions": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get all subscriptions",
-                "operationId": "67df8b16e2d36e7aab97ce19a17f9355",
+                "operationId": "8f3a7e7ac35ef5f950927b15f8ca460e",
                 "responses": {
                     "200": {
                         "description": "Subscriptions fetched successfully"
@@ -14646,7 +18144,7 @@
                     "Subscriptions"
                 ],
                 "summary": "Create a new subscription",
-                "operationId": "a71648bdc4f0b03d53530ab22adf00cd",
+                "operationId": "8eaf6abffb9b88be3b2c3c949d58bd80",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -14694,13 +18192,13 @@
                 ]
             }
         },
-        "/api/subscriptions/create": {
+        "/api/v1/subscriptions/create": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get subscription creation metadata",
-                "operationId": "83c8600e79383805701b23ccbac8e086",
+                "operationId": "3100ac094141f5dc53850d5996a27570",
                 "responses": {
                     "200": {
                         "description": "Subscription creation metadata fetched successfully"
@@ -14713,13 +18211,13 @@
                 ]
             }
         },
-        "/api/subscriptions/{id}": {
+        "/api/v1/subscriptions/{id}": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get a subscription by ID",
-                "operationId": "6b9cf0d3971878009b6d4f0a5598dae9",
+                "operationId": "00cdc9ad0d8f0f3dffc7e9dff85be532",
                 "parameters": [
                     {
                         "name": "id",
@@ -14749,7 +18247,7 @@
                     "Subscriptions"
                 ],
                 "summary": "Update a subscription",
-                "operationId": "bac8be53d2f4233f44fd60abb494230b",
+                "operationId": "0eb151ff73414287c0c7a8c6de6bf219",
                 "parameters": [
                     {
                         "name": "id",
@@ -14800,7 +18298,7 @@
                     "Subscriptions"
                 ],
                 "summary": "Cancel a subscription",
-                "operationId": "06c2e9a3211bd2ad09833e2f9b53af8f",
+                "operationId": "8f61f69ed160d49d0b43c9e235bbc398",
                 "parameters": [
                     {
                         "name": "id",
@@ -14826,13 +18324,13 @@
                 ]
             }
         },
-        "/api/subscriptions/{id}/edit": {
+        "/api/v1/subscriptions/{id}/edit": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get a subscription for editing",
-                "operationId": "7fb34bff5a39c0a6ea92e35fb78be71d",
+                "operationId": "6bac787988ba8d137a4893e276eacbb1",
                 "parameters": [
                     {
                         "name": "id",
@@ -14855,13 +18353,13 @@
                 ]
             }
         },
-        "/api/subscriptions/{id}/extend-trial": {
+        "/api/v1/subscriptions/{id}/extend-trial": {
             "post": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Extend trial period",
-                "operationId": "2c857e48c4b765d17ac79c1cedb887de",
+                "operationId": "6c212bdbb3173f10a657f7ad912ef2b6",
                 "parameters": [
                     {
                         "name": "id",
@@ -14906,13 +18404,13 @@
                 ]
             }
         },
-        "/api/subscriptions/{id}/reactivate": {
+        "/api/v1/subscriptions/{id}/reactivate": {
             "post": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Reactivate a cancelled subscription",
-                "operationId": "5e031195feb333bdaa03bc9f242c55bb",
+                "operationId": "3b363aff3d660a00ea7b9e2cf2f10dc3",
                 "parameters": [
                     {
                         "name": "id",
@@ -14938,13 +18436,13 @@
                 ]
             }
         },
-        "/api/subscriptions/user/{userId}": {
+        "/api/v1/subscriptions/user/{userId}": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get subscriptions for a specific user",
-                "operationId": "b965f30a732944a3abe1c2c28171a0a1",
+                "operationId": "380ef24578a8020374eedeb9d50a3b3a",
                 "parameters": [
                     {
                         "name": "userId",
@@ -14967,13 +18465,13 @@
                 ]
             }
         },
-        "/api/subscriptions/active": {
+        "/api/v1/subscriptions/active": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get all active subscriptions",
-                "operationId": "d989ae15fd283a8f982e2a8a295c6ec3",
+                "operationId": "01a48aa60fcbfefd940eb49437b6fc90",
                 "responses": {
                     "200": {
                         "description": "Active subscriptions fetched successfully"
@@ -14986,13 +18484,13 @@
                 ]
             }
         },
-        "/api/subscriptions/expiring-soon": {
+        "/api/v1/subscriptions/expiring-soon": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get subscriptions expiring soon",
-                "operationId": "a08ecbea9fa54769abfe1bc5eb05c69f",
+                "operationId": "98913d201549dd1b8a4f7f55ef179a6a",
                 "parameters": [
                     {
                         "name": "days",
@@ -15015,13 +18513,13 @@
                 ]
             }
         },
-        "/api/subscriptions/trial-ending-soon": {
+        "/api/v1/subscriptions/trial-ending-soon": {
             "get": {
                 "tags": [
                     "Subscriptions"
                 ],
                 "summary": "Get subscriptions with trial ending soon",
-                "operationId": "f9e9d9c8d029e15a4c88c3e797452d96",
+                "operationId": "423c9a3770cdeb61bce2661df1c159f3",
                 "parameters": [
                     {
                         "name": "days",
@@ -15035,6 +18533,607 @@
                 "responses": {
                     "200": {
                         "description": "Trial ending subscriptions fetched successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables": {
+            "get": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Get all tables",
+                "description": "Retrieve all tables for a restaurant with filtering and pagination",
+                "operationId": "getTables",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "description": "Restaurant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "available",
+                                "occupied",
+                                "reserved",
+                                "cleaning",
+                                "out_of_order"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "floor",
+                        "in": "query",
+                        "description": "Filter by floor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "section",
+                        "in": "query",
+                        "description": "Filter by section",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "capacity",
+                        "in": "query",
+                        "description": "Minimum capacity",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "pagination": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Create new table",
+                "description": "Add a new table to the restaurant",
+                "operationId": "createTable",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "table_number",
+                                    "capacity",
+                                    "section"
+                                ],
+                                "properties": {
+                                    "table_number": {
+                                        "type": "string",
+                                        "example": "5"
+                                    },
+                                    "capacity": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "section": {
+                                        "type": "string",
+                                        "example": "window"
+                                    },
+                                    "floor": {
+                                        "type": "string",
+                                        "example": "main"
+                                    },
+                                    "floor_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "position_x": {
+                                        "type": "number",
+                                        "example": 50.5
+                                    },
+                                    "position_y": {
+                                        "type": "number",
+                                        "example": 30.2
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Table created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables/{table_id}": {
+            "get": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Get table details",
+                "description": "Retrieve detailed information about a specific table",
+                "operationId": "getTable",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Table not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Update table",
+                "description": "Update table information",
+                "operationId": "updateTable",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "table_number": {
+                                        "type": "string"
+                                    },
+                                    "capacity": {
+                                        "type": "integer"
+                                    },
+                                    "section": {
+                                        "type": "string"
+                                    },
+                                    "position_x": {
+                                        "type": "number"
+                                    },
+                                    "position_y": {
+                                        "type": "number"
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Table updated successfully"
+                    },
+                    "404": {
+                        "description": "Table not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Delete table",
+                "description": "Remove a table from the system",
+                "operationId": "deleteTable",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "force",
+                        "in": "query",
+                        "description": "Force delete even if occupied",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Table deleted successfully"
+                    },
+                    "409": {
+                        "description": "Table is occupied"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables/{table_id}/status": {
+            "put": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Update table status",
+                "description": "Change the status of a table",
+                "operationId": "updateTableStatus",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "available",
+                                            "occupied",
+                                            "reserved",
+                                            "cleaning",
+                                            "maintenance",
+                                            "out_of_order"
+                                        ]
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    },
+                                    "order_id": {
+                                        "type": "integer"
+                                    },
+                                    "waiter_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables/{table_id}/occupy": {
+            "post": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Mark table as occupied",
+                "description": "Mark a table as occupied and optionally create an order",
+                "operationId": "markTableOccupied",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "customer_name": {
+                                        "type": "string"
+                                    },
+                                    "customer_phone": {
+                                        "type": "string"
+                                    },
+                                    "party_size": {
+                                        "type": "integer"
+                                    },
+                                    "waiter_id": {
+                                        "type": "integer"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Table marked as occupied"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables/{table_id}/clear": {
+            "post": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Clear table",
+                "description": "Clear a table and mark it for cleaning or available",
+                "operationId": "clearTable",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "order_id": {
+                                        "type": "integer"
+                                    },
+                                    "payment_completed": {
+                                        "type": "boolean"
+                                    },
+                                    "requires_cleaning": {
+                                        "type": "boolean"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Table cleared successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables/{table_id}/cleaned": {
+            "post": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Mark table as cleaned",
+                "description": "Mark a table as cleaned and available",
+                "operationId": "markTableCleaned",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "cleaned_by": {
+                                        "type": "integer"
+                                    },
+                                    "cleaning_notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Table marked as cleaned"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/restaurants/{restaurant_id}/tables/{table_id}/status-history": {
+            "get": {
+                "tags": [
+                    "Table Management"
+                ],
+                "summary": "Get table status history",
+                "description": "Retrieve status change history for a table",
+                "operationId": "getTableStatusHistory",
+                "parameters": [
+                    {
+                        "name": "restaurant_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status history retrieved"
                     }
                 },
                 "security": [
@@ -15583,13 +19682,13 @@
                 ]
             }
         },
-        "/api/tiers": {
+        "/api/v1/admin/tiers": {
             "get": {
                 "tags": [
                     "Tiers"
                 ],
                 "summary": "Get all tiers",
-                "operationId": "874c827b19f822cf5272adeb70a913f1",
+                "operationId": "08bab97f570cfb6c312324ef68b6742d",
                 "responses": {
                     "200": {
                         "description": "Tiers fetched successfully"
@@ -15606,7 +19705,7 @@
                     "Tiers"
                 ],
                 "summary": "Create a new tier",
-                "operationId": "133f0e3c36c29a4549c6c3f6553c8fe4",
+                "operationId": "41c7516c3b33f1f41c3338a431b9eebf",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -15669,13 +19768,13 @@
                 ]
             }
         },
-        "/api/tiers/create": {
+        "/api/v1/admin/tiers/create": {
             "get": {
                 "tags": [
                     "Tiers"
                 ],
                 "summary": "Get tier creation metadata",
-                "operationId": "38b4b3f3ab2726f490e0b7f76cb26a30",
+                "operationId": "1e1d403200d68ab0d75e389bb310b080",
                 "responses": {
                     "200": {
                         "description": "Tier creation metadata fetched successfully"
@@ -15688,16 +19787,16 @@
                 ]
             }
         },
-        "/api/tiers/{id}": {
+        "/api/v1/admin/tiers/{tier}": {
             "get": {
                 "tags": [
                     "Tiers"
                 ],
                 "summary": "Get a tier by ID",
-                "operationId": "4e3c12fedc1301e2b8e2f3fae2b5d002",
+                "operationId": "a2986f57fcc69693f868c9e0c2fe5b12",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "tier",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -15718,13 +19817,44 @@
                         "bearerAuth": []
                     }
                 ]
-            },
+            }
+        },
+        "/api/v1/admin/tiers/{id}/edit": {
+            "get": {
+                "tags": [
+                    "Tiers"
+                ],
+                "summary": "Get a tier for editing",
+                "operationId": "133c266c3881f3146d30e75246af621d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tier to edit fetched successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tiers/{id}": {
             "put": {
                 "tags": [
                     "Tiers"
                 ],
                 "summary": "Update a tier",
-                "operationId": "9825cc5f316019bbbcac57952afc2ec0",
+                "operationId": "26afaa9b3d92eacfd852beed155af7ec",
                 "parameters": [
                     {
                         "name": "id",
@@ -15801,7 +19931,7 @@
                     "Tiers"
                 ],
                 "summary": "Delete a tier",
-                "operationId": "fb9ff3d68522107f5ab04e9f11e82448",
+                "operationId": "0af966f51d7cd18a6149c83c9d881693",
                 "parameters": [
                     {
                         "name": "id",
@@ -15818,35 +19948,6 @@
                     },
                     "400": {
                         "description": "Bad request"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/tiers/{id}/edit": {
-            "get": {
-                "tags": [
-                    "Tiers"
-                ],
-                "summary": "Get a tier for editing",
-                "operationId": "73be9676c0cc9f6cf88d70c300fdc563",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tier to edit fetched successfully"
                     }
                 },
                 "security": [
@@ -16333,6 +20434,10 @@
             "description": "Manage employees and their roles"
         },
         {
+            "name": "Inventory",
+            "description": "Inventory management endpoints"
+        },
+        {
             "name": "Jobs",
             "description": "API Endpoints for managing job postings and applications"
         },
@@ -16409,6 +20514,10 @@
             "description": "API endpoints for social media authentication"
         },
         {
+            "name": "Table Management",
+            "description": "API Endpoints for Restaurant Table Management"
+        },
+        {
             "name": "Teams",
             "description": "API Endpoints for managing Teams"
         },
@@ -16429,6 +20538,46 @@
             "description": "Coupons"
         },
         {
+            "name": "Accreditation",
+            "description": "Accreditation"
+        },
+        {
+            "name": "Service Details",
+            "description": "Service Details"
+        },
+        {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Delivery",
+            "description": "Delivery"
+        },
+        {
+            "name": "Notification",
+            "description": "Notification"
+        },
+        {
+            "name": "Payment",
+            "description": "Payment"
+        },
+        {
+            "name": "Subscription",
+            "description": "Subscription"
+        },
+        {
+            "name": "Upload",
+            "description": "Upload"
+        },
+        {
+            "name": "User Profile",
+            "description": "User Profile"
+        },
+        {
+            "name": "Verification",
+            "description": "Verification"
+        },
+        {
             "name": "PaymentGateways",
             "description": "PaymentGateways"
         },
@@ -16441,6 +20590,14 @@
             "description": "Permissions"
         },
         {
+            "name": "Kitchen",
+            "description": "Kitchen"
+        },
+        {
+            "name": "Menu",
+            "description": "Menu"
+        },
+        {
             "name": "Tier-Permissions",
             "description": "Tier-Permissions"
         },
@@ -16451,6 +20608,10 @@
         {
             "name": "Required Items",
             "description": "Required Items"
+        },
+        {
+            "name": "Restaurants",
+            "description": "Restaurants"
         },
         {
             "name": "Retail",

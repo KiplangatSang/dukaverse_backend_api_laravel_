@@ -46,7 +46,7 @@ GET /api/v1/email/verify/{id}/{hash}
 
 **Example Link:**
 ```
-http://localhost:9000/email/verify/123/abc123def456
+http://localhost:5173/email/verify/123/abc123def456
 ```
 
 **Success Response:**
@@ -149,7 +149,7 @@ Content-Type: application/json
 ### Email Verification Flow
 
 #### Link Method
-1. User clicks verification link from email: `http://localhost:9000/email/verify/{id}/{hash}`
+1. User clicks verification link from email: `http://localhost:5173/email/verify/{id}/{hash}`
 2. Frontend extracts `id` and `hash` from URL
 3. Frontend makes API call to: `GET /api/v1/email/verify/{id}/{hash}`
 4. Handle success/error responses and update UI accordingly
@@ -281,12 +281,12 @@ MAIL_FROM_NAME="${APP_NAME}"
 ### Frontend URL Configuration
 Update `config/app.php`:
 ```php
-'frontend_url' => env('FRONTEND_URL', 'http://localhost:9000'),
+'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 ```
 
 Set in `.env`:
 ```
-FRONTEND_URL=http://localhost:9000
+FRONTEND_URL=http://localhost:5173
 ```
 
 ## Security Considerations

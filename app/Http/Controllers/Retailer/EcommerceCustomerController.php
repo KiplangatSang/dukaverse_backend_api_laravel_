@@ -31,7 +31,7 @@ class EcommerceCustomerController extends Controller
             if(isset($ecommerceServices['error'])){
                 return $this->apiResource->error('An error occurred',  400, ['errors' => $ecommerceServices['error']]);
             }
-            return $this->apiResource->success(['ecommerceCustomers' => $ecommerceServices], 'Ecommerce Customers fetched successfully');   
+            return $this->apiResource->success(['ecommerceCustomers' => $ecommerceServices], 'Ecommerce Customers fetched successfully');
 
         } catch (\Exception $e) {
             return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
@@ -48,7 +48,7 @@ class EcommerceCustomerController extends Controller
         try {
             //
         } catch (\Exception $e) {
-            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
         }
     }
 
@@ -62,7 +62,7 @@ class EcommerceCustomerController extends Controller
         try {
             //
         } catch (\Exception $e) {
-            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
         }
     }
 
@@ -76,7 +76,7 @@ class EcommerceCustomerController extends Controller
         try {
             //
         } catch (\Exception $e) {
-            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
         }
     }
 
@@ -90,7 +90,7 @@ class EcommerceCustomerController extends Controller
         try {
             //
         } catch (\Exception $e) {
-            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
         }
     }
 
@@ -104,7 +104,7 @@ class EcommerceCustomerController extends Controller
         try {
             //
         } catch (\Exception $e) {
-            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
         }
     }
 
@@ -118,7 +118,7 @@ class EcommerceCustomerController extends Controller
         try {
             //
         } catch (\Exception $e) {
-            return $this->apiResource->error('An error occurred', ['errors' => $e->getMessage()], 500);
+            return $this->apiResource->error('An error occurred', 500, ['errors' => $e->getMessage()]);
         }
     }
 }

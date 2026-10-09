@@ -6,8 +6,9 @@ use App\Http\Resources\ApiResource;
 use App\Models\Expense;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
+use Exception;
 
-class ExpenseController extends Controller
+class ExpenseController extends BaseController
 {
 
   public function __construct(
@@ -20,6 +21,13 @@ class ExpenseController extends Controller
      */
     public function index()
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 
@@ -28,6 +36,13 @@ class ExpenseController extends Controller
      */
     public function create()
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 
@@ -36,6 +51,13 @@ class ExpenseController extends Controller
      */
     public function store(StoreExpenseRequest $request)
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 
@@ -44,6 +66,13 @@ class ExpenseController extends Controller
      */
     public function show(Expense $expense)
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 
@@ -52,6 +81,13 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 
@@ -60,6 +96,13 @@ class ExpenseController extends Controller
      */
     public function update(UpdateExpenseRequest $request, Expense $expense)
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 
@@ -68,6 +111,13 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
+        try{
+            $expenses = Expense::all();
+            return $this->sendResponse($expenses, 'success, expenses fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
         //
     }
 }

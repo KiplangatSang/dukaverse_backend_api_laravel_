@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Resources\ApiResource;
-
+use App\Services\AuthService;
 use App\Services\OrderService;
+use Exception;
 
 /**
  * @OA\Tag(
@@ -19,10 +20,14 @@ class OrderPendingController extends BaseController
     /**
      * Repository accessor
      */
-    public function OrderService()
-    {
-        $this->ordersRepo = new OrderService($this->user());
-        return $this->ordersRepo;
+
+    public function __construct(
+        private readonly AuthService $authService,
+        ApiResource $apiResource,
+        private readonly orderService $orderService,
+    ) {
+        parent::__construct($apiResource);
+
     }
 
     /**
@@ -49,9 +54,14 @@ class OrderPendingController extends BaseController
      */
     public function index()
     {
-        $this->OrderService();
-        $ordersdata = $this->OrderService()->getPendingOrders();
+        try{
+
+        $ordersdata = $this->orderService->getPendingOrders();
         return response()->json($ordersdata, 200);
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -90,7 +100,8 @@ class OrderPendingController extends BaseController
      */
     public function show(string $id)
     {
-        $this->OrderService();
+        try{
+
         $orders = $this->user()->orders()->where('id', $id)->first();
 
         if (! $orders) {
@@ -106,6 +117,10 @@ class OrderPendingController extends BaseController
         ];
 
         return response()->json($ordersdata, 200);
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -143,6 +158,7 @@ class OrderPendingController extends BaseController
      */
     public function destroy(string $id)
     {
+        try{
         $deleted = $this->user()->orders()->delete($id);
 
         if (! $deleted) {
@@ -150,5 +166,9 @@ class OrderPendingController extends BaseController
         }
 
         return response()->json(['message' => 'success'], 200);
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

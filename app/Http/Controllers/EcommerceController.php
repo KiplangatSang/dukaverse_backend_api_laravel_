@@ -6,6 +6,7 @@ use App\Http\Resources\ApiResource;
 use App\Models\PaymentGateway;
 use App\Models\User;
 use App\Services\AuthService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -24,7 +25,7 @@ class EcommerceController extends BaseController
         private readonly AuthService $authService,
         ApiResource $apiResource
     ) {
-        parent::__construct($apiResource);
+      parent::__construct($apiResource);
     }
 
     /**
@@ -39,6 +40,7 @@ class EcommerceController extends BaseController
      */
     public function ecommerceData()
     {
+        try{
         $result = $this->user()->ecommerce;
         if (! $result) {
             return $this->sendError('You do not have an ecommerce site', ["result" => $result], 403);
@@ -47,7 +49,10 @@ class EcommerceController extends BaseController
         $ecommerce = $this->user()->ecommerce()->first();
 
         return $this->sendResponse(["result" => $result, "ecommerce" => $ecommerce], 'Update successful');
-
+} catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -69,6 +74,7 @@ class EcommerceController extends BaseController
      */
     public function validateUserRequest(Request $request)
     {
+        try{
 
         $validator = Validator::make($request->all(),
             [
@@ -84,7 +90,10 @@ class EcommerceController extends BaseController
             return $this->sendError('You are not allowed to create an ecommerce site', ["result" => $can_user_create_ecommerce], 403);
         }
         return $this->sendResponse(["result" => $can_user_create_ecommerce], 'Update successful');
-
+} catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -99,10 +108,14 @@ class EcommerceController extends BaseController
 
     public function getCreatePaymentGatewaysData()
     {
+        try{
 
         $gateways = PaymentGateway::PRODUCTION_ECOMMERCE_GATEWAYS;
 
-        return $this->sendResponse(['gateways' => $gateways], 'Success, Payment gateways fetched successfully.');
+   } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }     return $this->sendResponse(['gateways' => $gateways], 'Success, Payment gateways fetched successfully.');
     }
 
     /**
@@ -116,6 +129,7 @@ class EcommerceController extends BaseController
      */
     public function getPaymentGateways()
     {
+        try{
 
         $gateways = PaymentGateway::PRODUCTION_ECOMMERCE_GATEWAYS;
 
@@ -152,7 +166,10 @@ class EcommerceController extends BaseController
 
         // $gateways = array_values($gateways);
 
-        return $this->sendResponse(['gateways' => $account_gateways], 'Success, Payment gateways fetched successfully.');
+   } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }     return $this->sendResponse(['gateways' => $account_gateways], 'Success, Payment gateways fetched successfully.');
     }
 
     /**
@@ -182,6 +199,7 @@ class EcommerceController extends BaseController
 
     public function savePaymentGateways(Request $request)
     {
+        try{
 
         $validator = Validator::make($request->all(),
             [
@@ -245,8 +263,11 @@ class EcommerceController extends BaseController
                 'error'  => 'Could not save the mpesa method',
             ],
 
-        ],
-        ], 'Success, Payment gateways fetched successfully.');
+        ],  ], 'Success, Payment gateways fetched successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -263,6 +284,7 @@ class EcommerceController extends BaseController
 
     public function getPaymentGateway($gateway_id)
     {
+        try{
 
         $account = $this->user()->ecommerce;
 
@@ -272,7 +294,10 @@ class EcommerceController extends BaseController
             return $this->sendError('Payment gateway not found', ["result" => $account_gateways], 403);
         }
 
-        return $this->sendResponse(['gateway' => $account_gateways], 'Success, Payment gateways fetched successfully.');
+   } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }     return $this->sendResponse(['gateway' => $account_gateways], 'Success, Payment gateways fetched successfully.');
     }
 
     /**
@@ -288,6 +313,7 @@ class EcommerceController extends BaseController
      */
     public function editPaymentGateways($gateway_id)
     {
+        try{
         $account = $this->user()->ecommerce;
 
         $account_gateway = $account->paymentGateways()->where('id', $gateway_id)->first();
@@ -299,7 +325,10 @@ class EcommerceController extends BaseController
         $available_gateways = PaymentGateway::PRODUCTION_ECOMMERCE_GATEWAYS;
 
         return $this->sendResponse(['gateway' => $account_gateway, 'available_gateways' => $available_gateways], 'Success, Payment gateways fetched successfully.');
-
+} catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -417,6 +446,7 @@ class EcommerceController extends BaseController
      */
     public function deletePaymentGateways($gateway_id)
     {
+        try{
 
         $account = $this->user()->ecommerce;
 
@@ -432,11 +462,16 @@ class EcommerceController extends BaseController
         }
 
         return $this->sendResponse(['result' => $result], 'Success, Payment gateways deleted successfully.');
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
 
     }
 
     public function saveMPesaPaymentGateway($account, $mpesa)
     {
+        try{
         $ecommerce = $account;
 
         $mpesa_meta = null;
@@ -468,10 +503,16 @@ class EcommerceController extends BaseController
 
         return $result;
 
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
+
     }
 
     public function updateMPesaPaymentGateway($account, $gateway, $mpesa)
     {
+        try{
         $ecommerce = $account;
 
         $mpesa_meta = null;
@@ -502,11 +543,16 @@ class EcommerceController extends BaseController
         );
 
         return $result;
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
 
     }
 
     public function savePayOnDeliveryGateway($account, $payOnDelivery)
     {
+        try{
         $ecommerce = $account;
 
         $payOnDelivery_meta = null;
@@ -531,10 +577,16 @@ class EcommerceController extends BaseController
 
         return $result;
 
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
+
     }
 
     public function updatePayOnDeliveryGateway($account, $gateway, $payOnDelivery)
     {
+        try{
         $ecommerce = $account;
 
         $payOnDelivery_meta = null;
@@ -558,6 +610,11 @@ class EcommerceController extends BaseController
         );
 
         return $result;
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
 
     }
 
@@ -583,6 +640,7 @@ class EcommerceController extends BaseController
 
     private function checkIfUserCanCreateEcommerce()
     {
+        try{
         $can_create_ecommerce = [];
         $user                 = $this->user();
 
@@ -612,7 +670,10 @@ class EcommerceController extends BaseController
         $can_create_ecommerce['can_create_ecommerce'] = false;
         $can_create_ecommerce['error']                = 'You are not a allowed to create the E-commerce site';
         return $can_create_ecommerce;
-
+} catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -628,6 +689,7 @@ class EcommerceController extends BaseController
 
     public function allowEcommerceSite()
     {
+        try{
 
         $result = $this->user()->ecommerce()->update([
             'is_active' => true,
@@ -640,7 +702,10 @@ class EcommerceController extends BaseController
         $ecommerce = $this->user()->ecommerce()->first();
 
         return $this->sendResponse(["result" => $result, "ecommerce" => $ecommerce], 'Update successful');
-
+} catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -675,6 +740,7 @@ class EcommerceController extends BaseController
 
     public function registerEcommerceShop(Request $request)
     {
+        try{
         $user = $this->user();
 
         // if (! $user->is_retailer) {
@@ -729,10 +795,16 @@ class EcommerceController extends BaseController
 
         return $this->sendResponse(["ecommerce" => $ecommerce], "Site created successfully");
 
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
+
     }
 
     public function generateEcommerceVendorDetails()
     {
+        try{
 
         $vendor_id = null;
         do {
@@ -751,11 +823,20 @@ class EcommerceController extends BaseController
             "vendor_id" => $vendor_id,
         ];
         return $vendor_data;
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     public function applyForEcommerceSite()
     {
-
+        try{
+} catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -771,6 +852,7 @@ class EcommerceController extends BaseController
 
     public function destroyEcommerceSite()
     {
+        try{
         $ecommerce = $this->user()->ecommerce;
 
         if (! $ecommerce) {
@@ -780,6 +862,11 @@ class EcommerceController extends BaseController
         Ecommerce::destroy($ecommerce->id);
 
         return $this->sendResponse(['success' => "Request successful"], "Ecommerce removed");
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+            }
 
     }
 

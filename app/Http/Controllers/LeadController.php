@@ -4,6 +4,7 @@ use App\Http\Resources\ApiResource;
 
 use App\Models\Campaign;
 use App\Models\Lead;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -36,6 +37,7 @@ class LeadController extends BaseController
      */
     public function index($campaign = null)
     {
+        try{
         $leads = $this->account()->leads()->with('campaign');
 
         if ($campaign) {
@@ -49,6 +51,10 @@ class LeadController extends BaseController
         }
 
         return $this->sendResponse(["leads" => $leads], "Data fetched successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -62,6 +68,7 @@ class LeadController extends BaseController
      */
     public function create()
     {
+        try{
         $leads_status = Lead::LEAD_STATUS_COLLECTION;
 
         if (empty($leads_status)) {
@@ -69,6 +76,10 @@ class LeadController extends BaseController
         }
 
         return $this->sendResponse(["leads_status" => $leads_status], "Data fetched successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -94,6 +105,7 @@ class LeadController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $validator = Validator::make($request->all(), [
             "campaign_id"  => ["nullable", "exists:campaigns,id"],
             "name"         => ["required", "string"],
@@ -129,6 +141,10 @@ class LeadController extends BaseController
         }
 
         return $this->sendResponse(["lead" => $lead->load("campaign")], "Lead saved successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -144,6 +160,7 @@ class LeadController extends BaseController
      */
     public function show($id)
     {
+        try{
         $lead = Lead::with("campaign")->find($id);
 
         if (! $lead) {
@@ -151,6 +168,10 @@ class LeadController extends BaseController
         }
 
         return $this->sendResponse(["lead" => $lead], "Lead fetched successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -166,6 +187,7 @@ class LeadController extends BaseController
      */
     public function edit($id)
     {
+        try{
         $lead = Lead::with("campaign")->find($id);
 
         if (! $lead) {
@@ -176,6 +198,10 @@ class LeadController extends BaseController
             "leads_status" => Lead::LEAD_STATUS,
             "lead"         => $lead,
         ], "Data fetched successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -203,6 +229,7 @@ class LeadController extends BaseController
      */
     public function update(Request $request, $id)
     {
+        try{
         $lead = Lead::find($id);
 
         if (! $lead) {
@@ -230,6 +257,10 @@ class LeadController extends BaseController
         $lead->update($request->all());
 
         return $this->sendResponse(["lead" => $lead->fresh()->load("campaign")], "Lead updated successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -245,6 +276,7 @@ class LeadController extends BaseController
      */
     public function destroy($id)
     {
+        try{
         $deleted = Lead::destroy($id);
 
         if (! $deleted) {
@@ -252,6 +284,10 @@ class LeadController extends BaseController
         }
 
         return $this->sendResponse(["lead" => $id], "Lead deleted successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -267,6 +303,7 @@ class LeadController extends BaseController
      */
     public function deleteAllCampaignLeads($campaign_id)
     {
+        try{
         $campaign = Campaign::find($campaign_id);
 
         if (! $campaign) {
@@ -280,6 +317,10 @@ class LeadController extends BaseController
         }
 
         return $this->sendResponse([], "All leads deleted successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -295,6 +336,7 @@ class LeadController extends BaseController
      */
     public function addLeadsToCampaign(Request $request, $campaign_id)
     {
+        try{
         $campaign = Campaign::with(["leads", "user", "tasks", "comments"])->find($campaign_id);
 
         if (! $campaign) {
@@ -303,5 +345,9 @@ class LeadController extends BaseController
 
         // Placeholder: logic to add leads to campaign goes here
         return $this->sendResponse(["campaign" => $campaign], "Campaign loaded successfully");
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

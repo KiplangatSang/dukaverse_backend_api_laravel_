@@ -5,6 +5,8 @@ use App\Http\Resources\ResponseHelper;
 use App\Http\Resources\StoreFileResource;
 use App\Models\User;
 use App\Services\UserService;
+use App\Helpers\Accounts\Account;
+
 
 class AnalyticsService extends BaseService
 {
@@ -13,7 +15,14 @@ class AnalyticsService extends BaseService
         private readonly UserService $userService,
         private readonly StoreFileResource $storeFileResource,
         private readonly ResponseHelper $responseHelper,
-        private readonly AppService $appService
+        private readonly ProjectService $projectService,
+        private readonly AppService $appService,
+        private readonly EcommerceService $ecommerceService,
+        private readonly CRMService $crmService,
+        private readonly WalletService $walletService,
+        private readonly SaleService $salesService,
+        private readonly ExpenseService $expenseService,
+        private readonly RevenueService $revenueService,
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }
@@ -30,10 +39,10 @@ class AnalyticsService extends BaseService
     {
         $permissions = [];
 
-        $account_permissions = $this->account->authenticatedUserPermissions();
-        $permissions         = $account_permissions;
+        $accountManager  = new Account($this->user());
+        $account_permissions = $accountManager->authenticatedUserPermissions();
 
-        return $this->responseHelper->respond(['permissions' => (array) $permissions], "Permissions fetched successfully", 200);
+        return $this->responseHelper->respond(['permissions' =>  $account_permissions], "Permissions fetched successfully", 200);
     }
 
     public function showUser()
@@ -113,19 +122,19 @@ class AnalyticsService extends BaseService
     public function dashboardProjects()
     {
 
-        $total_projects = $this->project_repository->getProjectsCount();
+        $total_projects = $this->projectService->getProjectsCount();
 
-        $total_tasks = $this->project_repository->getTasksCount();
+        $total_tasks = $this->projectService->getTasksCount();
 
-        $project_team_members = $this->project_repository->getProjectTeamMembers();
-        $tasks_status         = $this->project_repository->getTasksStatus();
-        $finishedTasks        = $this->project_repository->getFinishedTasksCount();
-        $tasksDueToday        = $this->project_repository->getTasksDueToday();
-        $tasksDueTomorrow     = $this->project_repository->tasksDueTomorrow();
-        $tasksDueThisWeek     = $this->project_repository->tasksDueThisWeek();
-        $tasksDueThisMonth    = $this->project_repository->tasksDueThisMonth();
-        $productivity         = $this->project_repository->calculateProductivity();
-        $recent_activity      = $this->project_repository->recentActivities();
+        $project_team_members = $this->projectService->getProjectTeamMembers();
+        $tasks_status         = $this->projectService->getTasksStatus();
+        $finishedTasks        = $this->projectService->getFinishedTasksCount();
+        $tasksDueToday        = $this->projectService->getTasksDueToday();
+        $tasksDueTomorrow     = $this->projectService->tasksDueTomorrow();
+        $tasksDueThisWeek     = $this->projectService->tasksDueThisWeek();
+        $tasksDueThisMonth    = $this->projectService->tasksDueThisMonth();
+        $productivity         = $this->projectService->calculateProductivity();
+        $recent_activity      = $this->projectService->recentActivities();
 
         return $this->responseHelper->respond(
             [
@@ -147,37 +156,37 @@ class AnalyticsService extends BaseService
     public function dashboarEcommerce()
     {
 
-        $customers        = $this->ecommerce_repository->getCustomersCount();
-        $customers_growth = $this->ecommerce_repository->getCustomersGrowth();
+        $customers        = $this->ecommerceService->getCustomersCount();
+        $customers_growth = $this->ecommerceService->getCustomersGrowth();
 
-        $orders = $this->ecommerce_repository->getOrders();
+        $orders = $this->ecommerceService->getOrders();
 
-        $orders_growth = $this->ecommerce_repository->getOrdersGrowth();
+        $orders_growth = $this->ecommerceService->getOrdersGrowth();
 
-        $sales_growth         = $this->ecommerce_repository->salesGrowth();
-        $monthly_sales_growth = $this->ecommerce_repository->monthlySalesGrowth();
+        $sales_growth         = $this->ecommerceService->salesGrowth();
+        $monthly_sales_growth = $this->ecommerceService->monthlySalesGrowth();
 
-        $revenue_growth = $this->ecommerce_repository->getRevenueGrowth();
+        $revenue_growth = $this->ecommerceService->getRevenueGrowth();
 
-        $monthly_revenue        = $this->ecommerce_repository->getRevenuePerMonth();
-        $previous_month_revenue = $this->ecommerce_repository->getPreviousMonthRevenue();
+        $monthly_revenue        = $this->ecommerceService->getRevenuePerMonth();
+        $previous_month_revenue = $this->ecommerceService->getPreviousMonthRevenue();
 
-        $locations_revenue  = $this->ecommerce_repository->getRevenuePerLocation();
-        $total_days_revenue = $this->ecommerce_repository->getTotalDaysRevenue();
+        $locations_revenue  = $this->ecommerceService->getRevenuePerLocation();
+        $total_days_revenue = $this->ecommerceService->getTotalDaysRevenue();
 
         // Top Selling Products
 
-        $top_products = $this->ecommerce_repository->getTopSellingProducts();
+        $top_products = $this->ecommerceService->getTopSellingProducts();
         // Total Sales
 
-        $saleTypes = $this->ecommerce_repository->getSaleTypes();
+        $saleTypes = $this->ecommerceService->getSaleTypes();
 
         // Recent Activity
 
-        $recent_activity = $this->ecommerce_repository->getRecentActivity();
+        $recent_activity = $this->ecommerceService->getRecentActivity();
 
         //graph data
-        $graph_data = $this->ecommerce_repository->getGraphData();
+        $graph_data = $this->ecommerceService->getGraphData();
 
         return $this->responseHelper->respond([
             "customers"              => $customers,
@@ -203,38 +212,38 @@ class AnalyticsService extends BaseService
     {
 
         //   Campaign Sent
-        $campaigns_sent   = $this->crm_repository->getCampaignsCount();
-        $campaigns_growth = $this->crm_repository->getCampaignsGrowth();
+        $campaigns_sent   = $this->crmService->getCampaignsCount();
+        $campaigns_growth = $this->crmService->getCampaignsGrowth();
 
         // New Leads
-        $newLeads       = $this->crm_repository->getNewLeadsCount();
-        $newLeadsGrowth = $this->crm_repository->getLeadsGrowth();
+        $newLeads       = $this->crmService->getNewLeadsCount();
+        $newLeadsGrowth = $this->crmService->getLeadsGrowth();
 
         //deals
-        $campaigns_deals = $this->crm_repository->getDeals();
+        $campaigns_deals = $this->crmService->getDeals();
 
-        $campaigns_deals_growth = $this->crm_repository->getDealsGrowth();
+        $campaigns_deals_growth = $this->crmService->getDealsGrowth();
 
         //booked revenue
-        $campaigns_booked_revenue        = $this->crm_repository->getBookedRevenue();
-        $campaigns_booked_revenue_growth = $this->crm_repository->getBookedRevenueGrowth();
+        $campaigns_booked_revenue        = $this->crmService->getBookedRevenue();
+        $campaigns_booked_revenue_growth = $this->crmService->getBookedRevenueGrowth();
 
         // Campaigns stats
         //   Totals,  Total Sent, Reached, Opened
-        $campaign_statistics = $this->crm_repository->getCampaignsState();
+        $campaign_statistics = $this->crmService->getCampaignsState();
 
         //monthly revenue growth
-        $campaigns_month_revenue          = $this->crm_repository->getMonthlyBookedRevenue();
-        $campaigns_previous_month_revenue = $this->crm_repository->getMonthlyBookedRevenue($month = date('m') - 1);
+        $campaigns_month_revenue          = $this->crmService->getMonthlyBookedRevenue();
+        $campaigns_previous_month_revenue = $this->crmService->getMonthlyBookedRevenue($month = date('m') - 1);
 
         // Top Performing
-        $top_campaigners = $this->crm_repository->getTopCampaigners();
+        $top_campaigners = $this->crmService->getTopCampaigners();
 
         // Recent Leads
-        $recent_leads = $this->crm_repository->getRecentLeads();
+        $recent_leads = $this->crmService->getRecentLeads();
 
         // Todos
-        $todos = $this->crm_repository->getTodos();
+        $todos = $this->crmService->getTodos();
 
         return $this->responseHelper->respond([
             "campaigns_sent"                   => $campaigns_sent,
@@ -260,45 +269,45 @@ class AnalyticsService extends BaseService
 
         // Accounts Balance
 
-        $wallets = $this->wallet_repository->getWallets();
+        $wallets = $this->walletService->getWallets();
         // Sales
 
-        $sales        = $this->wallet_repository->getSales();
-        $sales_growth = $this->wallet_repository->getSalesGrowth();
+        $sales        = $this->salesService->getAllSales();
+        $sales_growth = $this->salesService->getSalesGrowth();
 
         // Expenses
-        $expenses     = $this->wallet_repository->getExpenses();
-        $sales_growth = $this->wallet_repository->getExpensesGrowth();
+        $expenses     = $this->expenseService->getExpenses();
+        $sales_growth = $this->expenseService->getExpensesGrowth();
         // Revenue
 
-        $expenses     = $this->wallet_repository->getRevenue();
-        $sales_growth = $this->wallet_repository->getRevenueGrowth();
+        $expenses     = $this->revenueService->getRevenue();
+        $sales_growth = $this->revenueService->getRevenueGrowth();
 
         // Currencies Used
         // Ksh
 
-        $expenses = $this->wallet_repository->getCurrencies();
+        // $expenses = $this->walletService->getCurrencies();
 
         //  BalanceStatus
-        $balanceStatus = $this->wallet_repository->getBalanceStatus();
+        $balanceStatus = $this->walletService->getBalanceStatus();
 
         //  Graph database_path('')
         //  Based on transactions
 
         //  Account Suggestions
         //  Payment Methods
-        $payment_gateways = $this->wallet_repository->getTransactionGateways();
+        $payment_gateways = $this->walletService->getTransactionGateways();
 
         //  Money History
         //  Income
         //  Expenses
         // Transfar
 
-        $money_history = $this->wallet_repository->getMoneyHistory();
+        $money_history = $this->walletService->getMoneyHistory();
 
         //   Transaction history
 
-        $transaction_history = $this->wallet_repository->getTransactionHistory();
+        $transaction_history = $this->walletService->getTransactionHistory();
 
         return $this->responseHelper->respond([
             "wallets"             => $wallets,

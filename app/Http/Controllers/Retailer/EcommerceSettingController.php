@@ -56,7 +56,7 @@ class EcommerceSettingController extends BaseController
         try {
             return $this->service->saveEcommerceSettings($request);
         } catch (\Exception $e) {
-            return $this->sendError('Failed to save settings', [$e->getMessage()], 500);
+            return $this->apiResource->error('Server error.', 500);
         }
     }
 

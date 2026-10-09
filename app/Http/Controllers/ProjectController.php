@@ -50,6 +50,8 @@ class ProjectController extends BaseController
      */
     public function index()
     {
+
+    try{
         $projects = $this->account()->projects()
             ->with('tasks.dependencies', 'tasks.comments', 'tasks.assignees', 'tasks.media', 'teams.members', 'comments')
             ->get();
@@ -59,6 +61,11 @@ class ProjectController extends BaseController
         }
 
         return $this->sendResponse(["projects" => $projects], "success, The projects have been fetched successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -72,6 +79,8 @@ class ProjectController extends BaseController
      */
     public function create()
     {
+
+    try{
         $project_defaults  = Project::PROJECT_DEFAULTS;
         $task_dependencies = TaskDependancy::TASK_DEPENDENCIES;
         $team_members      = $this->accountMembers();
@@ -81,6 +90,11 @@ class ProjectController extends BaseController
             "team_members"      => $team_members,
             "task_dependencies" => $task_dependencies,
         ], "success, The projects data have been fetched successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -108,6 +122,8 @@ class ProjectController extends BaseController
      */
     public function store(Request $request)
     {
+
+    try{
         $validator = Validator::make($request->all(), [
             "name"        => ['required', 'string', 'unique:projects'],
             "overview"    => ['required', 'string'],
@@ -164,6 +180,11 @@ class ProjectController extends BaseController
         }
 
         return $this->sendResponse(["project" => $project], "success, The project has been created successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -179,6 +200,8 @@ class ProjectController extends BaseController
      */
     public function show($project_id)
     {
+
+    try{
         $project = $this->account()->projects()
             ->with('tasks.dependencies', 'tasks.comments', 'tasks.assignees', 'tasks.media', 'comments.replies.user', 'teams.members')
             ->where('id', $project_id)
@@ -189,6 +212,11 @@ class ProjectController extends BaseController
         }
 
         return $this->sendResponse(["project" => $project], "success, The project has been fetched successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -215,6 +243,8 @@ class ProjectController extends BaseController
      */
     public function update(UpdateProjectRequest $request, Project $project)
     {
+
+    try{
         $validator = Validator::make($request->all(), [
             "name"        => ['required', 'string', Rule::unique('projects')->ignore($project->id)],
             "overview"    => ['required', 'string'],
@@ -241,6 +271,11 @@ class ProjectController extends BaseController
         );
 
         return $this->sendResponse(["project" => $result], "success, The project has been updated successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -256,6 +291,8 @@ class ProjectController extends BaseController
      */
     public function destroy($project_id)
     {
+
+    try{
         $result = Project::destroy($project_id);
 
         if (! $result) {
@@ -263,6 +300,11 @@ class ProjectController extends BaseController
         }
 
         return $this->sendResponse(["deleted" => true], "success, The project has been deleted successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -278,6 +320,8 @@ class ProjectController extends BaseController
      */
     public function projectsForUser($user_id)
     {
+
+    try{
         $projects = $this->account()->projects()
             ->whereHas('teams.members', function ($query) use ($user_id) {
                 $query->where('user_id', $user_id);
@@ -290,6 +334,11 @@ class ProjectController extends BaseController
         }
 
         return $this->sendResponse(["projects" => $projects], "success, The projects have been fetched successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -307,6 +356,8 @@ class ProjectController extends BaseController
      */
     public function changePriority(Request $request, Project $project)
     {
+
+    try{
         $validator = Validator::make($request->all(), [
             'priority' => ['required', 'string', 'in:' . implode(',', Project::PROJECT_PRIORITIES)],
         ]);
@@ -318,6 +369,11 @@ class ProjectController extends BaseController
         $project->update(['priority' => $request->priority]);
 
         return $this->sendResponse(["project" => $project], "Priority changed successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -335,6 +391,8 @@ class ProjectController extends BaseController
      */
     public function addComment(Request $request, Project $project)
     {
+
+    try{
         $validator = Validator::make($request->all(), [
             'content' => ['required', 'string'],
         ]);
@@ -349,6 +407,11 @@ class ProjectController extends BaseController
         ]);
 
         return $this->sendResponse(["comment" => $comment], "Comment added successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -367,6 +430,8 @@ class ProjectController extends BaseController
      */
     public function updateComment(Request $request, Project $project, Comment $comment)
     {
+
+    try{
         if ($comment->user_id !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only update your own comments."]);
         }
@@ -382,6 +447,11 @@ class ProjectController extends BaseController
         $comment->update(['content' => $request->content]);
 
         return $this->sendResponse(["comment" => $comment], "Comment updated successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -397,6 +467,8 @@ class ProjectController extends BaseController
      */
     public function deleteComment(Project $project, Comment $comment)
     {
+
+    try{
         if ($comment->user_id !== Auth::id()) {
             return $this->sendError("Unauthorized", ["error" => "You can only delete your own comments."]);
         }
@@ -404,5 +476,10 @@ class ProjectController extends BaseController
         $comment->delete();
 
         return $this->sendResponse(["deleted" => true], "Comment deleted successfully.");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

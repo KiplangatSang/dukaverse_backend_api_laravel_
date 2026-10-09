@@ -5,6 +5,7 @@ use App\Http\Resources\ApiResource;
 use App\Models\Ecommerce;
 use App\Models\EcommerceSetting;
 use App\Services\FirebaseService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -49,6 +50,8 @@ class EcommerceSettingController extends BaseController
      */
     public function saveEcommerceSettings(Request $request)
     {
+        try{
+
         $validator = Validator::make($request->all(), [
             "allow_discounts"              => ["required"],
             "allow_payments"               => ["required"],
@@ -86,6 +89,11 @@ class EcommerceSettingController extends BaseController
         $ecommerce = Ecommerce::where('id', $result->id)->with('ecommerceSetting')->first();
 
         return $this->sendResponse(['ecommerce' => $ecommerce], 'Settings updated successfully');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -106,6 +114,8 @@ class EcommerceSettingController extends BaseController
      */
     public function setEcommerceColors(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'section' => ['required', 'string'],
             'color'   => ['required', 'string'],
@@ -127,6 +137,11 @@ class EcommerceSettingController extends BaseController
             return $this->sendError('Request failed', ['error' => "Could not update the colors"]);
         }
         return $this->sendResponse(['result' => $result, 'message' => "Colors updated successfully"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -149,6 +164,8 @@ class EcommerceSettingController extends BaseController
      */
     public function setEcommerceSections(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'section' => ['required', 'string'],
             'color'   => ['required', 'string'],
@@ -184,6 +201,11 @@ class EcommerceSettingController extends BaseController
             return $this->sendError('Request failed', ['error' => "Could not update the sections"]);
         }
         return $this->sendResponse(['result' => $result, 'message' => "Section added successfully"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -200,6 +222,8 @@ class EcommerceSettingController extends BaseController
      */
     public function moveEcommerceSectionUp(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'section_id' => ['required', 'integer'],
         ]);
@@ -221,6 +245,11 @@ class EcommerceSettingController extends BaseController
         $result = $user->ecommerceSettings()->update(['ecommerce_sections' => $ecommerce_sections]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Section moved up successfully"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -237,6 +266,8 @@ class EcommerceSettingController extends BaseController
      */
     public function moveEcommerceSectionDown(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'section_id' => ['required', 'integer'],
         ]);
@@ -258,6 +289,11 @@ class EcommerceSettingController extends BaseController
         $result = $user->ecommerceSettings()->update(['ecommerce_sections' => $ecommerce_sections]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Section moved down successfully"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -274,6 +310,8 @@ class EcommerceSettingController extends BaseController
      */
     public function deleteEcommerceSection(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'section_id' => ['required', 'integer'],
         ]);
@@ -294,6 +332,11 @@ class EcommerceSettingController extends BaseController
         $result = $user->ecommerceSettings()->update(['ecommerce_sections' => $ecommerce_sections]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Section deleted successfully"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -308,6 +351,8 @@ class EcommerceSettingController extends BaseController
      */
     public function allowEcommerceDiscounts(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'allow_discounts' => ['required', 'boolean'],
         ]);
@@ -319,6 +364,11 @@ class EcommerceSettingController extends BaseController
         $result = $this->user()->ecommerceSettings()->update(['allow_discounts' => $request->allow_discounts]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Discount setting updated"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -333,6 +383,8 @@ class EcommerceSettingController extends BaseController
      */
     public function showSupportContactSettings(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'show_support_contact' => ['required', 'boolean'],
         ]);
@@ -344,6 +396,11 @@ class EcommerceSettingController extends BaseController
         $result = $this->user()->ecommerceSettings()->update(['show_support_contact' => $request->show_support_contact]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Support contact setting updated"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -358,6 +415,8 @@ class EcommerceSettingController extends BaseController
      */
     public function allowEcommerceSitePayments(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'allow_payments' => ['required', 'boolean'],
         ]);
@@ -369,6 +428,11 @@ class EcommerceSettingController extends BaseController
         $result = $this->user()->ecommerceSettings()->update(['allow_payments' => $request->allow_payments]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Payments setting updated"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -383,6 +447,8 @@ class EcommerceSettingController extends BaseController
      */
     public function setAgeRestrictions(Request $request)
     {
+        try{
+
         $validator = Validator::make(request()->all(), [
             'is_age_restricted' => ['required', 'boolean'],
         ]);
@@ -394,6 +460,11 @@ class EcommerceSettingController extends BaseController
         $result = $this->user()->ecommerceSettings()->update(['is_age_restricted' => $request->is_age_restricted]);
 
         return $this->sendResponse(['result' => $result, 'message' => "Age restriction updated"], 'Request successful');
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -407,7 +478,14 @@ class EcommerceSettingController extends BaseController
      */
     public function notificationChannels()
     {
+        try{
+
         // Implement channel retrieval here if needed
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -421,7 +499,14 @@ class EcommerceSettingController extends BaseController
      */
     public function getNotifiedWhen()
     {
+        try{
+
         // Implement notification trigger retrieval here
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -435,7 +520,13 @@ class EcommerceSettingController extends BaseController
      */
     public function collectCustomerInformation()
     {
+        try{
+
         // Implement info collection toggle here
+         } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
 
     }
 }

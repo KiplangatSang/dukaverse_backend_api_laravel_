@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AppService;
 use App\Services\AuthService;
 use App\Services\FirebaseService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -70,6 +71,7 @@ class ProfileController extends BaseController
 
     public function index()
     {
+        try{
         $user    = $this->user();
         $profile = $user->profile;
 
@@ -77,6 +79,11 @@ class ProfileController extends BaseController
             ["user" => $user, "profile" => $profile],
             "Data fetched successfully"
         );
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -100,6 +107,7 @@ class ProfileController extends BaseController
      */
     public function store(Request $request)
     {
+        try{
         $user = $this->user();
 
         $validator = Validator::make($request->all(), [
@@ -123,6 +131,11 @@ class ProfileController extends BaseController
         }
 
         return $this->sendResponse(["user" => $user, "profile" => $user->profile], "User profile successfully updated");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -146,6 +159,7 @@ class ProfileController extends BaseController
      */
     public function updateProfilePicture(Request $request)
     {
+        try{
         $user = $this->user();
 
         $validator = Validator::make($request->all(), [
@@ -169,6 +183,11 @@ class ProfileController extends BaseController
         }
 
         return $this->sendResponse(["user" => $user, "profile" => $user->profile], "User profile updated successfully");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -190,6 +209,7 @@ class ProfileController extends BaseController
      */
     public function update(UpdateProfileRequest $request, Profile $profile)
     {
+        try{
         $user = $this->user();
 
         $validator = Validator::make($request->all(), [
@@ -209,6 +229,11 @@ class ProfileController extends BaseController
         }
 
         return $this->sendResponse(["user" => $user, "profile" => $user->profile], "User profile updated successfully");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -230,6 +255,7 @@ class ProfileController extends BaseController
      */
     public function uploadUserDocuments($id, Request $request)
     {
+        try{
         $user    = User::findOrFail(Auth::id());
         $profile = $user->profile;
 
@@ -245,6 +271,11 @@ class ProfileController extends BaseController
         $profile->update(["national_id" => json_encode($documents)]);
 
         return $this->sendResponse(["profile" => $profile], "Document uploaded successfully");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -266,6 +297,7 @@ class ProfileController extends BaseController
      */
     public function uploadRelevantDocuments($id, Request $request)
     {
+        try{
         $user    = User::findOrFail(Auth::id());
         $profile = $user->profile;
 
@@ -284,5 +316,9 @@ class ProfileController extends BaseController
         $profile->update(["relevant_documents" => json_encode($documents)]);
 
         return $this->sendResponse(["profile" => $profile], "Relevant documents uploaded successfully");
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Models\Project;
 use App\Models\Task;
+use Exception;
 use Illuminate\Http\Request;
 
 /**
@@ -37,41 +40,46 @@ class KanbanController extends BaseController
      */
     public function index($project_id)
     {
-        $tasks   = null;
-        $project = null;
+        try {
+            $tasks   = null;
+            $project = null;
 
-        if ($project_id) {
-            $project = Project::where('id', $project_id)
-                ->with('tasks.comments')
-                ->with('tasks.assignees')
-                ->first();
+            if ($project_id) {
+                $project = Project::where('id', $project_id)
+                    ->with('tasks.comments')
+                    ->with('tasks.assignees')
+                    ->first();
 
-            if ($project) {
-                $tasks = $project->tasks;
-            }
-        }
-
-        if (! $project) {
-            $tasks = $this->account()->tasks()->with(['comments', 'assignees'])->get();
-        }
-
-        $kanban_columns = Task::KANBAN_COLUMNS;
-
-        foreach ($kanban_columns as $key => $column) {
-            $column_tasks = [];
-            if ($tasks) {
-                $column_tasks = $tasks->where('status', $column['title']);
+                if ($project) {
+                    $tasks = $project->tasks;
+                }
             }
 
-            $column['tasks']      = $column_tasks;
-            $kanban_columns[$key] = $column;
-        }
+            if (! $project) {
+                $tasks = $this->account()->tasks()->with(['comments', 'assignees'])->get();
+            }
 
-        return $this->sendResponse([
-            "kanban_columns" => $kanban_columns,
-            "project"        => $project,
-            "tasks"          => $tasks,
-        ], "Data fetched successfully");
+            $kanban_columns = Task::KANBAN_COLUMNS;
+
+            foreach ($kanban_columns as $key => $column) {
+                $column_tasks = [];
+                if ($tasks) {
+                    $column_tasks = $tasks->where('status', $column['title']);
+                }
+
+                $column['tasks']      = $column_tasks;
+                $kanban_columns[$key] = $column;
+            }
+
+            return $this->sendResponse([
+                "kanban_columns" => $kanban_columns,
+                "project"        => $project,
+                "tasks"          => $tasks,
+            ], "Data fetched successfully");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -107,30 +115,35 @@ class KanbanController extends BaseController
      */
     public function update(Request $request, string $project_id)
     {
-        $tasks = $request->input('tasks');
+        try {
+            $tasks = $request->input('tasks');
 
-        foreach ($tasks as $taskData) {
-            $task = Task::find($taskData['id']);
-            if ($task) {
-                $task->status = $taskData['status'];
-                $task->save();
+            foreach ($tasks as $taskData) {
+                $task = Task::find($taskData['id']);
+                if ($task) {
+                    $task->status = $taskData['status'];
+                    $task->save();
+                }
             }
+
+            $project        = Project::where('id', $project_id)->with('tasks')->first();
+            $kanban_columns = Task::KANBAN_COLUMNS;
+
+            foreach ($kanban_columns as $key => $column) {
+                $tasks                = $project->tasks()->where('status', $column['title'])->with(['comments', 'assignees'])->get();
+                $column['tasks']      = $tasks;
+                $kanban_columns[$key] = $column;
+            }
+
+            return $this->sendResponse([
+                'message'        => 'Tasks updated successfully',
+                "kanban_columns" => $kanban_columns,
+                "project"        => $project,
+            ], "Data updated successfully");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        $project        = Project::where('id', $project_id)->with('tasks')->first();
-        $kanban_columns = Task::KANBAN_COLUMNS;
-
-        foreach ($kanban_columns as $key => $column) {
-            $tasks                = $project->tasks()->where('status', $column['title'])->with(['comments', 'assignees'])->get();
-            $column['tasks']      = $tasks;
-            $kanban_columns[$key] = $column;
-        }
-
-        return $this->sendResponse([
-            'message'        => 'Tasks updated successfully',
-            "kanban_columns" => $kanban_columns,
-            "project"        => $project,
-        ], "Data updated successfully");
     }
 
     /**
@@ -159,33 +172,38 @@ class KanbanController extends BaseController
      */
     public function updateKanbanboard(Request $request, $project_id = null)
     {
-        $tasks = $request->input('tasks');
+        try {
+            $tasks = $request->input('tasks');
 
-        foreach ($tasks as $taskData) {
-            $task = Task::find($taskData['id']);
-            if ($task) {
-                $task->status = $taskData['status'];
-                $task->save();
+            foreach ($tasks as $taskData) {
+                $task = Task::find($taskData['id']);
+                if ($task) {
+                    $task->status = $taskData['status'];
+                    $task->save();
+                }
             }
+
+            $project = null;
+            if ($project_id) {
+                $project = Project::where('id', $project_id)->with('tasks')->first();
+            }
+
+            $kanban_columns = Task::KANBAN_COLUMNS;
+
+            foreach ($kanban_columns as $key => $column) {
+                $tasks                = $this->account()->tasks()->where('status', $column['title'])->with(['comments', 'assignees'])->get();
+                $column['tasks']      = $tasks;
+                $kanban_columns[$key] = $column;
+            }
+
+            return $this->sendResponse([
+                'message'        => 'Tasks updated successfully',
+                "kanban_columns" => $kanban_columns,
+                "project"        => $project,
+            ], "Data updated successfully");
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
         }
-
-        $project = null;
-        if ($project_id) {
-            $project = Project::where('id', $project_id)->with('tasks')->first();
-        }
-
-        $kanban_columns = Task::KANBAN_COLUMNS;
-
-        foreach ($kanban_columns as $key => $column) {
-            $tasks                = $this->account()->tasks()->where('status', $column['title'])->with(['comments', 'assignees'])->get();
-            $column['tasks']      = $tasks;
-            $kanban_columns[$key] = $column;
-        }
-
-        return $this->sendResponse([
-            'message'        => 'Tasks updated successfully',
-            "kanban_columns" => $kanban_columns,
-            "project"        => $project,
-        ], "Data updated successfully");
     }
 }

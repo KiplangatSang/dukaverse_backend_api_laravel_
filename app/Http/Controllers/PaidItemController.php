@@ -5,7 +5,8 @@ use App\Http\Resources\ApiResource;
  use App\Models\Sale;
 use App\Services\SaleService;
 use App\Services\AuthService;
- 
+use Exception;
+
 /**
  * @OA\Tag(
  *     name="Paid Items",
@@ -29,7 +30,7 @@ class PaidItemController extends BaseController
     /**
      * Repository accessor for sales.
      */
-   
+
 
     /**
      * @OA\Get(
@@ -63,9 +64,14 @@ class PaidItemController extends BaseController
      */
     public function index()
     {
+        try{
         $paidItems             = $this->salesService->getPaidSoldItems();
         $salesdata['allSales'] = $paidItems;
         return view('client.sales.paiditems.index', compact('salesdata'));
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -103,10 +109,15 @@ class PaidItemController extends BaseController
      */
     public function show($id)
     {
+        try{
         $allSales              = $this->salesService->getPaidSoldItems();
         $salesdata['allSales'] = $allSales;
 
         return view('client.sales.paiditems.show', compact('salesdata'));
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -144,11 +155,16 @@ class PaidItemController extends BaseController
      */
     public function delete($sale_id)
     {
+        try{
         $result = Sale::destroy($sale_id);
         if (! $result) {
             return back()->with('error', 'Could not delete item');
         }
 
         return back()->with('success', 'Deletion Successful');
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

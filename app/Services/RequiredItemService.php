@@ -19,6 +19,15 @@ class RequiredItemService extends BaseService
         parent::__construct($storeFileResource, $responseHelper);
      }
 
+
+     public function requiredItems(){
+        $requiredItems = $this->account->requiredItems()
+            ->with('items')
+            ->orderBy('created_at', 'DESC')
+            ->get();
+
+            return  $requiredItems;
+     }
     public function indexData()
     {
         # code...

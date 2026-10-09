@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreSessionAccountRequest;
@@ -10,9 +12,9 @@ use Illuminate\Http\Request;
 
 class SessionAccountController extends BaseController
 {
-  public function __construct(
+    public function __construct(
         protected ApiResource $apiResource,
-        private readonly AccountService $accountsService
+        private readonly AccountService $accountService
     ) {
         parent::__construct($apiResource);
     }

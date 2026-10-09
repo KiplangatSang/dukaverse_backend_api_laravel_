@@ -11,6 +11,8 @@ use App\Services\StockService;
 use Exception;
 use Illuminate\Http\Request;
 
+use function App\Notifications\toArray;
+
 class StockController extends BaseController
 {
      public function __construct(
@@ -31,6 +33,7 @@ class StockController extends BaseController
         if ($id) {
             $stockdata = $this->getAccount()->items()->where('id', $id)
                 ->with('stocks')->first();
+                $stockdata = $stockdata->toArray();
         } else {
             $allStocks           = $this->stockService->getStock();
             $stocksitems         = count($allStocks);
@@ -81,9 +84,9 @@ class StockController extends BaseController
     {
         //
         $retail_item = $this->stockService->getRetailItem($retail_item_id);
-
+        $stockItem = null;
         for ($i = 0; $i < $request->quantity; $i++) {
-            $item = $this->getAccount()->stocks()->create(
+            $stockItem = $this->getAccount()->stocks()->create(
                 [
                     'code'           => $request->generate_code ? Stock::generateStockId($retail_item) : $retail_item->code,
                     'retail_item_id' => $retail_item->id,
@@ -94,11 +97,11 @@ class StockController extends BaseController
             );
         }
 
-        if (! $item) {
-            return $this->sendError(['message' => 'Could not add code'], 404);
+        if (! $stockItem) {
+            return $this->sendError("Could not add code",['message' => 'Could not add code'], 404);
         }
 
-        $expense = $item->buying_price;
+        $expense = $stockItem->buying_price;
         //save  expense
         $expenseResult = $this->expenseService->saveExpense($expense);
         if (! $expenseResult) {
@@ -106,7 +109,7 @@ class StockController extends BaseController
         }
         $item = $this->stockService->getRetailItem($retail_item_id);
 
-        return $this->sendResponse($item, "Code and expense has been added to the item");
+        return $this->sendResponse($item->toArray(), "Code and expense has been added to the item");
     }
 
     /**

@@ -33,10 +33,11 @@ class RegisterController extends BaseController
      *
      * @return void
      */
-    public function __construct(
-        readonly AuthService $authService,
-        ApiResource $apiResource
-    ) {
+    public function __construct( 
+        protected readonly AuthService $authService,
+        protected  ApiResource $apiResource
+        )
+         {
         parent::__construct($apiResource);
     }
 

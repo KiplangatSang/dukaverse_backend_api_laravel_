@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Retailer;
 use App\Http\Resources\ApiResource;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 
 class MarketCheckoutController extends Controller
@@ -21,6 +22,12 @@ class MarketCheckoutController extends Controller
     public function index()
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -29,6 +36,12 @@ class MarketCheckoutController extends Controller
     public function create()
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -37,6 +50,12 @@ class MarketCheckoutController extends Controller
     public function store(Request $request)
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -45,6 +64,12 @@ class MarketCheckoutController extends Controller
     public function show(string $id)
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -53,6 +78,12 @@ class MarketCheckoutController extends Controller
     public function edit(string $id)
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -61,6 +92,12 @@ class MarketCheckoutController extends Controller
     public function update(Request $request, string $id)
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -69,5 +106,11 @@ class MarketCheckoutController extends Controller
     public function destroy(string $id)
     {
         //
+         try {
+
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

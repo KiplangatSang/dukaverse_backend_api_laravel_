@@ -4,13 +4,24 @@ use App\Http\Resources\ApiResource;
 
 use App\Http\Requests\StoreRequiredItemRequest;
 use App\Models\RequiredItem;
+use App\Services\ItemService;
 use App\Services\RequiredItemService;
+use Exception;
 use Illuminate\Http\Request;
 
 class RequiredItemController extends BaseController
 {
     private $requiredItemsRepo;
     private $retail;
+
+
+    public function __construct(
+        ApiResource $apiResource,
+        protected readOnly ItemService $itemService,
+        protected readOnly RequiredItemService $requiredItemService
+    ) {
+        parent::__construct($apiResource);
+    }
 
     /**
      * @OA\Get(
@@ -48,12 +59,18 @@ class RequiredItemController extends BaseController
 
     public function index()
     {
-        $requiredItemsData = $this->requiredItemsRepsitory()->indexData();
+        try{
+        $requiredItemsData = $this->requiredItemService->indexData();
 
         if (! $requiredItemsData) {
             return $this->sendError("error", "Could not retrieve items");
         }
         return $this->sendResponse($requiredItemsData, "success");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -102,10 +119,16 @@ class RequiredItemController extends BaseController
 
     public function store(StoreRequiredItemRequest $request)
     {
+        try{
         $result = $this->retail->requiredItems()->create(
             $request->all(),
         );
         return $this->sendResponse($result, "success");
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -148,8 +171,14 @@ class RequiredItemController extends BaseController
 
     public function show(RequiredItem $requiredItem)
     {
-        $requiredItem = $this->requiredItemsRepsitory()->showData($requiredItem->id);
+        try{
+        $requiredItem = $this->requiredItemService->showData($requiredItem->id);
         return $requiredItem;
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -195,6 +224,7 @@ class RequiredItemController extends BaseController
 
     public function order(Request $request)
     {
+        try{
         $requestValues = array_values($request->all());
 
         if (empty($requestValues)) {
@@ -207,12 +237,11 @@ class RequiredItemController extends BaseController
         }
 
         return $this->sendResponse($requiredItems, "RequiredItems fetched");
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
-    public function requiredItemsRepsitory()
-    {
-        $this->retail            = $this->getAccount();
-        $this->requiredItemsRepo = new RequiredItemService($this->retail);
-        return $this->requiredItemsRepo;
-    }
+
 }

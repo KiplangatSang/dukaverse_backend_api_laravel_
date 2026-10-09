@@ -232,7 +232,7 @@ class EcommerceVendorController extends BaseController
      *     )
      * )
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id)
     {
          try {
              $this->vendorService->deleteVendor($id);

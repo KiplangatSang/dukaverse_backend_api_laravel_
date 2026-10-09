@@ -23,8 +23,8 @@ class SaleService extends BaseService
     protected $currentAccount;
 
     public function __construct(
-        StoreFileResource $storeFileResource,
-        ResponseHelper $responseHelper,
+        protected readonly StoreFileResource $storeFileResource,
+        protected readonly ResponseHelper $responseHelper,
         private readonly RevenueService $revenueService,
         private readonly StockService $stockService,
 

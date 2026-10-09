@@ -1,7 +1,10 @@
 <?php
-namespace App\Http\Controllers;
-use App\Http\Resources\ApiResource;
 
+namespace App\Http\Controllers;
+
+use App\Http\Resources\ApiResource;
+use App\Services\PaymentService;
+use Exception;
 use Google\Client as GoogleClient;
 use Illuminate\Http\Request;
 
@@ -15,11 +18,13 @@ use Illuminate\Http\Request;
 class PaymentController extends Controller
 {
 
-  public function __construct(
+    public function __construct(
         protected ApiResource $apiResource,
+        private readonly PaymentService $paymentService
     ) {
         parent::__construct($apiResource);
     }
+
     /**
      * @OA\Get(
      *     path="/api/v1/payments/gateways",
@@ -43,10 +48,15 @@ class PaymentController extends Controller
      */
     public function ecommercePaymentGatewaysAvailable()
     {
-        // Example available gateways - You may fetch from DB or config
-        $gateways = ['mpesa', 'stripe', 'paypal', 'google_pay'];
+        try {
+            // Example available gateways - You may fetch from DB or config
+            $gateways = ['mpesa', 'stripe', 'paypal', 'google_pay'];
 
-        return response()->json(['gateways' => $gateways], 200);
+            return response()->json(['gateways' => $gateways], 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -76,14 +86,19 @@ class PaymentController extends Controller
      */
     public function setEcommercePaymentGateways(Request $request)
     {
-        $request->validate([
-            'gateways' => 'required|array|min:1',
-        ]);
+        try {
+            $request->validate([
+                'gateways' => 'required|array|min:1',
+            ]);
 
-        // Save to database or config store
-        // PaymentGateway::updateActiveGateways($request->gateways);
+            // Save to database or config store
+            // PaymentGateway::updateActiveGateways($request->gateways);
 
-        return response()->json(['message' => 'Payment gateways updated successfully'], 200);
+            return response()->json(['message' => 'Payment gateways updated successfully'], 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -112,14 +127,19 @@ class PaymentController extends Controller
      */
     public function removeEcommercePaymentGateways(Request $request)
     {
-        $request->validate([
-            'gateway' => 'required|string',
-        ]);
+        try {
+            $request->validate([
+                'gateway' => 'required|string',
+            ]);
 
-        // Remove from DB/config
-        // PaymentGateway::remove($request->gateway);
+            // Remove from DB/config
+            // PaymentGateway::remove($request->gateway);
 
-        return response()->json(['message' => 'Payment gateway removed'], 200);
+            return response()->json(['message' => 'Payment gateway removed'], 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -141,9 +161,14 @@ class PaymentController extends Controller
      */
     public function clearEcommercePaymentGateways()
     {
-        // PaymentGateway::clearAll();
+        try {
+            // PaymentGateway::clearAll();
 
-        return response()->json(['message' => 'All payment gateways cleared'], 200);
+            return response()->json(['message' => 'All payment gateways cleared'], 200);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -186,12 +211,14 @@ class PaymentController extends Controller
      */
     public function processGooglePay(Request $request)
     {
-        $paymentService = new \App\Services\PaymentService(
-            app(\App\Http\Resources\StoreFileResource::class),
-            app(\App\Http\Resources\ResponseHelper::class)
-        );
+        try {
 
-        return $paymentService->processGooglePay($request);
+
+            return $this->paymentService->processGooglePay($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -232,12 +259,14 @@ class PaymentController extends Controller
      */
     public function processPayPalPayment(Request $request)
     {
-        $paymentService = new \App\Services\PaymentService(
-            app(\App\Http\Resources\StoreFileResource::class),
-            app(\App\Http\Resources\ResponseHelper::class)
-        );
+        try {
 
-        return $paymentService->processPayPalPayment($request);
+
+            return $this->paymentService->processPayPalPayment($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -272,12 +301,14 @@ class PaymentController extends Controller
      */
     public function capturePayPalPayment(Request $request)
     {
-        $paymentService = new \App\Services\PaymentService(
-            app(\App\Http\Resources\StoreFileResource::class),
-            app(\App\Http\Resources\ResponseHelper::class)
-        );
+        try {
 
-        return $paymentService->capturePayPalPayment($request);
+
+            return $this->paymentService->capturePayPalPayment($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -320,12 +351,14 @@ class PaymentController extends Controller
      */
     public function createStripePaymentIntent(Request $request)
     {
-        $paymentService = new \App\Services\PaymentService(
-            app(\App\Http\Resources\StoreFileResource::class),
-            app(\App\Http\Resources\ResponseHelper::class)
-        );
+        try {
 
-        return $paymentService->createStripePaymentIntent($request);
+
+            return $this->paymentService->createStripePaymentIntent($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -361,12 +394,14 @@ class PaymentController extends Controller
      */
     public function confirmStripePayment(Request $request)
     {
-        $paymentService = new \App\Services\PaymentService(
-            app(\App\Http\Resources\StoreFileResource::class),
-            app(\App\Http\Resources\ResponseHelper::class)
-        );
+        try {
 
-        return $paymentService->confirmStripePayment($request);
+
+            return $this->paymentService->confirmStripePayment($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -399,11 +434,191 @@ class PaymentController extends Controller
      */
     public function handleStripeWebhook(Request $request)
     {
-        $paymentService = new \App\Services\PaymentService(
-            app(\App\Http\Resources\StoreFileResource::class),
-            app(\App\Http\Resources\ResponseHelper::class)
-        );
+        try {
 
-        return $paymentService->handleStripeWebhook($request);
+
+            return $this->paymentService->handleStripeWebhook($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/payments/mpesa/stkpush",
+     *     tags={"Payments"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Initiate M-PESA STK Push payment",
+     *     description="Initiates an M-PESA STK Push payment request to customer's phone.",
+     *     operationId="initiateMpesaSTKPush",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"phone_number", "amount", "account_reference"},
+     *             @OA\Property(property="phone_number", type="string", example="254712345678"),
+     *             @OA\Property(property="amount", type="number", format="float", example=100.00),
+     *             @OA\Property(property="account_reference", type="string", example="ORDER_12345"),
+     *             @OA\Property(property="description", type="string", example="Payment for order")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="STK Push initiated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="M-PESA STK Push initiated successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="checkout_request_id", type="string", example="ws_CO_123456789"),
+     *                 @OA\Property(property="response_code", type="string", example="0"),
+     *                 @OA\Property(property="customer_message", type="string", example="Success. Request accepted for processing")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="STK Push initiation failed"
+     *     )
+     * )
+     */
+    public function initiateMpesaSTKPush(Request $request)
+    {
+        try {
+
+
+            // return $this->paymentService->initiateMpesaSTKPush($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/payments/poll/status/{transaction_id}",
+     *     tags={"Payments"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Check M-PESA payment status",
+     *     description="Polls the status of an M-PESA STK Push payment.",
+     *     operationId="checkMpesaPaymentStatus",
+     *     @OA\Parameter(
+     *         name="transaction_id",
+     *         in="path",
+     *         required=true,
+     *         description="M-PESA Checkout Request ID",
+     *         @OA\Schema(type="string", example="ws_CO_123456789")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment status retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="status", type="string", example="completed"),
+     *                 @OA\Property(property="phone", type="string", example="254712345678"),
+     *                 @OA\Property(property="amount", type="number", example=100.00),
+     *                 @OA\Property(property="receipt_number", type="string", example="QHJ123456789")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment request not found"
+     *     )
+     * )
+     */
+    public function checkMpesaPaymentStatus($transaction_id)
+    {
+        try {
+
+
+            // return $this->paymentService->checkMpesaPaymentStatus($transaction_ids);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/payments/mpesa/callback",
+     *     tags={"Payments"},
+     *     summary="Handle M-PESA payment callback",
+     *     description="Handles callback from M-PESA after payment completion.",
+     *     operationId="handleMpesaCallback",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             description="M-PESA callback payload"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Callback processed successfully"
+     *     )
+     * )
+     */
+    public function handleMpesaCallback(Request $request)
+    {
+        try {
+
+
+            // return $this->paymentService->handleMpesaCallback($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/payments/card",
+     *     tags={"Payments"},
+     *     security={{"bearerAuth":{}}},
+     *     summary="Process card payment",
+     *     description="Processes a payment using credit/debit card via Stripe.",
+     *     operationId="processCardPayment",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount", "currency", "payment_method_id"},
+     *             @OA\Property(property="amount", type="number", format="float", example=100.00),
+     *             @OA\Property(property="currency", type="string", example="USD"),
+     *             @OA\Property(property="payment_method_id", type="string", example="pm_123456789"),
+     *             @OA\Property(property="description", type="string", example="Card payment for order"),
+     *             @OA\Property(property="payer_id", type="integer", example=1),
+     *             @OA\Property(property="payer_type", type="string", example="App\\Models\\User"),
+     *             @OA\Property(property="payee_id", type="integer", example=2),
+     *             @OA\Property(property="payee_type", type="string", example="App\\Models\\User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Card payment processed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Card payment processed successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="transaction_id", type="string", example="txn_123456789"),
+     *                 @OA\Property(property="status", type="string", example="completed"),
+     *                 @OA\Property(property="amount", type="number", example=100.00)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Payment processing failed"
+     *     )
+     * )
+     */
+    public function processCardPayment(Request $request)
+    {
+        try {
+            // return $this->paymentService->processCardPayment($request);
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

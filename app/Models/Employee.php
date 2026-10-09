@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use App\Casts\DateTimeCasting;
@@ -14,8 +15,14 @@ class Employee extends Model
     protected $casts = [
         'created_at' => DateTimeCasting::class,
         'updated_at' => DateTimeCasting::class,
+        'deleted_at' => DateTimeCasting::class,
     ];
 
+    protected $appends = ['account_type'];
+    public function getAccountTypeAttribute()
+    {
+        return 'employee';
+    }
     //
     protected $guarded = [];
 

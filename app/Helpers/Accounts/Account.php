@@ -23,10 +23,16 @@ class Account implements AccountContract
     public $error           = null;
     public static $errors   = [];
 
+    // const DUKAVERSE_ACCOUNT_TYPE = "DUKAVERSE_ACCOUNT";
+    // const RETAIL_ACCOUNT_TYPE    = "RETAIL_ACCOUNT";
+    // const ECOMMERCE_ACCOUNT_TYPE = "ECOMMERCE_ACCOUNT";
+    // const SUPPLIER_ACCOUNT_TYPE  = "SUPPLIER_ACCOUNT";
+
     const DUKAVERSE_ACCOUNT_TYPE = "DUKAVERSE_ACCOUNT";
-    const RETAIL_ACCOUNT_TYPE    = "RETAIL_ACCOUNT";
-    const ECOMMERCE_ACCOUNT_TYPE = "ECOMMERCE_ACCOUNT";
-    const SUPPLIER_ACCOUNT_TYPE  = "SUPPLIER_ACCOUNT";
+    const RETAIL_ACCOUNT_TYPE    = "retail";
+    const ECOMMERCE_ACCOUNT_TYPE = "ecommerce";
+    const SUPPLIER_ACCOUNT_TYPE  = "supplier";
+    const OFFICE_ACCOUNT_TYPE  = "office";
 
     public function __construct($user = null)
     {
@@ -140,6 +146,7 @@ class Account implements AccountContract
 
         switch ($accountType) {
             case self::DUKAVERSE_ACCOUNT_TYPE:
+                $account = Office::where('id', $account)->first();
                 $officeAccount = new OfficeAccount($this->user, $account);
                 $account       = $officeAccount->account;
                 if (! $account) {
@@ -149,6 +156,8 @@ class Account implements AccountContract
                 break;
 
             case self::ECOMMERCE_ACCOUNT_TYPE:
+                $account = Ecommerce::where('id', $account)->first();
+
                 $ecommerceAccount = new EcommerceAccount($this->user, $account);
                 $account          = $ecommerceAccount->account;
                 if (! $account) {
@@ -157,6 +166,7 @@ class Account implements AccountContract
                 return $account;
                 break;
             case self::RETAIL_ACCOUNT_TYPE:
+                $account = Retail::where('id', $account)->first();
                 $retailAccount = new RetailAccount($this->user, $account);
                 $account       = $retailAccount->account;
                 if (! $account) {
@@ -164,6 +174,7 @@ class Account implements AccountContract
                 }
                 return $account;
                 break;
+
             default:
                 return $this->user;
         }

@@ -1,16 +1,18 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Models\CountryList;
 use App\Http\Requests\StoreCountryListRequest;
 use App\Http\Requests\UpdateCountryListRequest;
+use Exception;
 
 class CountryListController extends Controller
 {
 
-  public function __construct(
+    public function __construct(
         protected ApiResource $apiResource,
     ) {
         parent::__construct($apiResource);
@@ -21,6 +23,12 @@ class CountryListController extends Controller
     public function index()
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -29,6 +37,12 @@ class CountryListController extends Controller
     public function create()
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -37,6 +51,12 @@ class CountryListController extends Controller
     public function store(StoreCountryListRequest $request)
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -45,6 +65,12 @@ class CountryListController extends Controller
     public function show(CountryList $countryList)
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -53,6 +79,12 @@ class CountryListController extends Controller
     public function edit(CountryList $countryList)
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -61,6 +93,12 @@ class CountryListController extends Controller
     public function update(UpdateCountryListRequest $request, CountryList $countryList)
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     /**
@@ -69,5 +107,11 @@ class CountryListController extends Controller
     public function destroy(CountryList $countryList)
     {
         //
+
+        try {
+        } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

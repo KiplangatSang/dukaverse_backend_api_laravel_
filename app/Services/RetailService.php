@@ -11,14 +11,12 @@ use Illuminate\Support\Facades\Auth;
 
 class RetailService extends BaseService
 {
-    private $user;
-     public function __construct(
+      public function __construct(
         protected readonly StoreFileResource $storeFileResource,
         protected readonly ResponseHelper $responseHelper
     ) {
           parent::__construct($storeFileResource, $responseHelper);
-          $this->user = $this->user();
-    }
+     }
 
     public function retails()
     {

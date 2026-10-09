@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Http\Resources\ApiResource;
 
 use App\Helpers\NotificationMessage;
@@ -12,14 +14,38 @@ use Illuminate\Notifications\DatabaseNotification;
  *     name="Notifications",
  *     description="API Endpoints for managing user and retail notifications"
  * )
- * @OA\Security([{"bearerAuth": []}])
  */
 class NotificationController extends BaseController
 {
+
+    public function create()
+    {
+
+    try{
+        //
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
+    }
+
+    public function store(Request $request)
+    {
+
+    try{
+        //
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
+    }
+
     /**
      * @OA\Get(
      *     path="/api/v1/notifications",
      *     tags={"Notifications"},
+     *     operationId="getAllNotifications",
      *     security={{"bearerAuth":{}}},
      *     summary="Get all notifications",
      *     description="Fetch all notifications for the authenticated user and retail account",
@@ -58,6 +84,8 @@ class NotificationController extends BaseController
 
     public function index()
     {
+
+    try{
         $message['notificationMessage'] = new NotificationMessage("hello", null, null);
         $user_notifications             = $this->user()->notifications()->with('notifiable')->get();
         $retail_notifications           = $this->retail()->notifications()->get();
@@ -65,22 +93,19 @@ class NotificationController extends BaseController
         $notifications['user_notifications']   = $user_notifications;
         $notifications['retail_notifications'] = $retail_notifications;
         return $this->sendResponse($notifications, 'success, Notifications');
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
-    public function create()
-    {
-        //
-    }
-
-    public function store(Request $request)
-    {
-        //
-    }
 
     /**
      * @OA\Get(
      *     path="/api/v1/notifications/{id}",
      *     tags={"Notifications"},
+     *     operationId="getNotificationById",
      *     security={{"bearerAuth":{}}},
      *     summary="Get a single notification",
      *     description="Fetch a notification by its ID for the authenticated user",
@@ -112,13 +137,27 @@ class NotificationController extends BaseController
 
     public function show(string $id)
     {
+
+    try{
         $notification = $this->user()->notifications()->where('id', $id)->first();
         return $this->sendResponse($notification, 'success, Notifications');
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     public function edit(string $id)
     {
+
+    try{
         //
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -126,6 +165,7 @@ class NotificationController extends BaseController
      *     path="/api/v1/notifications/{id}",
      *     tags={"Notifications"},
      *     security={{"bearerAuth":{}}},
+     *     operationId="updateNotification",
      *     summary="Update a notification",
      *     description="Mark a notification as read or update its properties",
      *     @OA\Parameter(
@@ -148,6 +188,8 @@ class NotificationController extends BaseController
      */
     public function update(Request $request, string $id)
     {
+
+    try{
         $notification = DatabaseNotification::where('id', $id)->first();
 
         if ($request->mark_as_read) {
@@ -166,6 +208,11 @@ class NotificationController extends BaseController
 
         $notification = DatabaseNotification::where('id', $id)->first();
         return $this->sendResponse($notification, 'success, Notification updated successfully');
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -173,6 +220,7 @@ class NotificationController extends BaseController
      *     path="/api/v1/notifications/{id}",
      *     tags={"Notifications"},
      *     security={{"bearerAuth":{}}},
+     *     operationId="deleteNotification",
      *     summary="Delete a notification",
      *     description="Delete a notification by its ID",
      *     @OA\Parameter(
@@ -188,6 +236,12 @@ class NotificationController extends BaseController
      */
     public function destroy(string $id)
     {
+
+    try{
         //
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

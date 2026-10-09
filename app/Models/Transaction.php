@@ -124,12 +124,12 @@ class Transaction extends Model {
 
     public function senderAccount()
     {
-        return $this->belongsTo(Account::class, "sender_accounts_id");
+        return $this->belongsTo(Wallet::class, "sender_accounts_id");
     }
 
     public function receiverAccount()
     {
-        return $this->belongsTo(Account::class, "receiver_accounts_id");
+        return $this->belongsTo(Wallet::class, "receiver_accounts_id");
     }
 
     public function receipt()

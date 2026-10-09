@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Resources\ApiResource;
-
-use App\Services\OrderService;
+use App\Services\AuthService;
+use App\Services\orderService;
+use Exception;
 
 /**
  * @OA\Tag(
@@ -18,10 +19,13 @@ class OrderDeliveredController extends BaseController
     /**
      *  Service accessor
      */
-    public function OrderService()
-    {
-        $this->ordersRepo = new OrderService($this->user());
-        return $this->ordersRepo;
+
+     public function __construct(
+        private readonly AuthService $authService,
+        ApiResource $apiResource,
+        private readonly orderService $orderService,
+    ) {
+        parent::__construct($apiResource);
     }
 
     /**
@@ -48,9 +52,16 @@ class OrderDeliveredController extends BaseController
      */
     public function index()
     {
-        $this->OrderService();
-        $ordersdata = $this->OrderService()->getDeliveredOrders();
+
+    try{
+        $ordersdata = $this->orderService->getDeliveredOrders();
         return response()->json($ordersdata, 200);
+
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -89,6 +100,8 @@ class OrderDeliveredController extends BaseController
      */
     public function show(string $id)
     {
+
+    try{
         $orders = $this->user()->orders()->where('id', $id)->first();
 
         if (! $orders) {
@@ -104,6 +117,11 @@ class OrderDeliveredController extends BaseController
         ];
 
         return response()->json($ordersdata, 200);
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 
     /**
@@ -145,6 +163,8 @@ class OrderDeliveredController extends BaseController
      */
     public function destroy(string $id)
     {
+
+    try{
         // $this->authorize('delete');
 
         $result = $this->user()->orders()->destroy($id);
@@ -154,5 +174,11 @@ class OrderDeliveredController extends BaseController
         }
 
         return response()->json(['message' => 'success'], 200);
+
+
+        } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+                }
     }
 }

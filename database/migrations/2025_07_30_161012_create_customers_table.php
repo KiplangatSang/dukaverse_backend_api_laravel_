@@ -7,15 +7,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
-            $appService   = new AppService();
-            $noprofile = $appService->getBaseImages()['noprofile'];
-
             $table->id();
             $table->morphs("ownerable");
             $table->bigInteger('customerable_id')->nullable();
@@ -27,7 +26,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->boolean('is_blocked')->default(false);
             $table->bigInteger('sale_transaction_id')->nullable();
-            $table->string('profile')->default($noprofile);
+            $table->string('profile')->nullable();
             $table->softDeletes();
             $table->timestamps();
 

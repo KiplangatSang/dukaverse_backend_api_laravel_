@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use App\Mail\ResetPasswordMail;
@@ -14,11 +15,11 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens, SoftDeletes, MustVerifyEmail;
 
-/**
- * Send a password reset notification to the user.
- *
- * @param  string  $token
- */
+    /**
+     * Send a password reset notification to the user.
+     *
+     * @param  string  $token
+     */
 
     public function sendPasswordResetNotification($token, $url = null)
     {
@@ -50,6 +51,7 @@ class User extends Authenticatable
     const ADMIN_ACCOUNT_TYPE              = "admin";
     const EMPLOYEE_ACCOUNT_TYPE           = "employee";
     const RETAILER_ACCOUNT_TYPE           = "retailer";
+    const RETAIL_ACCOUNT_TYPE             = "retail";
     const OFFICE_ACCOUNT_TYPE             = "office";
     const CUSTOMER_ACCOUNT_TYPE           = "customer";
     const SUPPLIER_ACCOUNT_TYPE           = "supplier";
@@ -61,6 +63,7 @@ class User extends Authenticatable
     const ACCOUNT_TYPES = [
         self::ADMIN_ACCOUNT_TYPE      => self::ADMIN_ACCOUNT_TYPE,
         self::RETAILER_ACCOUNT_TYPE   => self::RETAILER_ACCOUNT_TYPE,
+        self::RETAIL_ACCOUNT_TYPE     => self::RETAIL_ACCOUNT_TYPE,
         self::CUSTOMER_ACCOUNT_TYPE   => self::CUSTOMER_ACCOUNT_TYPE,
         self::SUPPLIER_ACCOUNT_TYPE   => self::SUPPLIER_ACCOUNT_TYPE,
         self::LEAD_ACCOUNT_TYPE       => self::LEAD_ACCOUNT_TYPE,
@@ -165,7 +168,6 @@ class User extends Authenticatable
     {
 
         return $this->has("employee") ? true : false;
-
     }
 
     public function profile()
@@ -263,14 +265,12 @@ class User extends Authenticatable
     {
 
         return $this->hasOne(Ecommerce::class, 'user_id');
-
     }
 
     public function ecommerces()
     {
 
         return $this->morphMany(Ecommerce::class, 'ownerable');
-
     }
 
     public function receipt()
@@ -524,18 +524,15 @@ class User extends Authenticatable
     public function activities()
     {
         return $this->morphMany(UserActivity::class, 'ownerable');
-
     }
 
     public function comments()
     {
         return $this->morphMany(Comment::class, 'ownerable');
-
     }
 
     public function calendars()
     {
         return $this->hasMany(Calendar::class);
     }
-
 }

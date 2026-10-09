@@ -4,9 +4,15 @@ use App\Http\Resources\ApiResource;
 
 use App\Models\Employee;
 use App\Models\Role;
+use Exception;
 
 class AssignEmployeeRole extends BaseController
 {
+    public function __construct(
+            protected ApiResource $apiResource,
+        ) {
+            parent::__construct($apiResource);
+        }
     /**
      * @OA\Post(
      *     path="/api/v1/roles/{role}/employees/{employee}/assign",
@@ -45,12 +51,18 @@ class AssignEmployeeRole extends BaseController
      */
     public function assignEmployeeRole(Role $role, Employee $employee)
     {
+        try{
         $result = $role->employees()->syncWithoutDetaching($employee);
 
         if (! $result) {
             return $this->sendError($result, 'Could not assign employee this role');
         }
         return $this->sendResponse($result, 'success, employee role updated successfully');
+
+         } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -91,11 +103,17 @@ class AssignEmployeeRole extends BaseController
      */
     public function unAssignEmployeeRole(Role $role, Employee $employee)
     {
+        try{
         $result = $role->employees()->detach($employee);
 
         if (! $result) {
             return $this->sendError($result, 'Could not unassign employee this role');
         }
         return $this->sendResponse($result, 'success, employee role unassigned successfully');
+
+         } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 }

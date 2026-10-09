@@ -5,9 +5,22 @@ use App\Http\Resources\ApiResource;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Models\Role;
+use App\Services\AuthService;
+use App\Services\RoleService;
+use Exception;
 
 class RoleController extends BaseController
 {
+
+
+
+    public function __construct(
+        private readonly AuthService $authService,
+         private readonly RoleService $roleService,
+        ApiResource $apiResource
+    ) {
+        parent::__construct($apiResource);
+     }
     /**
      * @OA\Get(
      *     path="/api/v1/roles",
@@ -26,14 +39,18 @@ class RoleController extends BaseController
      */
     public function index()
     {
-        //
-        $roles = $this->getAccount()->roles()->with('employees')->get();
+        try{
+            $result = $this->roleService->index();
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
 
-        if (! $roles) {
-            return $this->sendError($roles, "Error, could not fetch any roles");
+            return $this->apiResource->success($result["data"], $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
 
-        return $this->sendResponse($roles, "Success, roles fetched");
     }
 
     /**
@@ -54,12 +71,18 @@ class RoleController extends BaseController
      */
     public function create()
     {
-        //
-        $roles['permissions'] = $this->getRetailEmployeePermissions();
-        if (! $roles) {
-            return $this->sendError($roles, "Error, could not fetch any roles");
+        try{
+            $result = $this->roleService->create();
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
+
+            return $this->apiResource->success($result["data"], $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
-        return $this->sendResponse($roles, "Success, roles fetched");
+
     }
     /**
      * @OA\Post(
@@ -104,15 +127,18 @@ class RoleController extends BaseController
 
     public function store(StoreRoleRequest $request)
     {
-        //
-        $validated = $request->validated();
-        $role      = $this->getAccount()->roles()->create($validated);
+        try{
+            $result = $this->roleService->store($request->all());
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
 
-        if (! $role) {
-            return $this->sendError($role, "Error, could not create this role");
+            return $this->apiResource->success($result["data"] , $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
 
-        return $this->sendResponse($role, "Success, role created successfully");
     }
 
     /**
@@ -139,14 +165,18 @@ class RoleController extends BaseController
      */
     public function show(Role $role)
     {
-        //
-        $role                   = $this->getAccount()->roles()->findOrFail($role->id)->with('employees.user')->first();
-        $role['employees_list'] = $this->getAccount()->employees()->with('user')->with('roles')->get();
-        if (! $role) {
-            return $this->sendError($role, "Error, could not fetch this role");
+        try{
+            $result = $this->roleService->show($role);
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
+
+            return $this->apiResource->success($result["data"], $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
 
-        return $this->sendResponse($role, "Success, role fetched successfully");
     }
 
     /**
@@ -173,14 +203,18 @@ class RoleController extends BaseController
      */
     public function edit(Role $role)
     {
-        //
-        $role                         = $this->getAccount()->roles()->findOrFail($role->id);
-        $role['employee_permissions'] = $this->getRetailEmployeePermissions();
-        if (! $role) {
-            return $this->sendError($role, "Error, could not fetch this role");
+        try{
+            $result = $this->roleService->edit( $role);
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
+
+            return $this->apiResource->success($result["data"], $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
 
-        return $this->sendResponse($role, "Success, role fetched successfully");
     }
 
     /**
@@ -231,15 +265,18 @@ class RoleController extends BaseController
 
     public function update(UpdateRoleRequest $request, Role $role)
     {
-        //
-        $validated = $request->validated();
-        $role      = $role->update($validated);
+        try{
+            $result = $this->roleService->update( $request->all(), $role);
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
 
-        if (! $role) {
-            return $this->sendError($role, "Error, could not create this role");
+            return $this->apiResource->success($result["data"], $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
 
-        return $this->sendResponse($role, "Success, role created successfully");
     }
 
     /**
@@ -266,13 +303,17 @@ class RoleController extends BaseController
      */
     public function destroy(Role $role)
     {
-        //
-        $role = $this->getAccount()->roles()->destroy($role->id);
+        try{
+            $result = $this->roleService->destroy($role);
+            if(isset($result["error"])){
+             return   $this->apiResource->error("Error occured", $result["httpCode"], $result["error"]);
+            }
 
-        if (! $role) {
-            return $this->sendError($role, "Error, role could not be deleted");
+            return $this->apiResource->success($result["data"], $result["message"], $result["httpCode"]);
+        }catch(Exception $ex){
+            info($ex->getMessage());
+            return $this->apiResource->error("Server Error", 500,[$ex->getMessage()]);
         }
 
-        return $this->sendResponse($role, "Success, role deleted successfully");
     }
 }

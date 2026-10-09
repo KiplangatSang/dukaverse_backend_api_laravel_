@@ -11,15 +11,19 @@ use App\Events\SubscriptionCreated;
 use App\Events\SubscriptionCancelled;
 use App\Events\SubscriptionReactivated;
 use App\Events\SubscriptionUpgraded;
- use Illuminate\Http\Request;
+use App\Services\SubscriptionsService;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Symfony\Contracts\Service\Attribute\SubscribedService;
 
 class SubscriptionController extends BaseController
 {
 
      public function __construct(
-        ApiResource $apiResource
+        ApiResource $apiResource,
+        private readonly SubscriptionsService $subscriptionService
     ) {
         parent::__construct($apiResource);
     }
@@ -40,7 +44,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions",
+     *     path="/api/v1/subscriptions",
      *     summary="Get all subscriptions",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -55,7 +59,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/create",
+     *     path="/api/v1/subscriptions/create",
      *     summary="Get subscription creation metadata",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -75,7 +79,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/subscriptions",
+     *     path="/api/v1/subscriptions",
      *     summary="Create a new subscription",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -169,7 +173,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/{id}",
+     *     path="/api/v1/subscriptions/{id}",
      *     summary="Get a subscription by ID",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -180,14 +184,21 @@ class SubscriptionController extends BaseController
      */
     public function show(Subscription $subscription)
     {
-        return $this->sendResponse([
-            'subscription' => $subscription->load(['tier', 'coupon', 'user'])
-        ], 'Subscription fetched successfully');
+        try{
+            $result =  $this->subscriptionService->show($subscription);
+            if(isset($result["error"]))
+                return $this->apiResource->error($result['message'],$result["httpCode"],$result["error"]);
+
+         return $this->apiResource->success($result["data"], $result["message"], 200);
+        }catch(Exception $ex){
+          info($ex->getMessage());
+           return $this->apiResource->error("Server error",500,["error"=>$ex->getMessage()]);
+         }
     }
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/{id}/edit",
+     *     path="/api/v1/subscriptions/{id}/edit",
      *     summary="Get a subscription for editing",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -209,7 +220,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Put(
-     *     path="/api/subscriptions/{id}",
+     *     path="/api/v1/subscriptions/{id}",
      *     summary="Update a subscription",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -272,7 +283,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Delete(
-     *     path="/api/subscriptions/{id}",
+     *     path="/api/v1/subscriptions/{id}",
      *     summary="Cancel a subscription",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -295,7 +306,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/subscriptions/{id}/extend-trial",
+     *     path="/api/v1/subscriptions/{id}/extend-trial",
      *     summary="Extend trial period",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -332,7 +343,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/subscriptions/{id}/reactivate",
+     *     path="/api/v1/subscriptions/{id}/reactivate",
      *     summary="Reactivate a cancelled subscription",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -361,7 +372,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/user/{userId}",
+     *     path="/api/v1/subscriptions/user/{userId}",
      *     summary="Get subscriptions for a specific user",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -383,7 +394,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/active",
+     *     path="/api/v1/subscriptions/active",
      *     summary="Get all active subscriptions",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -403,7 +414,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/expiring-soon",
+     *     path="/api/v1/subscriptions/expiring-soon",
      *     summary="Get subscriptions expiring soon",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},
@@ -426,7 +437,7 @@ class SubscriptionController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/subscriptions/trial-ending-soon",
+     *     path="/api/v1/subscriptions/trial-ending-soon",
      *     summary="Get subscriptions with trial ending soon",
      *     tags={"Subscriptions"},
      *     security={{"bearerAuth":{}}},

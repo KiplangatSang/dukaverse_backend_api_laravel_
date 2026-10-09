@@ -5,32 +5,29 @@ use App\Http\Resources\ApiResource;
 use App\Http\Requests\StoreSupplyRequest;
 use App\Http\Requests\UpdateSupplyRequest;
 use App\Models\Supply;
+use App\Services\SuppliesService;
 
 class SupplyController extends BaseController
 {
      public function __construct(
-        ApiResource $apiResource
+        ApiResource $apiResource,
+        readonly SuppliesService $suppliesService,
     ) {
         parent::__construct($apiResource);
+
     }
 
     private $supplyrepo;
     private $retail;
 
-    public function suppliesService()
-    {
-        # code...
-        $this->retail     = $this->getAccount();
-        $this->supplyrepo = new SuppliesService($this->retail);
-        return $this->supplyrepo;
-    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         //
-        $suppliesdata["supplyitems"] = $this->suppliesService()->getAllSupplies();
+        $suppliesdata["supplyitems"] = $this->suppliesService->getAllSupplies();
         return $this->sendResponse($suppliesdata, "success");
     }
 
@@ -49,7 +46,7 @@ class SupplyController extends BaseController
     public function store(StoreSupplyRequest $request)
     {
         //
-        $this->suppliesService();
+        $this->suppliesService;
 
         $this->getAccount()->supplies()->create(
             $request->validated(),
@@ -62,7 +59,7 @@ class SupplyController extends BaseController
     public function show(Supply $supply)
     {
         //
-        $supply = $this->suppliesService()->getSuppliesById($supply->id);
+        $supply = $this->suppliesService->getSuppliesById($supply->id);
         return $this->sendResponse($supply, 'Success, Supply item fetched');
     }
 
@@ -72,7 +69,7 @@ class SupplyController extends BaseController
     public function edit(Supply $supply)
     {
         //
-        $supply = $this->suppliesService()->getSuppliesById($supply->id);
+        $supply = $this->suppliesService->getSuppliesById($supply->id);
         return $this->sendResponse($supply, 'Success, Supply item fetched');
 
     }

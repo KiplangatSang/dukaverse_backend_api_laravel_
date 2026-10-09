@@ -5,6 +5,7 @@ use App\Http\Resources\ApiResource;
 use App\Http\Requests\StorePlatformRequest;
 use App\Http\Requests\UpdatePlatformRequest;
 use App\Models\Platform;
+use Exception;
 
 class PlatformController extends Controller
 {
@@ -58,20 +59,32 @@ class PlatformController extends Controller
      */
     public function index()
     {
+        try{
         $platforms = Platform::with(['users', 'ecommerces', 'locations'])->get();
         return response()->json([
             'status'  => 'success',
             'message' => 'Platforms retrieved successfully.',
             'data'    => $platforms,
         ]);
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     public function create()
     {
+        try{
         return response()->json([
             'status'  => 'success',
             'message' => 'Platform creation form.',
         ]);
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -117,6 +130,7 @@ class PlatformController extends Controller
      */
     public function store(StorePlatformRequest $request)
     {
+        try{
 
         $platform = Platform::create($request->validated());
         return response()->json([
@@ -124,6 +138,11 @@ class PlatformController extends Controller
             'message' => 'Platform created successfully.',
             'data'    => $platform,
         ], 201);
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -152,20 +171,32 @@ class PlatformController extends Controller
      */
     public function show(Platform $platform)
     {
+        try{
         return response()->json([
             'status'  => 'success',
             'message' => 'Platform retrieved successfully.',
             'data'    => $platform->load(['users', 'ecommerces', 'locations']),
         ]);
+
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 
     public function edit(Platform $platform)
     {
+        try{
         return response()->json([
             'status'  => 'success',
             'message' => 'Platform edit form.',
             'data'    => $platform,
         ]);
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -203,12 +234,18 @@ class PlatformController extends Controller
      */
     public function update(UpdatePlatformRequest $request, Platform $platform)
     {
+        try{
         $platform->update($request->validated());
         return response()->json([
             'status'  => 'success',
             'message' => 'Platform updated successfully.',
             'data'    => $platform,
         ]);
+
+            } catch (Exception $ex) {
+                info($ex->getMessage());
+                return $this->apiResource->error('Server error.', 500);
+            }
     }
 
     /**
@@ -232,10 +269,15 @@ class PlatformController extends Controller
      */
     public function destroy(Platform $platform)
     {
+        try{
         $platform->delete();
         return response()->json([
             'status'  => 'success',
             'message' => 'Platform deleted successfully.',
         ]);
+         } catch (Exception $ex) {
+            info($ex->getMessage());
+            return $this->apiResource->error('Server error.', 500);
+        }
     }
 }

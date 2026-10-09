@@ -13,8 +13,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('retails', function (Blueprint $table) {
-            $appService   = new AppService();
-            $noprofile = $appService->getBaseImages()['noprofile'];
             $table->id();
             $table->morphs("ownerable");
             $table->bigInteger('retailable_id')->nullable();

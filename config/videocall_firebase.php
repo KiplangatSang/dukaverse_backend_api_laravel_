@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'credentials' => base_path(env('VIDEOCALL_FIREBASE_CREDENTIALS', 'storage/app/firebase/ceroisoft_firebase_credentials.json')),
+    'credentials' => base_path(env('VIDEOCALL_FIREBASE_CREDENTIALS', 'firebase/ceroisoft_firebase_credentials.json')),
     'database_url' => env('VIDEOCALL_FIREBASE_DATABASE_URL', 'https://ceroisoft-e7c81.firebaseio.com'),
     'storage_bucket' => env('VIDEOCALL_FIREBASE_STORAGE_BUCKET', 'ceroisoft-e7c81.firebasestorage.app'),
     'messaging_sender_id' => env('VIDEOCALL_FIREBASE_MESSAGING_SENDER_ID', '524096297365'),

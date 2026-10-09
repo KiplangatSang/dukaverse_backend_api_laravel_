@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRetailItemRequest;
@@ -30,7 +31,7 @@ class RetailItemController extends BaseController
     }
     private $retail;
 
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -89,7 +90,7 @@ class RetailItemController extends BaseController
     {
         //
         $items = $this->getAccount()->items()->orderBy('created_at', 'desc')->get();
-        return $this->sendResponse($items, 'Success, Retail items');
+        return $this->sendResponse($items->toArray(), 'Success, Retail items');
     }
 
     /**
@@ -208,14 +209,17 @@ class RetailItemController extends BaseController
             $productColors = $this->getProductColors($request->productColors);
         }
 
-        $item = $this->itemService->saveItems($retail_item_data, $productColors,
-            $productSizes, $fileUrlsToStore);
+        $item = $this->itemService->saveItems(
+            $retail_item_data,
+            $productColors,
+            $productSizes,
+            $fileUrlsToStore
+        );
         if (! $item) {
             return $this->sendError("Could not save item");
         }
 
         return $this->sendResponse($item->toArray(), "success, Item saved successfully.");
-
     }
 
     private function getProductSizes($productSizes)
@@ -257,7 +261,7 @@ class RetailItemController extends BaseController
             return $this->sendError("Sorry! Could not get the item");
         }
 
-        return $this->sendResponse($item, "success");
+        return $this->sendResponse($item->toArray(), "success");
     }
 
     /**
@@ -285,7 +289,7 @@ class RetailItemController extends BaseController
         $item = $this->getAccount()->items()
             ->where('id', $retailItem)
             ->first();
-        return $this->sendResponse($item, 'success');
+        return $this->sendResponse($item->toArray(), 'success');
     }
 
     /**
@@ -427,15 +431,17 @@ class RetailItemController extends BaseController
             ->where('id', $retailItem)
             ->first();
 
-        $stock_update = $item->stocks()->update([
-            "selling_price" => $item->selling_price,
-        ]);
+        if ($item->stocks()->count() > 1) {
+            $stock_update = $item->stocks()->update([
+                "selling_price" => $item->selling_price,
+            ]);
 
-        if (! $stock_update) {
-            return $this->sendError("Could not update this item's stocks", $retailItem);
+            if (! $stock_update) {
+                return $this->sendError("Could not update this item stocks",["stock" => $item->has('stocks')]);
+            }
         }
 
-        return $this->sendResponse($item, 'success');
+        return $this->sendResponse($item->toArray(), 'success');
     }
 
     /**

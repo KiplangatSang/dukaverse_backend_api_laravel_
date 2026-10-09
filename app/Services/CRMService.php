@@ -9,9 +9,7 @@ use App\Models\SaleTransaction;
 use App\Models\User;
 
 class CRMService extends BaseService
-{
-    private $user;
-     
+{     
 
     public function __construct(
         private readonly UserService $userService,
@@ -19,7 +17,6 @@ class CRMService extends BaseService
         private readonly ResponseHelper $responseHelper,
         private readonly AppService $appService
     ) {
-        $this->user = $this->user();
         parent::__construct($storeFileResource, $responseHelper);
     }
 

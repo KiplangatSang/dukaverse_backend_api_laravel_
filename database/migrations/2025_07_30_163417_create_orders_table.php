@@ -31,7 +31,6 @@ return new class extends Migration
             $table->enum('pay_status', Order::PAYSTATUS);
             $table->bigInteger('payment_id')->default(false);
             $table->double('paid_amount')->default(false);
-            $table->boolean('delivery_status')->default(false);
             $table->bigInteger('shipping_method_id')->nullable();
             $table->bigInteger('supplierable_id')->nullable();
             $table->string('supplierable_type')->nullable();

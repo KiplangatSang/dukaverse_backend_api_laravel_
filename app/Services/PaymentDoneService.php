@@ -8,18 +8,17 @@ use App\Models\Transaction;
 
 class PaymentDoneService extends BaseService
 {
-     
-     public function __construct(
+
+    public function __construct(
         protected readonly StoreFileResource $storeFileResource,
         protected readonly ResponseHelper $responseHelper,
-        private readonly Transaction $transaction
     ) {
         parent::__construct($storeFileResource, $responseHelper);
     }
 
 
     //check type of transaction
-    public function index()
+    public function index(Transaction $transaction): bool
     {
         # code...
         /*
@@ -28,7 +27,6 @@ class PaymentDoneService extends BaseService
          *                   3=>external and the money is not involded with dukaverse ie cash payments(just to help keep track)
          * message = message tied up with sending the transaction
          */
-        $transaction = $this->transaction;
         $gateway = $transaction->gateway;
         info('gateway' . $gateway);
         switch ($gateway) {
@@ -41,13 +39,20 @@ class PaymentDoneService extends BaseService
                 $receiverupdate = true;
                 break;
         }
-        $this->updatePaidItem($transaction);
+
         if ($senderupdate && $receiverupdate) {
             return true;
         } else {
             return false;
         }
 
+        $updatePaidItem =  $this->updatePaidItem($transaction);
+
+        if (!$updatePaidItem) {
+            return false;
+        }
+
+        return true;
     }
 
     public function updatePaidItem($transaction)
@@ -63,6 +68,28 @@ class PaymentDoneService extends BaseService
         ]);
         return true;
     }
+
+    public function pollMpesaPaymentResult($payment_checkout_id)
+    {
+        $transaction = Transaction::where('transaction_id', $payment_checkout_id,)->first();
+        if (!$transaction) {
+            return $this->responseHelper->error("Transaction could not be found.", error: ["transaction" => "Transaction could not be found", 404]);
+        }
+
+        if ($transaction->status = Transaction::PAID) {
+            return $this->responseHelper->respond(["transaction" => $transaction], "Payment done successfully");
+        } else if ($transaction->status == Transaction::FAILED) {
+            return $this->responseHelper->error("Payment failed", ["error" => "The payment could not be processed.", 500]);
+        } else if ($transaction->status == Transaction::PENDING) {
+            return $this->responseHelper->respond(["transaction" => $transaction], "The payment is pending");
+        } else if ($transaction->status == Transaction::REFUNDED) {
+            return $this->responseHelper->respond(["transaction" => $transaction], "Payment has been refunded");
+        } else {
+            return $this->responseHelper->error("Payment tracking failed", ["error" => "The payment status could not be tracked.", 500]);
+        }
+    }
+
+
 
     public function calculateSenderUpdate($transaction)
     {

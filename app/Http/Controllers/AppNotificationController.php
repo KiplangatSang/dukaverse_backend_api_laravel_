@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Http\Resources\ApiResource;
 
 use App\Models\AppNotification;
 use App\Services\FirebaseService;
@@ -9,6 +8,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Resources\ApiResource;
+use Exception;
 
 /**
  * @OA\Tag(
@@ -21,8 +22,9 @@ class AppNotificationController extends BaseController
 {
     protected FirebaseService $firebaseService;
 
-    public function __construct(FirebaseService $firebaseService)
+    public function __construct(FirebaseService $firebaseService,  ApiResource $apiResource,)
     {
+         parent::__construct($apiResource);
         $this->firebaseService = $firebaseService;
     }
 
@@ -72,8 +74,9 @@ class AppNotificationController extends BaseController
      *     )
      * )
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
+        try{
         $query = AppNotification::where('user_id', Auth::id())
             ->with('user:id,name,email')
             ->orderBy('created_at', 'desc');
@@ -104,6 +107,10 @@ class AppNotificationController extends BaseController
         ];
 
         return $this->sendResponse($response, 'Notifications retrieved successfully');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -126,8 +133,9 @@ class AppNotificationController extends BaseController
      *     @OA\Response(response=201, description="Notification created successfully")
      * )
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
+        try{
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'message' => 'required|string',
@@ -153,6 +161,10 @@ class AppNotificationController extends BaseController
         }
 
         return $this->sendResponse($notification, 'Notification created successfully', 201);
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -172,14 +184,24 @@ class AppNotificationController extends BaseController
      *     @OA\Response(response=404, description="Notification not found")
      * )
      */
-    public function show(AppNotification $notification)
+    public function show($id)
     {
+        try{
+
+        $notification = AppNotification::where("id", $id)->first();
+        if (!$notification) {
+            return $this->sendError('Notification not found', [], 404);
+        }
         // Ensure user owns the notification
         if ($notification->user_id !== Auth::id()) {
             return $this->sendError('Unauthorized', [], 403);
         }
 
         return $this->sendResponse($notification, 'Notification retrieved successfully');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -203,8 +225,14 @@ class AppNotificationController extends BaseController
      *     @OA\Response(response=200, description="Notification updated successfully")
      * )
      */
-    public function update(Request $request, AppNotification $notification)
+    public function update(Request $request, $id)
     {
+        try{
+
+        $notification = AppNotification::where("id", $id)->first();
+        if (!$notification) {
+            return $this->sendError('Notification not found', [], 404);
+        }
         // Ensure user owns the notification
         if ($notification->user_id !== Auth::id()) {
             return $this->sendError('Unauthorized', [], 403);
@@ -213,6 +241,8 @@ class AppNotificationController extends BaseController
         $validated = $request->validate([
             'read' => 'boolean',
         ]);
+
+
 
         if (isset($validated['read'])) {
             if ($validated['read']) {
@@ -223,6 +253,10 @@ class AppNotificationController extends BaseController
         }
 
         return $this->sendResponse($notification, 'Notification updated successfully');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -243,6 +277,7 @@ class AppNotificationController extends BaseController
      */
     public function destroy(AppNotification $notification)
     {
+        try{
         // Ensure user owns the notification
         if ($notification->user_id !== Auth::id()) {
             return $this->sendError('Unauthorized', [], 403);
@@ -250,6 +285,10 @@ class AppNotificationController extends BaseController
 
         $notification->delete();
         return $this->sendResponse(null, 'Notification deleted successfully');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -262,8 +301,9 @@ class AppNotificationController extends BaseController
      *     @OA\Response(response=200, description="All notifications marked as read")
      * )
      */
-    public function markAllRead(): JsonResponse
+    public function markAllRead()
     {
+        try{
         $count = AppNotification::where('user_id', Auth::id())
             ->where('read', false)
             ->update([
@@ -272,6 +312,10 @@ class AppNotificationController extends BaseController
             ]);
 
         return $this->sendResponse(['marked_count' => $count], 'All notifications marked as read');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -284,13 +328,18 @@ class AppNotificationController extends BaseController
      *     @OA\Response(response=200, description="Read notifications deleted")
      * )
      */
-    public function deleteRead(): JsonResponse
+    public function deleteRead()
     {
+        try{
         $count = AppNotification::where('user_id', Auth::id())
             ->where('read', true)
             ->delete();
 
         return $this->sendResponse(['deleted_count' => $count], 'Read notifications deleted successfully');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 
     /**
@@ -312,8 +361,9 @@ class AppNotificationController extends BaseController
      *     )
      * )
      */
-    public function stats(): JsonResponse
+    public function stats()
     {
+        try{
         $stats = [
             'total' => AppNotification::where('user_id', Auth::id())->count(),
             'unread' => AppNotification::where('user_id', Auth::id())->where('read', false)->count(),
@@ -322,5 +372,9 @@ class AppNotificationController extends BaseController
         ];
 
         return $this->sendResponse($stats, 'Notification statistics retrieved successfully');
+           } catch (Exception $ex) {
+            return $this->sendError("Server error", $ex->getMessage(), 500);
+
+        }
     }
 }
