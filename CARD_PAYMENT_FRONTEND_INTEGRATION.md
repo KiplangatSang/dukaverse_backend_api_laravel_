@@ -41,7 +41,7 @@ npm install ngx-stripe
 
 ```javascript
 // Replace with your Stripe publishable key
-const stripe = Stripe('pk_test_51HXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+const stripe = Stripe('<your-stripe-secret-key>');
 const elements = stripe.elements();
 ```
 
