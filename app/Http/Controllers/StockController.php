@@ -169,7 +169,7 @@ class StockController extends BaseController
                 return $this->sendError('error', ' Code could not be updated');
             }
 
-            return $this->sendResponse($result, ' Code deleted successfully');
+            return $this->sendResponse("success", ' Code deleted successfully');
         } catch (Exception $e) {
             return $this->sendError($e, ' Code could not be updated');
         }

@@ -367,7 +367,18 @@ class BaseController extends Controller
     {
         // If the result is NOT an array, convert it
         if (!is_array($result)) {
-            $result = $result->toArray();
+
+            try {
+                if(is_object($result) && method_exists($result, 'toArray')) {
+                    $result = $result->toArray();
+                } else {
+                    $result = ['result' => $result];
+                }
+            } catch (\Throwable $th) {
+                $result = $result->toArray();
+            } catch (\Throwable $th) {
+                info(["basecontroller sendResponse error" => $th->getMessage()]);
+            }
         }
 
         return $this->apiResource->success($result, $message, code: $code ?? 200);
