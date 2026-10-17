@@ -5648,13 +5648,13 @@
                 ]
             }
         },
-        "/api/v1/user/profile": {
+        "/api/v1/delivery/user/profile": {
             "get": {
                 "tags": [
                     "User Profile"
                 ],
                 "summary": "Get user profile",
-                "operationId": "fff33dbf7ce2957ab58d857703a47a55",
+                "operationId": "c02007e3b0c730e6f82a1efeb9d9a5b8",
                 "responses": {
                     "200": {
                         "description": "Profile retrieved successfully"
@@ -5671,7 +5671,7 @@
                     "User Profile"
                 ],
                 "summary": "Update user profile",
-                "operationId": "eef7edf991667402f2f0aa8952a8c0dc",
+                "operationId": "c28eed698e4483a2c162a184a749be60",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -6293,6 +6293,437 @@
                 "responses": {
                     "200": {
                         "description": "Delivery performance report generated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people": {
+            "get": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Get all delivery people with filtering and pagination",
+                "operationId": "69d42c79697bbe362213af9de4fdf130",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "active",
+                                "suspended",
+                                "banned",
+                                "inactive"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "is_online",
+                        "in": "query",
+                        "description": "Filter by online status",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "is_verified",
+                        "in": "query",
+                        "description": "Filter by verification status",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "is_accredited",
+                        "in": "query",
+                        "description": "Filter by accreditation status",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "city",
+                        "in": "query",
+                        "description": "Filter by city",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name, email, or phone",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort field",
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at"
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "description": "Sort direction",
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery people retrieved successfully"
+                    },
+                    "500": {
+                        "description": "Error retrieving delivery people"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people/{deliveryPerson}": {
+            "get": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Get a specific delivery person's details",
+                "operationId": "9eb76d945d231bc6a40d86273f2ed947",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery person details retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error retrieving delivery person"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Delete a delivery person",
+                "operationId": "36b60655be50ef8eb44a35149e1979ef",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery person deleted successfully"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error deleting delivery person"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people/{deliveryPerson}/accredit": {
+            "post": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Accredit a delivery person",
+                "operationId": "f3707c0598218f80e08aa18b73ff7ea7",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery person accredited successfully"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error accrediting delivery person"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people/{deliveryPerson}/earnings": {
+            "get": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Get delivery person's earnings",
+                "operationId": "3d68352c9131f9db3a54dcb9c818f8ca",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "payment_status",
+                        "in": "query",
+                        "description": "Filter by payment status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "paid",
+                                "pending",
+                                "processing",
+                                "failed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Filter by period",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Start date filter",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "End date filter",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery person earnings retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error retrieving earnings"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people/{deliveryPerson}/online": {
+            "post": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Set delivery person online",
+                "operationId": "7929b3fbb6110a2dd57b8e3c7ebcd814",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery person is now online"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error setting delivery person online"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people/{deliveryPerson}/offline": {
+            "post": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Set delivery person offline",
+                "operationId": "d2dfd12b65b8fec625d1ca0e63d8f8f6",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery person is now offline"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error setting delivery person offline"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/delivery-people/{deliveryPerson}/available": {
+            "put": {
+                "tags": [
+                    "Delivery People"
+                ],
+                "summary": "Set delivery person availability",
+                "operationId": "c2e2502fc2dfdb1106877ec1c68f13c7",
+                "parameters": [
+                    {
+                        "name": "deliveryPerson",
+                        "in": "path",
+                        "description": "Delivery Person ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "available"
+                                ],
+                                "properties": {
+                                    "available": {
+                                        "description": "Availability status",
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Delivery person availability updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "404": {
+                        "description": "Delivery person not found"
+                    },
+                    "500": {
+                        "description": "Error updating availability"
                     }
                 },
                 "security": [
@@ -19957,6 +20388,43 @@
                 ]
             }
         },
+        "/api/v1/user/profile": {
+            "put": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Update user profile",
+                "operationId": "39f7db16a44f47206587ccb40097ada2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/video-calls": {
             "post": {
                 "tags": [
@@ -20576,6 +21044,10 @@
         {
             "name": "Verification",
             "description": "Verification"
+        },
+        {
+            "name": "Delivery People",
+            "description": "Delivery People"
         },
         {
             "name": "PaymentGateways",

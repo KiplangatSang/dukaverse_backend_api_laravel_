@@ -11,20 +11,6 @@ use App\Services\AuthService;
 use Exception;
 use Illuminate\Http\Request;
 
-/**
- * @OA\Info(
- *     title="Dukaverse Delivery Person API",
- *     version="1.0.0",
- *     description="API documentation for managing Delivery Persons"
- * )
- *
- * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
- *     type="http",
- *     scheme="bearer",
- *     bearerFormat="JWT"
- * )
- */
 
 class DeliveryPersonController extends BaseController
 {

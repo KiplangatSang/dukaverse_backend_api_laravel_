@@ -19,7 +19,7 @@ class UserController extends BaseController
 
     /**
      * @OA\Get(
-     *     path="/api/v1/user/profile",
+     *     path="/api/v1/delivery/user/profile",
      *     summary="Get user profile",
      *     tags={"User Profile"},
      *     security={{"bearerAuth":{}}},
@@ -46,7 +46,7 @@ class UserController extends BaseController
 
     /**
      * @OA\Put(
-     *     path="/api/v1/user/profile",
+     *     path="/api/v1/delivery/user/profile",
      *     summary="Update user profile",
      *     tags={"User Profile"},
      *     security={{"bearerAuth":{}}},
